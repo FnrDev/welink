@@ -37,6 +37,11 @@ class ViewController: UIViewController {
             do {
                 let session = try await SupabaseClientManager.shared.client.auth.signIn(email: email, password: password)
                 showAlert("Logged in as \(session.user.email ?? "unknown")")
+                
+                // Redirect to home page after successful login
+                await MainActor.run {
+                    redirectToHome()
+                }
             } catch {
                 showAlert("Login failed: \(error.localizedDescription)")
             }
@@ -47,5 +52,13 @@ class ViewController: UIViewController {
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             present(alert, animated: true)
         }
+    
+    private func redirectToHome() {
+        let storyboard = UIStoryboard(name: "Home", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "HomeVC") as! HomeViewController
+        
+        // Set it as root view controller
+        guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        window.windows.first?.rootViewController = vc
+    }
 }
-
