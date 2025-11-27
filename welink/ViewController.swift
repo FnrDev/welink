@@ -23,6 +23,11 @@ class ViewController: UIViewController {
     }
     
     @IBAction func createAccBTN(_ sender: Any) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "createaccVC")
+        let navController = UINavigationController(rootViewController: vc)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true, completion: nil)
     }
     @IBAction func forgetBTN(_ sender: Any) {
     }
