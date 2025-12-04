@@ -59,8 +59,8 @@ class ViewController: UIViewController {
         }
     
     private func redirectToHome() {
-        let storyboard = UIStoryboard(name: "Home", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "HomeVC") as! HomeViewController
+        let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC") as! ProviderDashboardViewController
         
         // Set it as root view controller
         guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
