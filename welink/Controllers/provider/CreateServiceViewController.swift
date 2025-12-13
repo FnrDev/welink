@@ -19,7 +19,6 @@ struct CreateServiceRequest: Encodable {
 
 struct ServiceAvailability: Encodable {
     let date: String
-    let category: String
 }
 
 class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -247,8 +246,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         let selectedDate = datePicker.date
         let formatter = ISO8601DateFormatter()
         let availability: [String: Any] = [
-            "date": formatter.string(from: selectedDate),
-            "category": selectedCategory
+            "date": formatter.string(from: selectedDate)
         ]
         
         // Create service in database
@@ -278,8 +276,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             // Create availability struct
             let formatter = ISO8601DateFormatter()
             let availabilityData = ServiceAvailability(
-                date: availability["date"] as? String ?? formatter.string(from: Date()),
-                category: availability["category"] as? String ?? "Cleaning"
+                date: availability["date"] as? String ?? formatter.string(from: Date())
             )
             
             // Create service request
