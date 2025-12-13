@@ -19,6 +19,7 @@ struct CreateUserRequest: Encodable {
 
 class CreateAccountController: UIViewController {
 
+    @IBOutlet weak var nextButton: UIButton!
     @IBOutlet weak var providerSwitch: UISwitch!
     @IBOutlet weak var uploadBTN: UIButton!
     @IBOutlet weak var createAccountBTN: UIButton!
@@ -42,6 +43,65 @@ class CreateAccountController: UIViewController {
         profileIMGView.clipsToBounds = true
         profileIMGView.contentMode = .scaleAspectFill
         profileIMGView.layer.cornerRadius = 12
+        // Hide Next button initially
+        nextButton.isHidden = true
+        providerSwitch.isOn = false
+
+        // Add target for switch value change
+        providerSwitch.addTarget(self, action: #selector(providerSwitchChanged), for: .valueChanged)
+    }
+    
+    @objc private func providerSwitchChanged(_ sender: UISwitch) {
+        nextButton.isHidden = !sender.isOn
+    }
+    
+    @IBAction func nextButtonTapped(_ sender: UIButton) {
+        print("=== nextButtonTapped ===")
+        print("fullName: \(fullName.text ?? "nil")")
+        print("email: \(email.text ?? "nil")")
+        print("phone: \(phone.text ?? "nil")")
+        print("password: \(password.text ?? "nil")")
+        print("selectedImage: \(selectedImage != nil ? "exists" : "nil")")
+        
+        // Validate inputs first
+        guard let name = fullName.text, !name.isEmpty else {
+            showAlert(title: "Missing Information", message: "Please enter your full name")
+            return
+        }
+        
+        guard let emailText = email.text, !emailText.isEmpty else {
+            showAlert(title: "Missing Information", message: "Please enter your email")
+            return
+        }
+        
+        guard let phoneNumber = phone.text, !phoneNumber.isEmpty else {
+            showAlert(title: "Missing Information", message: "Please enter your phone number")
+            return
+        }
+        
+        guard let passwordText = password.text, passwordText.count >= 6 else {
+            showAlert(title: "Weak Password", message: "Password must be at least 6 characters")
+            return
+        }
+        
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let personalizeVC = storyboard.instantiateViewController(withIdentifier: "PersonalaizeController") as? PersonalaizeController {
+            
+            // Pass data
+            personalizeVC.userName = name
+            personalizeVC.userEmail = emailText
+            personalizeVC.userPhone = phoneNumber
+            personalizeVC.userPassword = passwordText
+            personalizeVC.userImage = selectedImage
+            
+            print("=== Data passed to PersonalaizeController ===")
+            print("userName: \(personalizeVC.userName ?? "nil")")
+            print("userEmail: \(personalizeVC.userEmail ?? "nil")")
+            print("userPhone: \(personalizeVC.userPhone ?? "nil")")
+            print("userPassword: \(personalizeVC.userPassword ?? "nil")")
+            
+            navigationController?.pushViewController(personalizeVC, animated: true)
+        }
     }
     
     @IBAction func uploadImageTapped(_ sender: UIButton) {
