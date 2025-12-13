@@ -6,6 +6,7 @@
         <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="UIMenu" message="Requires Xcode 11 or later." minToolsVersion="11.0" requiredIntegratedClassName="UICommandDiff"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -251,6 +252,17 @@
                                 <rect key="frame" x="41" y="412" width="320" height="100"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             </imageView>
+                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7Eo-0r-gwh">
+                                <rect key="frame" x="47" y="582" width="309" height="52"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Next">
+                                    <color key="baseBackgroundColor" name="AccentColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="nextButtonTapped:" destination="FkR-vh-bjh" eventType="touchUpInside" id="7pd-6u-hxi"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="QAJ-5a-4YP"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -268,6 +280,7 @@
                         <outlet property="createAccountBTN" destination="MB6-Gq-BdT" id="YxP-H6-Jf2"/>
                         <outlet property="email" destination="yJ3-li-PAd" id="DhB-Jm-Med"/>
                         <outlet property="fullName" destination="obc-w8-PsA" id="oRF-i6-i1m"/>
+                        <outlet property="nextButton" destination="7Eo-0r-gwh" id="n6P-Jn-w0s"/>
                         <outlet property="password" destination="NkX-KX-U3V" id="1ZH-OW-EKR"/>
                         <outlet property="phone" destination="DL1-9j-t23" id="O3m-YT-2Cf"/>
                         <outlet property="profileIMGView" destination="oM5-My-s7S" id="1GM-Fg-L8J"/>
@@ -278,6 +291,92 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="2G0-BR-1Yh" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2872.5190839694656" y="-80.281690140845072"/>
+        </scene>
+        <!--Personalaize-->
+        <scene sceneID="idv-1U-eCr">
+            <objects>
+                <viewController storyboardIdentifier="PersonalaizeController" id="gmd-Tr-1Hd" customClass="PersonalaizeController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="OW3-8O-b2X">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Select Services" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i4k-fb-iXi">
+                                <rect key="frame" x="24" y="116" width="132" height="37"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" showsMenuAsPrimaryAction="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" changesSelectionAsPrimaryAction="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Pwi-pO-3G3">
+                                <rect key="frame" x="24" y="161" width="345" height="39"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <menu key="menu" title="Skills" id="vJ4-WE-vmc">
+                                    <children>
+                                        <command title="Cleaning" id="U8v-ha-Kxc"/>
+                                        <command title="Plumbing" id="Qfs-Q3-TlA"/>
+                                    </children>
+                                </menu>
+                                <state key="normal">
+                                    <color key="titleColor" systemColor="labelColor"/>
+                                </state>
+                                <buttonConfiguration key="configuration" style="gray" title="Skills">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" showsMenuAsPrimaryAction="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" changesSelectionAsPrimaryAction="YES" translatesAutoresizingMaskIntoConstraints="NO" id="yKz-Br-YVs">
+                                <rect key="frame" x="24" y="261" width="345" height="39"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <menu key="menu" title="Skills" id="T5a-Hv-Z6Z">
+                                    <children>
+                                        <command title="Cleaning" id="yRg-Fw-G6A"/>
+                                        <command title="Plumbing" id="R9h-Dy-Ox2"/>
+                                    </children>
+                                </menu>
+                                <state key="normal">
+                                    <color key="titleColor" systemColor="labelColor"/>
+                                </state>
+                                <buttonConfiguration key="configuration" style="gray" title="Skills">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="72a-60-Ci7">
+                                <rect key="frame" x="24" y="344" width="345" height="52"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Create Account">
+                                    <color key="baseBackgroundColor" name="AccentColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="createAccountTapped:" destination="gmd-Tr-1Hd" eventType="touchUpInside" id="HLg-JO-t5t"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Select Skills" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CT8-fZ-pGW">
+                                <rect key="frame" x="24" y="224" width="92" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="xaA-AE-gjS"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <navigationItem key="navigationItem" title="Personalaize" id="QEf-S9-wEP">
+                        <barButtonItem key="leftBarButtonItem" title="Back" id="Lc4-WD-x1H">
+                            <connections>
+                                <segue destination="FkR-vh-bjh" kind="show" id="P8r-Uh-2iX"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                    <connections>
+                        <outlet property="createAccount" destination="72a-60-Ci7" id="xDZ-vN-MKb"/>
+                        <outlet property="selectService" destination="Pwi-pO-3G3" id="nY3-27-vvL"/>
+                        <outlet property="selectSkills" destination="yKz-Br-YVs" id="f4f-CH-13O"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Er1-rg-Cr9" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4828.2442748091598" y="-80.281690140845072"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="xQA-dn-Q8B">
@@ -297,17 +396,41 @@
             </objects>
             <point key="canvasLocation" x="1945.8015267175572" y="-80.281690140845072"/>
         </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="5eX-XM-jL2">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" modalPresentationStyle="fullScreen" id="hPc-05-7Ro" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="1tu-KE-TVo">
+                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="gmd-Tr-1Hd" kind="relationship" relationship="rootViewController" id="wgN-8I-8M4"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="vqn-1S-PZN" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3901.5267175572517" y="-80.281690140845072"/>
+        </scene>
     </scenes>
+    <inferredMetricsTieBreakers>
+        <segue reference="P8r-Uh-2iX"/>
+    </inferredMetricsTieBreakers>
     <resources>
         <image name="logo-login" width="98" height="97"/>
         <namedColor name="AccentColor">
             <color red="0.17647058823529413" green="0.28627450980392155" blue="0.22745098039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="tertiarySystemGroupedBackgroundColor">
-            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
