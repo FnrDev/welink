@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Supabase
 
 class SearchViewController: UIViewController {
 
@@ -16,6 +17,8 @@ class SearchViewController: UIViewController {
     
     var recentSearches: [String] = [] //to store search terms
     let maxRecentSearches = 3 //how many searches to save
+    var searchResults: [SeekerSearchResult] = []  // store services from database
+    var isShowingResults = false  // false = recent searches, true = search results
     
     override func viewDidLoad() {
         super.viewDidLoad()
