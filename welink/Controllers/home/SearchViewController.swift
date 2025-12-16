@@ -166,23 +166,91 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
         return isShowingResults ? searchResults.count : recentSearches.count
     }
     
+    // Create circular image with initial
+    func createInitialImage(text: String) -> UIImage {
+        let size = CGSize(width: 40, height: 40)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        return renderer.image { context in
+            // Light gray circle
+            UIColor(hex: "D9D9D9").setFill()
+            context.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
+            
+            // Dark green text
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 20, weight: .medium),
+                .foregroundColor: UIColor(hex: "2D493A")
+            ]
+            
+            let textSize = text.size(withAttributes: attributes)
+            let textRect = CGRect(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            
+            text.draw(in: textRect, withAttributes: attributes)
+        }
+    }
+    
+    // Resize image to specific size
+    func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+    
+    // Load image asynchronously
+    func loadImageAsync(from url: URL, into imageView: UIImageView?) {
+        // Set placeholder first (first letter)
+        let initial = String(url.lastPathComponent.prefix(1)).uppercased()
+        imageView?.image = createInitialImage(text: initial)
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        let resizedImage = self.resizeImage(image: image, targetSize: CGSize(width: 40, height: 40))
+                        imageView?.image = resizedImage
+                        imageView?.contentMode = .scaleAspectFill
+                        imageView?.clipsToBounds = true
+                        imageView?.layer.cornerRadius = 20
+                    }
+                }
+            } catch {
+                print("Failed to load image: \(error)")
+            }
+        }
+    }
+    
     // What to show in each row
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         
         if isShowingResults {
-            // Show service from database
             let service = searchResults[indexPath.row]
             cell.textLabel?.text = service.name
             cell.detailTextLabel?.text = "BD \(service.pricePerHour)/hr"
             cell.textLabel?.textColor = .black
+            cell.textLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+            cell.detailTextLabel?.textColor = .gray
             
-            // Placeholder image
-            cell.imageView?.image = UIImage(systemName: "photo.circle.fill")
-            cell.imageView?.tintColor = .systemGray4
+            // Try to show image, fallback to initial
+            if let imageURL = service.image,
+               let url = URL(string: imageURL),
+               !imageURL.isEmpty {
+                // Load image from URL
+                loadImageAsync(from: url, into: cell.imageView)
+            } else {
+                // Show first letter as fallback
+                let initial = String(service.name.prefix(1)).uppercased()
+                cell.imageView?.image = createInitialImage(text: initial)
+            }
             
         } else {
-            // Show recent search
             cell.textLabel?.text = recentSearches[indexPath.row]
             cell.textLabel?.textColor = .lightGray
             cell.imageView?.image = nil
@@ -217,5 +285,27 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     // Can only delete recent searches
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return !isShowingResults
+    }
+}
+
+
+extension UIColor {
+    convenience init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 6: // RGB
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(
+            red: CGFloat(r) / 255,
+            green: CGFloat(g) / 255,
+            blue: CGFloat(b) / 255,
+            alpha: CGFloat(a) / 255
+        )
     }
 }
