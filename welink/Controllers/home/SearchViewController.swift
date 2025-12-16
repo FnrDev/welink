@@ -96,12 +96,34 @@ class SearchViewController: UIViewController {
             do {
                 let client = SupabaseClientManager.shared.client
                 
-                let results: [SeekerSearchResult] = try await client.database
+                // Query with JOIN
+                let response: [ServiceWithUser] = try await client.database
                     .from("services")
-                    .select()
+                    .select("""
+                        id,
+                        name,
+                        description,
+                        price_per_hour,
+                        image,
+                        user_id,
+                        users!inner(name)
+                    """)
                     .ilike("name", value: "%\(query)%")
                     .execute()
                     .value
+                
+                // Convert to SeekerSearchResult
+                let results = response.map { serviceWithUser in
+                    SeekerSearchResult(
+                        id: serviceWithUser.id,
+                        name: serviceWithUser.name,
+                        description: serviceWithUser.description,
+                        pricePerHour: serviceWithUser.price_per_hour,
+                        image: serviceWithUser.image,
+                        userId: serviceWithUser.user_id,
+                        providerName: serviceWithUser.users?.name
+                    )
+                }
                 
                 await MainActor.run {
                     self.searchResults = results
@@ -110,6 +132,7 @@ class SearchViewController: UIViewController {
                 
             } catch {
                 print("Search error: \(error)")
+                print("Error details: \(error.localizedDescription)")
                 await MainActor.run {
                     self.searchResults = []
                     self.updateUI()
@@ -233,7 +256,8 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
         if isShowingResults {
             let service = searchResults[indexPath.row]
             cell.textLabel?.text = service.name
-            cell.detailTextLabel?.text = "BD \(service.pricePerHour)/hr"
+            let providerName = service.providerName ?? "Unknown Provider"
+            cell.detailTextLabel?.text = "\(providerName) - BD \(service.pricePerHour)/hr"
             cell.textLabel?.textColor = .black
             cell.textLabel?.font = UIFont.boldSystemFont(ofSize: 16)
             cell.detailTextLabel?.textColor = .gray
