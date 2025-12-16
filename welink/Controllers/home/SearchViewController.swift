@@ -73,8 +73,56 @@ class SearchViewController: UIViewController {
     
     // Show/Hide Table Elements
     func updateUI() {
-        let hasSearches = !recentSearches.isEmpty
-        tableView.isHidden = !hasSearches
+        if isShowingResults {
+            // Showing search results from database
+            recentSearchesLabel.text = "Search Result"
+            clearAllButton.isHidden = true
+            tableView.isHidden = false
+        } else {
+            // Showing recent searches
+            recentSearchesLabel.text = "Recent Searches"
+            clearAllButton.isHidden = recentSearches.isEmpty
+            tableView.isHidden = recentSearches.isEmpty
+        }
+        tableView.reloadData()
+    }
+    
+    // Search database for services
+    func performSearch(query: String) {
+        isShowingResults = true
+        updateUI()
+        
+        Task {
+            do {
+                let client = SupabaseClientManager.shared.client
+                
+                let results: [SeekerSearchResult] = try await client.database
+                    .from("services")
+                    .select()
+                    .ilike("name", value: "%\(query)%")
+                    .execute()
+                    .value
+                
+                await MainActor.run {
+                    self.searchResults = results
+                    self.updateUI()
+                }
+                
+            } catch {
+                print("Search error: \(error)")
+                await MainActor.run {
+                    self.searchResults = []
+                    self.updateUI()
+                }
+            }
+        }
+    }
+
+    // Go back to recent searches
+    func showRecentSearches() {
+        isShowingResults = false
+        searchResults = []
+        updateUI()
     }
     
     // Clear all searches when button tapped
@@ -93,40 +141,81 @@ extension SearchViewController: UISearchBarDelegate {
             guard let searchText = searchBar.text, !searchText.isEmpty else { return }
             
             addRecentSearch(searchText)
+            performSearch(query: searchText)
             // print("Searching for: \(searchText)")
             searchBar.resignFirstResponder()
         }
+    
+        func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+            if isShowingResults {
+                showRecentSearches()
+            }
+        }
+        
+        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+            if searchText.isEmpty && isShowingResults {
+                showRecentSearches()
+            }
+        }
+}
+
+extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    // How many rows
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return isShowingResults ? searchResults.count : recentSearches.count
     }
-
-    extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    // What to show in each row
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         
-        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            return recentSearches.count
-        }
-        
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        if isShowingResults {
+            // Show service from database
+            let service = searchResults[indexPath.row]
+            cell.textLabel?.text = service.name
+            cell.detailTextLabel?.text = "BD \(service.pricePerHour)/hr"
+            cell.textLabel?.textColor = .black
+            
+            // Placeholder image
+            cell.imageView?.image = UIImage(systemName: "photo.circle.fill")
+            cell.imageView?.tintColor = .systemGray4
+            
+        } else {
+            // Show recent search
             cell.textLabel?.text = recentSearches[indexPath.row]
-            cell.textLabel?.textColor = .gray
-            return cell
-        }
-
-       // Handle when user taps a row
-       func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-             let searchText = recentSearches[indexPath.row]
-             searchBar.text = searchText // Put text in search bar
-             // print("Selected: \(searchText)")
-             tableView.deselectRow(at: indexPath, animated: true)
+            cell.textLabel?.textColor = .lightGray
+            cell.imageView?.image = nil
         }
         
-        // Swipe to delete
-        func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-             if editingStyle == .delete {
-                recentSearches.remove(at: indexPath.row)
-                saveRecentSearches()
-                tableView.deleteRows(at: [indexPath], with: .fade)
-                updateUI()
-             }
-         }
-
+        return cell
+    }
+    
+    // When user taps a row
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if isShowingResults {
+            let service = searchResults[indexPath.row]
+            // TODO: Navigate to service detail screen
+        } else {
+            let searchText = recentSearches[indexPath.row]
+            searchBar.text = searchText
+            performSearch(query: searchText)
+        }
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // Swipe to delete (only for recent searches)
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete && !isShowingResults {
+            recentSearches.remove(at: indexPath.row)
+            saveRecentSearches()
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            updateUI()
+        }
+    }
+    
+    // Can only delete recent searches
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return !isShowingResults
+    }
 }
