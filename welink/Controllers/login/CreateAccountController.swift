@@ -230,7 +230,7 @@ class CreateAccountController: UIViewController {
     
     private func navigateToHome() {
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-        let homeVC = storyboard.instantiateViewController(withIdentifier: "Home")
+        let homeVC = storyboard.instantiateViewController(withIdentifier: "Main")
         
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {
