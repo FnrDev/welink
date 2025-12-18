@@ -97,8 +97,8 @@ class SearchViewController: UIViewController {
             do {
                 let client = SupabaseClientManager.shared.client
                 
-                // Query with JOIN
-                let response: [ServiceWithUser] = try await client.database
+                // Build query with filters
+                var queryBuilder = client.database
                     .from("services")
                     .select("""
                         id,
@@ -110,11 +110,19 @@ class SearchViewController: UIViewController {
                         users!inner(name)
                     """)
                     .ilike("name", value: "%\(query)%")
-                    .lte("price_per_hour", value: activeFilters.maxPrice)  // ← NEW: Filter by price!
+                    .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
+                
+                // Add category filter if any selected
+                if !activeFilters.selectedCategories.isEmpty {
+                    // TODO: Filter by categories when database has category column
+                    print("Category filter not yet implemented in database")
+                }
+                
+                let response: [ServiceWithUser] = try await queryBuilder
                     .execute()
                     .value
                 
-                // Convert to SeekerSearchResult
+                // Convert to results
                 var results = response.map { serviceWithUser in
                     SeekerSearchResult(
                         id: serviceWithUser.id,
@@ -127,27 +135,34 @@ class SearchViewController: UIViewController {
                     )
                 }
                 
-                // NEW: Sort results based on filter
+                // Filter by rating
+                if activeFilters.minRating > 0 {
+                    print("Rating filter not yet implemented - need rating data")
+                }
+                
+                // Sort results
                 switch activeFilters.sortBy {
                 case .price:
-                    results.sort { $0.pricePerHour < $1.pricePerHour }
-                    print("Sorted by price (low to high)")
+                    results.sort {
+                        activeFilters.sortAscending ?
+                        $0.pricePerHour < $1.pricePerHour :
+                        $0.pricePerHour > $1.pricePerHour
+                    }
+                    print("Sorted by price (\(activeFilters.sortAscending ? "↑" : "↓"))")
                 case .rating:
-                    // TODO: Sort by rating when we have rating data
-                    print("Sort by rating not implemented yet")
+                    print("Sort by rating not yet implemented")
                 }
                 
                 await MainActor.run {
                     self.searchResults = results
                     self.updateUI()
                     
-                    print("Search completed with \(results.count) results")
-                    print("   Applied filters: Sort=\(activeFilters.sortBy), MaxPrice=BD\(activeFilters.maxPrice)")
+                    print("✅ Search completed with \(results.count) results")
+                    print("   Filters: Sort=\(activeFilters.sortBy), Price≤BD\(activeFilters.maxPrice), Rating≥\(activeFilters.minRating)")
                 }
                 
             } catch {
                 print("Search error: \(error)")
-                print("Error details: \(error.localizedDescription)")
                 await MainActor.run {
                     self.searchResults = []
                     self.updateUI()

@@ -224,4 +224,40 @@ class FilterViewController: UIViewController {
     @IBAction func cancelButtonTapped(_ sender: UIBarButtonItem) {
         dismiss(animated: true)
     }
+    
+    @IBAction func clearFiltersButtonTapped(_ sender: UIBarButtonItem) {
+        // Show confirmation alert
+        let alert = UIAlertController(
+            title: "Clear All Filters?",
+            message: "This will reset all filters to default",
+            preferredStyle: .alert
+        )
+        
+        let clearAction = UIAlertAction(title: "Clear", style: .destructive) { [weak self] _ in
+            self?.clearAllFilters()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
+        alert.addAction(clearAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+
+    func clearAllFilters() {
+        // Reset to defaults
+        currentFilters = SearchFilters()
+        
+        // Update UI
+        sortSegmentedControl.selectedSegmentIndex = 0
+        priceSlider.value = 100
+        
+        updateSortDirectionButton()
+        updatePriceLabel()
+        updateCategoriesButtonTitle()
+        updateRatingButtonTitle()
+        
+        print("All filters cleared")
+    }
 }
