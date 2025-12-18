@@ -36,6 +36,7 @@ class FilterViewController: UIViewController {
     @IBOutlet weak var applyButton: UIButton!
     
     // MARK: - Properties
+    let availableCategories = ["Home", "Design", "Tutoring"] // Available categories
     weak var delegate: FilterViewControllerDelegate?
     var currentFilters = SearchFilters()
     
@@ -63,12 +64,63 @@ class FilterViewController: UIViewController {
         priceSlider.value = Float(currentFilters.maxPrice)
         
         updatePriceLabel()
+        updateCategoriesButtonTitle()
         
         print("Filter screen loaded")
     }
     
     func updatePriceLabel() {
         priceLabel.text = "Max: BD \(Int(priceSlider.value))"
+    }
+    
+    
+    // MARK: - Categories Selection
+    func showCategoriesAlert() {
+        let alert = UIAlertController(
+            title: "Select Categories",
+            message: "Choose one or more categories",
+            preferredStyle: .actionSheet
+        )
+        
+        // Add action for each category
+        for category in availableCategories {
+            let isSelected = currentFilters.selectedCategories.contains(category)
+            let title = isSelected ? "✓ \(category)" : category
+            
+            let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
+                self?.toggleCategory(category)
+                // Show alert again to allow multiple selections
+                self?.showCategoriesAlert()
+            }
+            alert.addAction(action)
+        }
+        
+        // Add "Done" button
+        let doneAction = UIAlertAction(title: "Done", style: .cancel) { [weak self] _ in
+            self?.updateCategoriesButtonTitle()
+        }
+        alert.addAction(doneAction)
+        present(alert, animated: true)
+    }
+
+    func toggleCategory(_ category: String) {
+        if currentFilters.selectedCategories.contains(category) {
+            // Remove if already selected
+            currentFilters.selectedCategories.removeAll { $0 == category }
+        } else {
+            // Add if not selected
+            currentFilters.selectedCategories.append(category)
+        }
+        print("📂 Categories: \(currentFilters.selectedCategories)")
+    }
+
+    func updateCategoriesButtonTitle() {
+        let count = currentFilters.selectedCategories.count
+        if count == 0 {
+            categoriesButton.setTitle("Categories", for: .normal)
+        } else {
+            categoriesButton.setTitle("Categories (\(count))", for: .normal)
+        }
     }
     
     // MARK: - Actions
@@ -85,12 +137,13 @@ class FilterViewController: UIViewController {
     
     @IBAction func categoriesButtonTapped(_ sender: UIButton) {
         print("Categories tapped")
+        showCategoriesAlert()
         // TODO: Show selection
     }
     
     @IBAction func ratingButtonTapped(_ sender: UIButton) {
         print("Rating tapped")
-        // TODO: Show selection
+        
     }
     
     @IBAction func applyButtonTapped(_ sender: UIButton) {
