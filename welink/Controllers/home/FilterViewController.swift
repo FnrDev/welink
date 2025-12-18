@@ -34,6 +34,7 @@ class FilterViewController: UIViewController {
     @IBOutlet weak var priceSlider: UISlider!
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var applyButton: UIButton!
+    @IBOutlet weak var sortDirectionButton: UIButton!
     
     // MARK: - Properties
     let availableCategories = ["Home", "Design", "Tutoring"] // Available categories
@@ -73,6 +74,7 @@ class FilterViewController: UIViewController {
         updatePriceLabel()
         updateCategoriesButtonTitle()
         updateRatingButtonTitle()
+        updateSortDirectionButton()
         
         print("Filter screen loaded")
     }
@@ -173,6 +175,12 @@ class FilterViewController: UIViewController {
         }
     }
     
+    func updateSortDirectionButton() {
+        let imageName = currentFilters.sortAscending ? "arrow.up" : "arrow.down"
+        sortDirectionButton.setImage(UIImage(systemName: imageName), for: .normal)
+        sortDirectionButton.tintColor = UIColor(red: 0x2D/255, green: 0x49/255, blue: 0x3A/255, alpha: 1.0)
+    }
+    
     // MARK: - Actions
     @IBAction func sortChanged(_ sender: UISegmentedControl) {
         currentFilters.sortBy = sender.selectedSegmentIndex == 0 ? .price : .rating
@@ -194,9 +202,17 @@ class FilterViewController: UIViewController {
         showRatingAlert()
     }
     
+    @IBAction func sortDirectionTapped(_ sender: UIButton) {
+        currentFilters.sortAscending.toggle()
+        updateSortDirectionButton()
+        
+        let direction = currentFilters.sortAscending ? "Low → High ↑" : "High → Low ↓"
+        print("Sort direction: \(direction)")
+    }
+    
     @IBAction func applyButtonTapped(_ sender: UIButton) {
         print("✅ Applying filters:")
-        print("   Sort by: \(currentFilters.sortBy)")
+        print("   Sort by: \(currentFilters.sortBy) (\(currentFilters.sortAscending ? "↑" : "↓"))")
         print("   Max price: BD\(currentFilters.maxPrice)")
         print("   Min rating: \(currentFilters.minRating)+")
         print("   Categories: \(currentFilters.selectedCategories)")

@@ -787,6 +787,9 @@
                                                 <color key="tintColor" name="AccentColor"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" image="arrow.up.arrow.down.circle.fill" catalog="system"/>
+                                                <connections>
+                                                    <action selector="sortDirectionTapped:" destination="MD5-mQ-nWm" eventType="touchUpInside" id="G1b-fz-EmP"/>
+                                                </connections>
                                             </button>
                                         </subviews>
                                     </stackView>
@@ -909,6 +912,7 @@
                         <outlet property="priceLabel" destination="ES0-zN-cth" id="Fpc-Sh-VHu"/>
                         <outlet property="priceSlider" destination="eRm-Do-A6V" id="y44-uU-8xa"/>
                         <outlet property="ratingButton" destination="1PM-hn-pp3" id="bBu-fn-ijf"/>
+                        <outlet property="sortDirectionButton" destination="WlJ-tw-0mE" id="xdw-1A-XUX"/>
                         <outlet property="sortSegmentedControl" destination="Nws-xK-ZWX" id="EcI-Nh-GgI"/>
                     </connections>
                 </viewController>
