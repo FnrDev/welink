@@ -10,6 +10,7 @@ import Supabase
 
 class SearchViewController: UIViewController {
 
+    var activeFilters = SearchFilters()
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var recentSearchesLabel: UILabel!
     @IBOutlet weak var clearAllButton: UIButton!
@@ -96,8 +97,8 @@ class SearchViewController: UIViewController {
             do {
                 let client = SupabaseClientManager.shared.client
                 
-                // Query with JOIN
-                let response: [ServiceWithUser] = try await client.database
+                // Build query with filters
+                var queryBuilder = client.database
                     .from("services")
                     .select("""
                         id,
@@ -109,11 +110,20 @@ class SearchViewController: UIViewController {
                         users!inner(name)
                     """)
                     .ilike("name", value: "%\(query)%")
+                    .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
+                
+                // Add category filter if any selected
+                if !activeFilters.selectedCategories.isEmpty {
+                    // TODO: Filter by categories when database has category column
+                    print("Category filter not yet implemented in database")
+                }
+                
+                let response: [ServiceWithUser] = try await queryBuilder
                     .execute()
                     .value
                 
-                // Convert to SeekerSearchResult
-                let results = response.map { serviceWithUser in
+                // Convert to results
+                var results = response.map { serviceWithUser in
                     SeekerSearchResult(
                         id: serviceWithUser.id,
                         name: serviceWithUser.name,
@@ -125,14 +135,34 @@ class SearchViewController: UIViewController {
                     )
                 }
                 
+                // Filter by rating
+                if activeFilters.minRating > 0 {
+                    print("Rating filter not yet implemented - need rating data")
+                }
+                
+                // Sort results
+                switch activeFilters.sortBy {
+                case .price:
+                    results.sort {
+                        activeFilters.sortAscending ?
+                        $0.pricePerHour < $1.pricePerHour :
+                        $0.pricePerHour > $1.pricePerHour
+                    }
+                    print("Sorted by price (\(activeFilters.sortAscending ? "↑" : "↓"))")
+                case .rating:
+                    print("Sort by rating not yet implemented")
+                }
+                
                 await MainActor.run {
                     self.searchResults = results
                     self.updateUI()
+                    
+                    print("✅ Search completed with \(results.count) results")
+                    print("   Filters: Sort=\(activeFilters.sortBy), Price≤BD\(activeFilters.maxPrice), Rating≥\(activeFilters.minRating)")
                 }
                 
             } catch {
                 print("Search error: \(error)")
-                print("Error details: \(error.localizedDescription)")
                 await MainActor.run {
                     self.searchResults = []
                     self.updateUI()
@@ -154,6 +184,19 @@ class SearchViewController: UIViewController {
         saveRecentSearches()
         tableView.reloadData()
         updateUI()
+    }
+    
+    // MARK: - Navigation
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "showFilter" {
+            // Get the navigation controller
+            if let navController = segue.destination as? UINavigationController,
+               let filterVC = navController.viewControllers.first as? FilterViewController {
+                filterVC.delegate = self
+                filterVC.currentFilters = activeFilters
+                print("Passing current filters to FilterVC")
+            }
+        }
     }
 }
 
@@ -331,5 +374,22 @@ extension UIColor {
             blue: CGFloat(b) / 255,
             alpha: CGFloat(a) / 255
         )
+    }
+}
+
+// MARK: - FilterViewControllerDelegate
+extension SearchViewController: FilterViewControllerDelegate {
+    func didApplyFilters(_ filters: SearchFilters) {
+        self.activeFilters = filters
+        
+        print("filters:")
+        print("   Sort by: \(filters.sortBy)")
+        print("   Max price: BD\(filters.maxPrice)")
+        print("   Categories: \(filters.selectedCategories)")
+        
+        // Re-perform search with filters
+        if let searchText = searchBar.text, !searchText.isEmpty {
+            performSearch(query: searchText)
+        }
     }
 }
