@@ -15,6 +15,7 @@ struct CreateServiceRequest: Encodable {
     let availability: ServiceAvailability
     let image: String?
     let user_id: String
+    let categories: [String]
 }
 
 struct ServiceAvailability: Encodable {
@@ -44,22 +45,17 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     // Store the uploaded image URL
     private var uploadedImageURL: String?
     private var isUploading = false
-    private var selectedCategory: String = "Cleaning"
+    
+    // Changed to array for multiple categories
+    private var selectedCategories: Set<String> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // setup skills menu values
-        let choices = ["Cleaning", "Plumbing", "Electrical", "Painting"]
-            
-        let actions = choices.enumerated().map { index, choice in
-            UIAction(title: choice, state: index == 0 ? .on : .off) { [weak self] action in
-                self?.selectedCategory = choice
-                print("Selected: \(choice)")
-            }
-        }
-        
-        categoryButton.menu = UIMenu(children: actions)
+        // Setup category button - explicitly disable menu
+        categoryButton.menu = nil
+        categoryButton.showsMenuAsPrimaryAction = false
+        updateCategoryButtonTitle()
         
         // style for service description
         descriptionTextView.layer.cornerRadius = 12
@@ -71,6 +67,69 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         descriptionTextView.textColor = placeholderColor
         
         setupDottedBorder()
+    }
+    
+    @IBAction func categoryButtonTapped(_ sender: Any) {
+        // This should be connected to the categoryButton's Touch Up Inside action in Storyboard
+        showCategoriesAlert()
+    }
+    
+    func showCategoriesAlert() {
+        let choices = ["Home", "Tutoring", "Design"]
+        
+        let alert = UIAlertController(
+            title: "Select Categories",
+            message: "Choose one or more categories",
+            preferredStyle: .actionSheet
+        )
+        
+        // Add action for each category
+        for choice in choices {
+            let isSelected = selectedCategories.contains(choice)
+            let title = isSelected ? "✓ \(choice)" : choice
+            
+            let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
+                self?.toggleCategory(choice)
+                // Show alert again to allow multiple selections
+                self?.showCategoriesAlert()
+            }
+            alert.addAction(action)
+        }
+        
+        // Add "Done" button
+        let doneAction = UIAlertAction(title: "Done", style: .cancel) { [weak self] _ in
+            self?.updateCategoryButtonTitle()
+        }
+        alert.addAction(doneAction)
+        
+        // For iPad compatibility
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = categoryButton
+            popover.sourceRect = categoryButton.bounds
+        }
+        
+        present(alert, animated: true)
+    }
+    
+    func toggleCategory(_ category: String) {
+        if selectedCategories.contains(category) {
+            // Remove if already selected
+            selectedCategories.remove(category)
+        } else {
+            // Add if not selected
+            selectedCategories.insert(category)
+        }
+        print("Selected categories: \(selectedCategories)")
+    }
+    
+    func updateCategoryButtonTitle() {
+        if selectedCategories.isEmpty {
+            categoryButton.setTitle("Select Categories", for: .normal)
+        } else if selectedCategories.count == 1 {
+            categoryButton.setTitle(selectedCategories.first!, for: .normal)
+        } else {
+            categoryButton.setTitle("\(selectedCategories.count) categories selected", for: .normal)
+        }
     }
     
     func textViewDidBeginEditing(_ textView: UITextView) {
@@ -242,6 +301,12 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             return
         }
         
+        // Validate categories
+        guard !selectedCategories.isEmpty else {
+            showAlert(title: "Missing Information", message: "Please select at least one category")
+            return
+        }
+        
         // Get availability from date picker
         let selectedDate = datePicker.date
         let formatter = ISO8601DateFormatter()
@@ -256,7 +321,8 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 description: description,
                 price: price,
                 availability: availability,
-                imageURL: uploadedImageURL
+                imageURL: uploadedImageURL,
+                categories: Array(selectedCategories)
             )
         }
     }
@@ -266,7 +332,8 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         description: String,
         price: Decimal,
         availability: [String: Any],
-        imageURL: String?
+        imageURL: String?,
+        categories: [String]
     ) async {
         do {
             // Get current user ID
@@ -286,7 +353,8 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 price_per_hour: NSDecimalNumber(decimal: price).doubleValue,
                 availability: availabilityData,
                 image: imageURL,
-                user_id: userId.uuidString
+                user_id: userId.uuidString,
+                categories: categories
             )
             
             try await SupabaseClientManager.shared.client.database

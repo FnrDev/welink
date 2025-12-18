@@ -23,7 +23,7 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eBv-tz-QUn">
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="eBv-tz-QUn">
                                 <rect key="frame" x="0.0" y="103" width="393" height="749"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="A5M-sW-xeS">
@@ -102,8 +102,8 @@
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.1011827257" colorSpace="custom" customColorSpace="displayP3"/>
                                     </view>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Select a Skills" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JXX-KB-FtA">
-                                        <rect key="frame" x="10" y="150" width="130" height="24"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Select a category" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JXX-KB-FtA">
+                                        <rect key="frame" x="10" y="150" width="164" height="24"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                                         <nil key="textColor"/>
@@ -112,18 +112,21 @@
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" showsMenuAsPrimaryAction="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" changesSelectionAsPrimaryAction="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SCs-5c-OHe">
                                         <rect key="frame" x="18" y="180" width="345" height="39"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <menu key="menu" title="Skills" id="ygd-hK-1nj">
+                                        <menu key="menu" title="category" id="ygd-hK-1nj">
                                             <children>
-                                                <command title="Cleaning" id="9kz-wb-IjJ"/>
-                                                <command title="Plumbing" id="ZVg-3d-ZGB"/>
+                                                <command title="Home" id="9kz-wb-IjJ"/>
+                                                <command title="Tutor" id="ZVg-3d-ZGB"/>
                                             </children>
                                         </menu>
                                         <state key="normal">
                                             <color key="titleColor" systemColor="labelColor"/>
                                         </state>
-                                        <buttonConfiguration key="configuration" style="gray" title="Skills">
+                                        <buttonConfiguration key="configuration" style="gray" title="category">
                                             <color key="baseForegroundColor" systemColor="labelColor"/>
                                         </buttonConfiguration>
+                                        <connections>
+                                            <action selector="categoryButtonTapped:" destination="Y6W-OH-hqX" eventType="touchUpInside" id="8am-an-qvg"/>
+                                        </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Service Description" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5MX-cm-5Ra">
                                         <rect key="frame" x="10" y="240" width="184" height="24"/>
@@ -199,7 +202,7 @@
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
-                        <outlet property="categoryButton" destination="SCs-5c-OHe" id="SiU-fy-ZZL"/>
+                        <outlet property="categoryButton" destination="SCs-5c-OHe" id="yu5-HA-J2x"/>
                         <outlet property="datePicker" destination="aVT-nR-EPl" id="23h-yF-cmC"/>
                         <outlet property="descriptionTextView" destination="4tp-96-IQN" id="bNa-7x-sJt"/>
                         <outlet property="previewImageView" destination="OOO-rC-zfx" id="KVk-Tj-tsc"/>
@@ -550,7 +553,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="s1P-Ae-5FN"/>
+        <segue reference="48g-3j-JwR"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>
