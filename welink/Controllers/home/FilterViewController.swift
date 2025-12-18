@@ -37,6 +37,13 @@ class FilterViewController: UIViewController {
     
     // MARK: - Properties
     let availableCategories = ["Home", "Design", "Tutoring"] // Available categories
+    let availableRatings = [  // Available rating options
+        (value: 0.0, display: "Any rating"),
+        (value: 1.0, display: "1 ★"),
+        (value: 2.0, display: "2 ★★"),
+        (value: 3.0, display: "3 ★★★"),
+        (value: 4.0, display: "4 ★★★★"),
+        (value: 5.0, display: "5 ★★★★★")]
     weak var delegate: FilterViewControllerDelegate?
     var currentFilters = SearchFilters()
     
@@ -65,6 +72,7 @@ class FilterViewController: UIViewController {
         
         updatePriceLabel()
         updateCategoriesButtonTitle()
+        updateRatingButtonTitle()
         
         print("Filter screen loaded")
     }
@@ -102,6 +110,48 @@ class FilterViewController: UIViewController {
         alert.addAction(doneAction)
         present(alert, animated: true)
     }
+    
+    // MARK: - Rating Selection
+    func showRatingAlert() {
+        let alert = UIAlertController(
+            title: "Minimum Rating",
+            message: "Select minimum star rating",
+            preferredStyle: .actionSheet
+        )
+        
+        for rating in availableRatings {
+            let isSelected = currentFilters.minRating == rating.value
+            let title = isSelected ? "✓ \(rating.display)" : rating.display
+            
+            let action = UIAlertAction(title: title, style: .default) { [weak self] _ in
+                self?.currentFilters.minRating = rating.value
+                self?.updateRatingButtonTitle()
+                print("⭐ Min rating: \(rating.display)")
+            }
+            alert.addAction(action)
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        alert.addAction(cancelAction)
+        
+        // For iPad compatibility
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = ratingButton
+            popover.sourceRect = ratingButton.bounds
+        }
+        
+        present(alert, animated: true)
+    }
+
+    func updateRatingButtonTitle() {
+        if currentFilters.minRating == 0 {
+            ratingButton.setTitle("Rating", for: .normal)
+        } else if currentFilters.minRating == 5.0 {
+            ratingButton.setTitle("Rating (5★ only)", for: .normal)
+        } else {
+            ratingButton.setTitle("Rating (\(Int(currentFilters.minRating)))", for: .normal)
+        }
+    }
 
     func toggleCategory(_ category: String) {
         if currentFilters.selectedCategories.contains(category) {
@@ -124,7 +174,6 @@ class FilterViewController: UIViewController {
     }
     
     // MARK: - Actions
-    
     @IBAction func sortChanged(_ sender: UISegmentedControl) {
         currentFilters.sortBy = sender.selectedSegmentIndex == 0 ? .price : .rating
         print("Sort by: \(currentFilters.sortBy)")
@@ -138,18 +187,18 @@ class FilterViewController: UIViewController {
     @IBAction func categoriesButtonTapped(_ sender: UIButton) {
         print("Categories tapped")
         showCategoriesAlert()
-        // TODO: Show selection
     }
     
     @IBAction func ratingButtonTapped(_ sender: UIButton) {
         print("Rating tapped")
-        
+        showRatingAlert()
     }
     
     @IBAction func applyButtonTapped(_ sender: UIButton) {
-        print("Applying filters:")
+        print("✅ Applying filters:")
         print("   Sort by: \(currentFilters.sortBy)")
         print("   Max price: BD\(currentFilters.maxPrice)")
+        print("   Min rating: \(currentFilters.minRating)+")
         print("   Categories: \(currentFilters.selectedCategories)")
         
         delegate?.didApplyFilters(currentFilters)
