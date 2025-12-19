@@ -160,10 +160,19 @@ class ServiceDetailsViewController: UIViewController {
             serviceImageView.backgroundColor = .systemPink
         }
         
-        // Placeholder for profile image
-        profileImageView.backgroundColor = .systemGray
+        // Placeholder for profile image/initial
         profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
         profileImageView.clipsToBounds = true
+
+        if let providerName = service.providerName, !providerName.isEmpty {
+            // Try to load provider image from user data
+            let initial = String(providerName.prefix(1)).uppercased()
+            profileImageView.image = createInitialImage(text: initial, size: CGSize(width: 60, height: 60))
+            profileImageView.contentMode = .scaleAspectFit
+        } else {
+            // Unknown provider - show "?"
+            profileImageView.image = createInitialImage(text: "?", size: CGSize(width: 60, height: 60))
+        }
         
         // Placeholder for availability
         dateLabel.text = "Available"
@@ -286,6 +295,32 @@ class ServiceDetailsViewController: UIViewController {
             } catch {
                 print("Failed to load image: \(error)")
             }
+        }
+    }
+
+    func createInitialImage(text: String, size: CGSize = CGSize(width: 60, height: 60)) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        return renderer.image { context in
+            // Light gray circle
+            UIColor(hex: "D9D9D9").setFill()
+            context.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
+            
+            // Dark green text
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: size.width / 2, weight: .medium),
+                .foregroundColor: UIColor(hex: "2D493A")
+            ]
+            
+            let textSize = text.size(withAttributes: attributes)
+            let textRect = CGRect(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            
+            text.draw(in: textRect, withAttributes: attributes)
         }
     }
     
