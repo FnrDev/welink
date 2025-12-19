@@ -197,7 +197,7 @@ class ViewController: UIViewController {
         
         do {
             let session = try await SupabaseClientManager.shared.client.auth.signIn(email: email, password: password)
-            showAlert("Logged in as \(session.user.email ?? "unknown")")
+           
             
             await MainActor.run {
                 redirectToHome()
