@@ -216,8 +216,8 @@ class ViewController: UIViewController {
     }
     
     private func redirectToHome() {
-        let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC") as! ProviderDashboardViewController
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
         
         guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         window.windows.first?.rootViewController = vc

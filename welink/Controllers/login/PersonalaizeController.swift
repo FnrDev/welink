@@ -30,7 +30,7 @@ class PersonalaizeController: UIViewController {
     var userImage: UIImage?
     
     // Multi-select options
-    let serviceOptions = ["Cleaning", "Plumbing", "Electrical", "Painting", "Carpentry", "AC Repair", "Gardening", "Moving"]
+    let serviceOptions = ["Home", "Tutoring", "Design"]
     let skillOptions = ["Communication", "Problem Solving", "Time Management", "Teamwork", "Attention to Detail", "Customer Service"]
     
     // Selected items
