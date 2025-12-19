@@ -330,7 +330,24 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isShowingResults {
             let service = searchResults[indexPath.row]
-            // TODO: Navigate to service detail screen
+            
+            print("Selected service:")
+            print("Name: \(service.name)")
+            print("ID: \(service.id)")
+            print("Provider: \(service.providerName ?? "nil")")
+            
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            
+            guard let detailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+                print("❌ Could not instantiate ServiceDetailsViewController!")
+                return
+            }
+            
+            // Pass the service data
+            detailsVC.service = service
+            
+            navigationController?.pushViewController(detailsVC, animated: true)
+            
         } else {
             let searchText = recentSearches[indexPath.row]
             searchBar.text = searchText
