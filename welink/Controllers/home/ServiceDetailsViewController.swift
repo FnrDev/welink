@@ -92,7 +92,8 @@ class ServiceDetailsViewController: UIViewController {
                     pricePerHour: response.price_per_hour,
                     image: response.image,
                     userId: response.user_id,
-                    providerName: response.users?.name
+                    providerName: response.users?.name,
+                    providerImage: response.users?.image
                 )
                 
                 self.service = service
@@ -371,6 +372,7 @@ class ServiceDetailsViewController: UIViewController {
             cell.separatorInset = .zero
         }
     }
+
 
     func showError(message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)

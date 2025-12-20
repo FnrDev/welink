@@ -131,7 +131,8 @@ class SearchViewController: UIViewController {
                         pricePerHour: serviceWithUser.price_per_hour,
                         image: serviceWithUser.image,
                         userId: serviceWithUser.user_id,
-                        providerName: serviceWithUser.users?.name
+                        providerName: serviceWithUser.users?.name,
+                        providerImage: serviceWithUser.users?.image
                     )
                 }
                 
