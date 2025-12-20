@@ -19,8 +19,10 @@ class ServiceDetailsViewController: UIViewController {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var timeLabel: UILabel!
+    @IBOutlet weak var reviewsTableView: UITableView!
     @IBOutlet weak var messageButton: UIButton!
     @IBOutlet weak var bookNowButton: UIButton!
+    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
     
     // MARK: - Properties
     var service: SeekerSearchResult? // Holds the service data passed from Search/Home/Category
@@ -32,6 +34,7 @@ class ServiceDetailsViewController: UIViewController {
         super.viewDidLoad()
         
         setupDateTimeTapGestures()
+        setupReviewsTableView()
         
         if let service = service {
             // Service data was passed directly
@@ -56,6 +59,15 @@ class ServiceDetailsViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+    }
+    
+    // MARK: - Setup Reviews Table View
+    func setupReviewsTableView() {
+        reviewsTableView.delegate = self
+        reviewsTableView.dataSource = self
+        reviewsTableView.rowHeight = UITableView.automaticDimension
+        reviewsTableView.estimatedRowHeight = 100
+        reviewsTableView.isScrollEnabled = false  // Fixed height, no scroll
     }
     
     // MARK: - Database Functions
@@ -102,6 +114,16 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
+    func updateReviewsTableHeight() {
+        reviewsTableView.layoutIfNeeded()
+        
+        DispatchQueue.main.async {
+            self.reviewsTableViewHeight.constant =
+                self.reviewsTableView.contentSize.height
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     func fetchRatings(serviceId: String) {
         Task {
             do {
@@ -111,6 +133,7 @@ class ServiceDetailsViewController: UIViewController {
                     .from("ratings")
                     .select("*, users(name, image)")
                     .eq("service_id", value: serviceId)
+                    .order("created_at", ascending: false) 
                     .execute()
                     .value
                 
@@ -199,7 +222,14 @@ class ServiceDetailsViewController: UIViewController {
             ratingLabel.text = "☆☆☆☆☆"  // No ratings
         }
         
+        // Reload reviews table to show fetched reviews
+        reviewsTableView.reloadData()
+        
         print("Average rating: \(averageRating)/5")
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.updateReviewsTableHeight()
+        }
     }
     
     func calculateAverageRating() -> Double {
@@ -341,5 +371,26 @@ class ServiceDetailsViewController: UIViewController {
         print("Book Now button tapped")
         guard let service = service else { return }
         // TODO: Navigate to booking screen
+    }
+}
+
+// MARK: - UITableViewDelegate, UITableViewDataSource
+extension ServiceDetailsViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        // Show maximum 2 reviews (the latest ones)
+        return min(ratings.count, 2)
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ReviewCell", for: indexPath) as? ReviewTableViewCell else {
+            return UITableViewCell()
+        }
+        
+        let rating = ratings[indexPath.row]
+        cell.configure(with: rating)
+        cell.selectionStyle = .none  // No selection highlight
+        
+        return cell
     }
 }
