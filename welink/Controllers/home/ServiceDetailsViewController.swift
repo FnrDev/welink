@@ -415,7 +415,7 @@ class ServiceDetailsViewController: UIViewController {
                 right: .greatestFiniteMagnitude
             )
         } else {
-            cell.separatorInset = .zero
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 70, bottom: 0, right:  10)
         }
     }
 
