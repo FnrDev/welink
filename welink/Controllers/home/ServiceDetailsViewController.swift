@@ -354,6 +354,24 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
+    func tableView(_ tableView: UITableView,
+                   willDisplay cell: UITableViewCell,
+                   forRowAt indexPath: IndexPath) {
+
+        let isLast = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
+
+        if isLast {
+            cell.separatorInset = UIEdgeInsets(
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: .greatestFiniteMagnitude
+            )
+        } else {
+            cell.separatorInset = .zero
+        }
+    }
+
     func showError(message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
