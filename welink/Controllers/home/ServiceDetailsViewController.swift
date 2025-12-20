@@ -78,7 +78,7 @@ class ServiceDetailsViewController: UIViewController {
                 let response: ServiceWithUser = try await SupabaseClientManager.shared.client
                     .database
                     .from("services")
-                    .select("*, users(name)")
+                    .select("*, users(name, image)")
                     .eq("id", value: serviceId)
                     .single()
                     .execute()
@@ -177,32 +177,78 @@ class ServiceDetailsViewController: UIViewController {
         // Set price
         priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour)
         
-        // Load images
+        // Load service image
         if let imageUrl = service.image {
             loadImage(from: imageUrl, into: serviceImageView)
         } else {
             serviceImageView.backgroundColor = .systemPink
         }
         
-        // Placeholder for profile image/initial
+        // Setup provider profile image
         profileImageView.layer.cornerRadius = profileImageView.frame.width / 2
         profileImageView.clipsToBounds = true
-
-        if let providerName = service.providerName, !providerName.isEmpty {
-            // Try to load provider image from user data
-            let initial = String(providerName.prefix(1)).uppercased()
-            profileImageView.image = createInitialImage(text: initial, size: CGSize(width: 60, height: 60))
-            profileImageView.contentMode = .scaleAspectFit
+        profileImageView.contentMode = .scaleAspectFill
+        
+        // Try to load provider's actual image first
+        if let providerImageUrl = service.providerImage,
+           let url = URL(string: providerImageUrl),
+           !providerImageUrl.isEmpty {
+            // Load image from URL (same as SearchViewController)
+            loadProviderImageAsync(from: url, providerName: service.providerName)
         } else {
-            // Unknown provider - show "?"
-            profileImageView.image = createInitialImage(text: "?", size: CGSize(width: 60, height: 60))
+            // No image URL, show initial
+            if let providerName = service.providerName, !providerName.isEmpty {
+                let initial = String(providerName.prefix(1)).uppercased()
+                profileImageView.image = createInitialImage(text: initial, size: CGSize(width: 60, height: 60))
+                profileImageView.contentMode = .scaleAspectFit
+            } else {
+                profileImageView.image = createInitialImage(text: "?", size: CGSize(width: 60, height: 60))
+                profileImageView.contentMode = .scaleAspectFit
+            }
         }
         
         // Placeholder for availability
         dateLabel.text = "Available"
         timeLabel.text = "Select time"
         
-        print("✅ Service data displayed: \(service.name)")
+    }
+    
+    // Add this new function for loading provider image
+    func loadProviderImageAsync(from url: URL, providerName: String?) {
+        // Set placeholder first (initial letter)
+        if let name = providerName, !name.isEmpty {
+            let initial = String(name.prefix(1)).uppercased()
+            profileImageView.image = createInitialImage(text: initial, size: CGSize(width: 60, height: 60))
+            profileImageView.contentMode = .scaleAspectFit
+        } else {
+            profileImageView.image = createInitialImage(text: "?", size: CGSize(width: 60, height: 60))
+        }
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        // Resize and apply to image view (same as SearchViewController)
+                        let resizedImage = self.resizeImage(image: image, targetSize: CGSize(width: 60, height: 60))
+                        self.profileImageView.image = resizedImage
+                        self.profileImageView.contentMode = .scaleAspectFill
+                        self.profileImageView.clipsToBounds = true
+                        self.profileImageView.layer.cornerRadius = self.profileImageView.frame.width / 2
+                    }
+                }
+            } catch {
+                print("Failed to load provider image: \(error)")
+            }
+        }
+    }
+
+    // Resize image helper
+    func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
     
     func updateRatingDisplay() {

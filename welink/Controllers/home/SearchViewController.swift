@@ -107,7 +107,7 @@ class SearchViewController: UIViewController {
                         price_per_hour,
                         image,
                         user_id,
-                        users!inner(name)
+                        users!inner(name, image)
                     """)
                     .ilike("name", value: "%\(query)%")
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
