@@ -1,13 +1,13 @@
 //
-//  SeekerHomeViewController.swift
+//  PendingPageController.swift
 //  welink
 //
-//  Created by Zahra on 30/11/2025.
+//  Created by Ali Matar on 17/12/2025.
 //
 
 import UIKit
 
-class SeekerHomeViewController: UIViewController {
+class PendingPageController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
