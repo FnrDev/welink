@@ -488,7 +488,7 @@
                 <viewControllerPlaceholder storyboardName="SeekerHome" referencedIdentifier="SearchVC" id="Nlh-yn-NRb" sceneMemberID="viewController"/>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gnV-J8-q0g" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1365" y="142"/>
+            <point key="canvasLocation" x="-1415" y="137"/>
         </scene>
         <!--notificationsVC-->
         <scene sceneID="li4-Ph-Lh8">
@@ -498,7 +498,7 @@
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="avg-K6-gJ8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1413" y="-224"/>
+            <point key="canvasLocation" x="-1416" y="-128"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="S5K-co-cRq">
@@ -16719,7 +16719,7 @@ nQAOwaIADsGqAA7BrQAOwbIADsG6AAAAAAAABAEAAAAAAAAAWgAAAAAAAAAAAAAAAAAOwb0
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="quaternaryLabelColor">
-            <color red="0.23529411759999999" green="0.23529411759999999" blue="0.26274509800000001" alpha="0.1764705882" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.23529411764705882" green="0.23529411764705882" blue="0.2627450980392157" alpha="0.17647058823529413" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="scrollViewTexturedBackgroundColor">
             <color red="0.43529411764705883" green="0.44313725490196076" blue="0.47450980392156861" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
