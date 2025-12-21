@@ -6,9 +6,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     
     // MARK: - Change this to test different storyboards
-    let testMode = false  // Set to true to test a specific storyboard
-    let testStoryboard = "Main"  // Change this to your storyboard name
-    let testViewControllerID = "ViewController"  // Change this to your VC identifier
+    let testMode = true  // Set to true to test a specific storyboard
+    let testStoryboard = "ProviderDashboard"  // Change this to your storyboard name
+    let testViewControllerID = "ProviderDashboardVC"  // Change this to your VC identifier
+    
+    // admin dashboard
+    // - ProviderDashboard,ProviderDashboardVC
 
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,

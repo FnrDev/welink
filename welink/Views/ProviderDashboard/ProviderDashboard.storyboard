@@ -439,13 +439,6 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Sell All" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Qa-MV-uPH">
-                                <rect key="frame" x="327" y="458" width="50" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" weight="light" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Quick Actions" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Cc-EZ-hHm">
                                 <rect key="frame" x="16" y="358" width="156" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -453,6 +446,23 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6kj-97-Vtn">
+                                <rect key="frame" x="313" y="455" width="71" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="See All">
+                                    <fontDescription key="titleFontDescription" type="system" weight="light" pointSize="15"/>
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <segue destination="Nlh-yn-NRb" kind="presentation" id="PJj-RY-n2p"/>
+                                </connections>
+                            </button>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="G5p-f6-lS4">
+                                <rect key="frame" x="16" y="501" width="361" height="264"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="50f-2C-fTI"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -461,6 +471,7 @@
                     <toolbarItems/>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="servicesTableView" destination="G5p-f6-lS4" id="5mG-C9-K3G"/>
                         <outlet property="todayBookingsField" destination="qqw-dU-6vc" id="azi-iL-T2p"/>
                         <outlet property="todayReveune" destination="cjH-af-23x" id="lIp-KO-ljb"/>
                         <outlet property="totalBookingField" destination="ceR-da-Xgd" id="gQB-mA-67r"/>
@@ -469,7 +480,15 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dYI-h8-X0E" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1915" y="112"/>
+            <point key="canvasLocation" x="-1915.2671755725189" y="111.9718309859155"/>
+        </scene>
+        <!--SearchVC-->
+        <scene sceneID="gkM-iz-L7x">
+            <objects>
+                <viewControllerPlaceholder storyboardName="SeekerHome" referencedIdentifier="SearchVC" id="Nlh-yn-NRb" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="gnV-J8-q0g" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1415" y="137"/>
         </scene>
         <!--notificationsVC-->
         <scene sceneID="li4-Ph-Lh8">
@@ -479,7 +498,7 @@
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="avg-K6-gJ8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1413" y="-224"/>
+            <point key="canvasLocation" x="-1416" y="-128"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="S5K-co-cRq">
@@ -553,7 +572,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="48g-3j-JwR"/>
+        <segue reference="Agn-iz-DLo"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>
