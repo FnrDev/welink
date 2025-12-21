@@ -957,7 +957,7 @@
                                                     <color key="textColor" systemColor="systemGrayColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dfl-cB-pUg">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dfl-cB-pUg">
                                                     <rect key="frame" x="78" y="12" width="166" height="16"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                     <nil key="textColor"/>
@@ -965,10 +965,12 @@
                                                 </label>
                                             </subviews>
                                             <constraints>
+                                                <constraint firstItem="dfl-cB-pUg" firstAttribute="leading" secondItem="vfJ-5V-nhA" secondAttribute="trailing" constant="8" symbolic="YES" id="3Fg-ke-xvI"/>
                                                 <constraint firstItem="dfl-cB-pUg" firstAttribute="top" secondItem="jce-kP-01X" secondAttribute="topMargin" id="3sB-7S-GCz"/>
                                                 <constraint firstItem="bvf-z7-uGQ" firstAttribute="top" secondItem="dfl-cB-pUg" secondAttribute="bottom" constant="4" id="6ql-kt-0NB"/>
                                                 <constraint firstItem="vfJ-5V-nhA" firstAttribute="leading" secondItem="jce-kP-01X" secondAttribute="leadingMargin" id="UXq-cP-5Fn"/>
-                                                <constraint firstAttribute="bottomMargin" secondItem="vfJ-5V-nhA" secondAttribute="bottom" constant="31" id="WNK-Fk-SbB"/>
+                                                <constraint firstItem="vfJ-5V-nhA" firstAttribute="bottom" secondItem="jce-kP-01X" secondAttribute="bottomMargin" constant="-31" id="WNK-Fk-SbB"/>
+                                                <constraint firstItem="dfl-cB-pUg" firstAttribute="top" secondItem="jce-kP-01X" secondAttribute="topMargin" constant="12" id="kHk-Tx-o1e"/>
                                                 <constraint firstItem="vfJ-5V-nhA" firstAttribute="top" secondItem="jce-kP-01X" secondAttribute="topMargin" id="lP0-IX-4jc"/>
                                                 <constraint firstAttribute="trailing" secondItem="swL-bS-5jS" secondAttribute="trailing" constant="12.33" id="oMp-56-1Au"/>
                                                 <constraint firstItem="swL-bS-5jS" firstAttribute="top" secondItem="jce-kP-01X" secondAttribute="top" constant="7" id="wVT-y7-yHp"/>
