@@ -320,7 +320,7 @@ class ServiceTableViewCell: UITableViewCell {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
         iv.clipsToBounds = true
-        iv.layer.cornerRadius = 8
+        iv.layer.cornerRadius = 12
         iv.backgroundColor = UIColor(red: 0.2, green: 0.4, blue: 0.3, alpha: 1.0)
         iv.translatesAutoresizingMaskIntoConstraints = false
         return iv
