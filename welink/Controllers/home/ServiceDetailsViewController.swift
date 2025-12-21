@@ -23,6 +23,7 @@ class ServiceDetailsViewController: UIViewController {
     @IBOutlet weak var messageButton: UIButton!
     @IBOutlet weak var bookNowButton: UIButton!
     @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
+    @IBOutlet weak var seeAllButton: UIButton!
     
     // MARK: - Properties
     var service: SeekerSearchResult? // Holds the service data passed from Search/Home/Category
@@ -438,6 +439,31 @@ class ServiceDetailsViewController: UIViewController {
         guard let service = service else { return }
         // TODO: Navigate to booking screen
     }
+    
+    @IBAction func seeAllReviewsTapped(_ sender: UIButton) {
+        guard let service = service else {
+                print("❌ No service available")
+                return
+            }
+            
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            
+            guard let allReviewsVC = storyboard.instantiateViewController(withIdentifier: "AllReviewsVC") as? AllReviewsViewController else {
+                print("❌ Could not instantiate AllReviewsViewController")
+                return
+            }
+            
+            // ✅ Pass non-optional serviceId
+            allReviewsVC.serviceId = service.id  // This is already a String, not String?
+            allReviewsVC.serviceName = service.name
+            
+            print("✅ Passing serviceId: \(service.id)")
+            print("✅ Passing serviceName: \(service.name)")
+            
+            navigationController?.pushViewController(allReviewsVC, animated: true)
+    }
+    
+
 }
 
 // MARK: - UITableViewDelegate, UITableViewDataSource
