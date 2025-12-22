@@ -449,7 +449,11 @@ class ServiceDetailsViewController: UIViewController {
                 return
             }
             
-            print("✅ Navigating to payment screen")
+            // Pass service price and name
+            paymentVC.servicePrice = service.pricePerHour
+            paymentVC.serviceName = service.name
+            
+            print("✅ Navigating to payment screen with price: \(service.pricePerHour) BD")
             navigationController?.pushViewController(paymentVC, animated: true)
     }
     

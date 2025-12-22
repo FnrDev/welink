@@ -1018,7 +1018,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="5 BD" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y2o-9J-hum">
-                                <rect key="frame" x="328" y="696" width="49" height="28"/>
+                                <rect key="frame" x="299" y="696" width="78" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="23"/>
                                 <nil key="textColor"/>
@@ -1035,6 +1035,16 @@
                         <viewLayoutGuide key="safeArea" id="AUg-Hp-c6y"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
+                    <connections>
+                        <outlet property="applePayButton" destination="ais-1C-BBH" id="83V-je-2p8"/>
+                        <outlet property="cardHolderNameField" destination="iVa-gG-eOe" id="2cY-48-hQu"/>
+                        <outlet property="cardNumberField" destination="8w1-R8-UM3" id="xYa-h8-Kat"/>
+                        <outlet property="creditCardButton" destination="mgH-gW-Qoc" id="l94-85-bgN"/>
+                        <outlet property="cvvField" destination="vfl-d9-AKJ" id="y9l-FI-y4s"/>
+                        <outlet property="expiryDateField" destination="BLA-LR-2mi" id="Rrm-ee-6Cm"/>
+                        <outlet property="payButton" destination="wgx-8n-1HV" id="OJm-Sk-KnU"/>
+                        <outlet property="totalAmountLabel" destination="Y2o-9J-hum" id="fmo-2y-nCZ"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Itl-tx-oRS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
