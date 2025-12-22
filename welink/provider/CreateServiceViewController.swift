@@ -22,6 +22,11 @@ struct ServiceAvailability: Encodable {
     let date: String
 }
 
+// Response struct to capture created service ID
+struct CreateServiceResponse: Decodable {
+    let id: UUID
+}
+
 class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     @IBOutlet weak var categoryButton: UIButton!
@@ -357,15 +362,22 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 categories: categories
             )
             
-            try await SupabaseClientManager.shared.client.database
+            let response: [CreateServiceResponse] = try await SupabaseClientManager.shared.client.database
                 .from("services")
                 .insert(serviceRequest)
+                .select("id")
                 .execute()
-            
-            await MainActor.run {
-                showAlert(title: "Success", message: "Service created successfully!") { [weak self] in
-                    self?.navigationController?.popViewController(animated: true)
+                .value
+
+            guard let createdService = response.first else {
+                await MainActor.run {
+                    showAlert(title: "Error", message: "Service created but failed to get service ID")
                 }
+                return
+            }
+
+            await MainActor.run {
+                self.navigateToServiceDetails(serviceId: createdService.id.uuidString)
             }
             
         } catch {
@@ -384,5 +396,14 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             completion?()
         })
         present(alert, animated: true)
+    }
+
+    private func navigateToServiceDetails(serviceId: String) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            return
+        }
+        vc.serviceId = serviceId
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
