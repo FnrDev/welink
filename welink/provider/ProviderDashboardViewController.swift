@@ -303,9 +303,12 @@ extension ProviderDashboardViewController: UITableViewDelegate, UITableViewDataS
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let service = myServices[indexPath.row]
-        print(service)
-        // TODO: handle redirect to service details when card clicked
-        // it should pass the service object to the view controller of service details
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            return
+        }
+        vc.serviceId = service.id.uuidString
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 

@@ -7,8 +7,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     // MARK: - Change this to test different storyboards
     let testMode = true  // Set to true to test a specific storyboard
-    let testStoryboard = "SeekerHome"  // Change this to your storyboard name
-    let testViewControllerID = "SeekerTabController"  // Change this to your VC identifier
+    let testStoryboard = "ProviderDashboard"  // Change this to your storyboard name
+    let testViewControllerID = "ProviderDashboardVC"  // Change this to your VC identifier
 
     func scene(_ scene: UIScene,
                willConnectTo session: UISceneSession,
@@ -22,7 +22,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if testMode {
             let storyboard = UIStoryboard(name: testStoryboard, bundle: nil)
             let vc = storyboard.instantiateViewController(withIdentifier: testViewControllerID)
-            window?.rootViewController = vc
+            let navController = UINavigationController(rootViewController: vc)
+            window?.rootViewController = navController
             window?.makeKeyAndVisible()
             return
         }
