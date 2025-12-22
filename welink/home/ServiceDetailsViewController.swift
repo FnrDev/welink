@@ -436,8 +436,21 @@ class ServiceDetailsViewController: UIViewController {
     
     @IBAction func bookNowButtonTapped(_ sender: UIButton) {
         print("Book Now button tapped")
-        guard let service = service else { return }
-        // TODO: Navigate to booking screen
+            
+            guard let service = service else {
+                print("❌ No service available")
+                return
+            }
+            
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            
+            guard let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentVC") as? PaymentViewController else {
+                print("❌ Could not instantiate PaymentViewController")
+                return
+            }
+            
+            print("✅ Navigating to payment screen")
+            navigationController?.pushViewController(paymentVC, animated: true)
     }
     
     @IBAction func seeAllReviewsTapped(_ sender: UIButton) {
