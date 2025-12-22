@@ -108,31 +108,29 @@ class ProviderDashboardViewController: UIViewController {
         servicesTableView.rowHeight = 80
         servicesTableView.separatorStyle = .none
     }
-    
+
     private func setupLoadingView() {
         view.addSubview(loadingContainer)
         loadingContainer.addSubview(activityIndicator)
         loadingContainer.addSubview(loadingLabel)
         view.addSubview(emptyStateLabel)
-        
+
         NSLayoutConstraint.activate([
             loadingContainer.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
             loadingContainer.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor),
-            
+
             activityIndicator.topAnchor.constraint(equalTo: loadingContainer.topAnchor),
             activityIndicator.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
-            
+
             loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 8),
             loadingLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
             loadingLabel.bottomAnchor.constraint(equalTo: loadingContainer.bottomAnchor),
-            
+
             emptyStateLabel.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
-            emptyStateLabel.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor),
-            emptyStateLabel.leadingAnchor.constraint(equalTo: servicesTableView.leadingAnchor, constant: 32),
-            emptyStateLabel.trailingAnchor.constraint(equalTo: servicesTableView.trailingAnchor, constant: -32)
+            emptyStateLabel.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor)
         ])
     }
-    
+
     private func showLoading() {
         loadingContainer.isHidden = false
         activityIndicator.startAnimating()

@@ -72,6 +72,20 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         descriptionTextView.textColor = placeholderColor
         
         setupDottedBorder()
+        setupPreviewImageViewConstraints()
+    }
+
+    private func setupPreviewImageViewConstraints() {
+        // Remove any existing constraints on previewImageView
+        previewImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Pin previewImageView to all edges of uploadContainerView
+        NSLayoutConstraint.activate([
+            previewImageView.topAnchor.constraint(equalTo: uploadContainerView.topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: uploadContainerView.leadingAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: uploadContainerView.trailingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: uploadContainerView.bottomAnchor)
+        ])
     }
     
     @IBAction func categoryButtonTapped(_ sender: Any) {
@@ -193,13 +207,9 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             // Show selected image
             previewImageView.image = selectedImage
             previewImageView.isHidden = false
-            previewImageView.alpha = 1.0
             previewImageView.contentMode = .scaleAspectFill
             previewImageView.clipsToBounds = true
-            previewImageView.backgroundColor = .red  // Debug: should see red if visible
-            
-            // Bring to front
-            previewImageView.superview?.bringSubviewToFront(previewImageView)
+            previewImageView.layer.cornerRadius = 12
             
             // Hide other elements
             uploadIcon.isHidden = true
