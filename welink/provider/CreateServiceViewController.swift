@@ -22,6 +22,11 @@ struct ServiceAvailability: Encodable {
     let date: String
 }
 
+// Response struct to capture created service ID
+struct CreateServiceResponse: Decodable {
+    let id: UUID
+}
+
 class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     @IBOutlet weak var categoryButton: UIButton!
@@ -67,6 +72,20 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         descriptionTextView.textColor = placeholderColor
         
         setupDottedBorder()
+        setupPreviewImageViewConstraints()
+    }
+
+    private func setupPreviewImageViewConstraints() {
+        // Remove any existing constraints on previewImageView
+        previewImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Pin previewImageView to all edges of uploadContainerView
+        NSLayoutConstraint.activate([
+            previewImageView.topAnchor.constraint(equalTo: uploadContainerView.topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: uploadContainerView.leadingAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: uploadContainerView.trailingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: uploadContainerView.bottomAnchor)
+        ])
     }
     
     @IBAction func categoryButtonTapped(_ sender: Any) {
@@ -188,13 +207,9 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             // Show selected image
             previewImageView.image = selectedImage
             previewImageView.isHidden = false
-            previewImageView.alpha = 1.0
             previewImageView.contentMode = .scaleAspectFill
             previewImageView.clipsToBounds = true
-            previewImageView.backgroundColor = .red  // Debug: should see red if visible
-            
-            // Bring to front
-            previewImageView.superview?.bringSubviewToFront(previewImageView)
+            previewImageView.layer.cornerRadius = 12
             
             // Hide other elements
             uploadIcon.isHidden = true
@@ -357,15 +372,22 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 categories: categories
             )
             
-            try await SupabaseClientManager.shared.client.database
+            let response: [CreateServiceResponse] = try await SupabaseClientManager.shared.client.database
                 .from("services")
                 .insert(serviceRequest)
+                .select("id")
                 .execute()
-            
-            await MainActor.run {
-                showAlert(title: "Success", message: "Service created successfully!") { [weak self] in
-                    self?.navigationController?.popViewController(animated: true)
+                .value
+
+            guard let createdService = response.first else {
+                await MainActor.run {
+                    showAlert(title: "Error", message: "Service created but failed to get service ID")
                 }
+                return
+            }
+
+            await MainActor.run {
+                self.navigateToServiceDetails(serviceId: createdService.id.uuidString)
             }
             
         } catch {
@@ -384,5 +406,14 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             completion?()
         })
         present(alert, animated: true)
+    }
+
+    private func navigateToServiceDetails(serviceId: String) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            return
+        }
+        vc.serviceId = serviceId
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
