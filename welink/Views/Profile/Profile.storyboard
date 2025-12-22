@@ -23,7 +23,7 @@
                                 <items>
                                     <navigationItem title="Title" id="sL4-fO-Klo">
                                         <barButtonItem key="rightBarButtonItem" style="plain" id="Zhx-lF-DBT">
-                                            <button key="customView" opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="Ttd-LP-JVT">
+                                            <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="Ttd-LP-JVT">
                                                 <rect key="frame" x="278.33333333333331" y="3" width="98.666666666666686" height="38.333333333333336"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <state key="normal" title="Button"/>
@@ -188,10 +188,12 @@
                         <outlet property="noSkillsLabel" destination="5rU-4Q-FFw" id="WjG-44-jWt"/>
                         <outlet property="raitingIconContainer" destination="xnx-sB-mUI" id="Z2G-P2-UFI"/>
                         <outlet property="raitings" destination="dqB-v0-yEI" id="7zX-R8-a4J"/>
+                        <outlet property="ratingLabel" destination="Hhb-5e-zRx" id="4mV-mG-fzK"/>
                         <outlet property="servicesCollectionView" destination="amy-cj-99C" id="Dhj-kf-vcy"/>
                         <outlet property="servicesContainer" destination="899-3v-xEt" id="S9y-G4-Ygq"/>
                         <outlet property="servicesIconContainer" destination="sdp-Cl-Nrz" id="w2c-cJ-tKj"/>
                         <outlet property="skillsCollectionView" destination="K9e-fH-84c" id="4RZ-Q2-Rhl"/>
+                        <outlet property="totalServicesLabel" destination="x1n-9H-zSo" id="Fv0-wP-gc5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
