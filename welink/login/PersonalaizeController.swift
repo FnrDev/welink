@@ -14,6 +14,8 @@ struct CreateApplicationRequest: Encodable {
     let email: String
     let phone: String
     let image_path: String
+    let services: [String]
+    let skills: [String]
 }
 
 class PersonalaizeController: UIViewController {
@@ -30,7 +32,7 @@ class PersonalaizeController: UIViewController {
     var userImage: UIImage?
     
     // Multi-select options
-    let serviceOptions = ["Cleaning", "Plumbing", "Electrical", "Painting", "Carpentry", "AC Repair", "Gardening", "Moving"]
+    let serviceOptions = ["Home", "Tutoring", "Design"]
     let skillOptions = ["Communication", "Problem Solving", "Time Management", "Teamwork", "Attention to Detail", "Customer Service"]
     
     // Selected items
@@ -162,13 +164,15 @@ class PersonalaizeController: UIViewController {
                 imagePath = await uploadImageToSupabase(image: image, userId: userId) ?? ""
             }
             
-            // Step 3: Create user in users table
+            // Step 3: Create user in users table with services and skills
             let userRequest = CreateUserRequest(
                 id: userId,
                 name: name,
                 phone: phone,
                 image: imagePath.isEmpty ? nil : imagePath,
-                role: "provider"
+                role: "provider",
+                services: Array(selectedServices),
+                skills: Array(selectedSkills)
             )
             
             try await SupabaseClientManager.shared.client.database
@@ -182,7 +186,9 @@ class PersonalaizeController: UIViewController {
                 full_name: name,
                 email: email,
                 phone: phone,
-                image_path: imagePath
+                image_path: imagePath,
+                services: Array(selectedServices),
+                skills: Array(selectedSkills)
             )
             
             try await SupabaseClientManager.shared.client.database

@@ -15,6 +15,8 @@ struct CreateUserRequest: Encodable {
     let phone: String
     let image: String?
     let role: String
+    let services: [String]?
+    let skills: [String]?
 }
 
 class CreateAccountController: UIViewController {
@@ -56,13 +58,6 @@ class CreateAccountController: UIViewController {
     }
     
     @IBAction func nextButtonTapped(_ sender: UIButton) {
-        print("=== nextButtonTapped ===")
-        print("fullName: \(fullName.text ?? "nil")")
-        print("email: \(email.text ?? "nil")")
-        print("phone: \(phone.text ?? "nil")")
-        print("password: \(password.text ?? "nil")")
-        print("selectedImage: \(selectedImage != nil ? "exists" : "nil")")
-        
         // Validate inputs first
         guard let name = fullName.text, !name.isEmpty else {
             showAlert(title: "Missing Information", message: "Please enter your full name")
@@ -93,12 +88,6 @@ class CreateAccountController: UIViewController {
             personalizeVC.userPhone = phoneNumber
             personalizeVC.userPassword = passwordText
             personalizeVC.userImage = selectedImage
-            
-            print("=== Data passed to PersonalaizeController ===")
-            print("userName: \(personalizeVC.userName ?? "nil")")
-            print("userEmail: \(personalizeVC.userEmail ?? "nil")")
-            print("userPhone: \(personalizeVC.userPhone ?? "nil")")
-            print("userPassword: \(personalizeVC.userPassword ?? "nil")")
             
             navigationController?.pushViewController(personalizeVC, animated: true)
         }
@@ -167,13 +156,15 @@ class CreateAccountController: UIViewController {
             // Step 3: Determine role based on switch
             let role = providerSwitch.isOn ? "provider" : "seeker"
             
-            // Step 4: Insert profile into users table
+            // Step 4: Insert profile into users table (seeker has no services/skills)
             let userRequest = CreateUserRequest(
                 id: userId,
                 name: name,
                 phone: phone,
                 image: uploadedImageURL,
-                role: role
+                role: role,
+                services: nil,
+                skills: nil
             )
             
             try await SupabaseClientManager.shared.client.database
@@ -230,7 +221,7 @@ class CreateAccountController: UIViewController {
     
     private func navigateToHome() {
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-        let homeVC = storyboard.instantiateViewController(withIdentifier: "Main")
+        let homeVC = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
         
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let window = windowScene.windows.first {

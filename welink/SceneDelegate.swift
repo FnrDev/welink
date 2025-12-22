@@ -38,8 +38,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let session = try? await client.auth.session
 
         if session != nil {
-            let storyboard = UIStoryboard(name: "Home", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController") as! HomeViewController
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
             window?.rootViewController = vc
         } else {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
