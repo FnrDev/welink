@@ -107,7 +107,7 @@ class SearchViewController: UIViewController {
                         price_per_hour,
                         image,
                         user_id,
-                        users!inner(name)
+                        users!inner(name, image)
                     """)
                     .ilike("name", value: "%\(query)%")
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
@@ -131,7 +131,8 @@ class SearchViewController: UIViewController {
                         pricePerHour: serviceWithUser.price_per_hour,
                         image: serviceWithUser.image,
                         userId: serviceWithUser.user_id,
-                        providerName: serviceWithUser.users?.name
+                        providerName: serviceWithUser.users?.name,
+                        providerImage: serviceWithUser.users?.image
                     )
                 }
                 
@@ -330,7 +331,24 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isShowingResults {
             let service = searchResults[indexPath.row]
-            // TODO: Navigate to service detail screen
+            
+            print("Selected service:")
+            print("Name: \(service.name)")
+            print("ID: \(service.id)")
+            print("Provider: \(service.providerName ?? "nil")")
+            
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            
+            guard let detailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+                print("❌ Could not instantiate ServiceDetailsViewController!")
+                return
+            }
+            
+            // Pass the service data
+            detailsVC.service = service
+            
+            navigationController?.pushViewController(detailsVC, animated: true)
+            
         } else {
             let searchText = recentSearches[indexPath.row]
             searchBar.text = searchText

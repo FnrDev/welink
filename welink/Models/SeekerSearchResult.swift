@@ -14,6 +14,7 @@ struct SeekerSearchResult: Codable, Identifiable {
     let image: String?
     let userId: String?
     let providerName: String?
+    let providerImage: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -23,6 +24,7 @@ struct SeekerSearchResult: Codable, Identifiable {
         case image
         case userId = "user_id"
         case providerName = "provider_name"
+        case providerImage = "provider_image"
     }
 }
 
@@ -38,5 +40,6 @@ struct ServiceWithUser: Codable {
     
     struct UserInfo: Codable {
         let name: String
+        let image: String?
     }
 }
