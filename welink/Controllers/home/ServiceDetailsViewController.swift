@@ -453,8 +453,7 @@ class ServiceDetailsViewController: UIViewController {
                 return
             }
             
-            // ✅ Pass non-optional serviceId
-            allReviewsVC.serviceId = service.id  // This is already a String, not String?
+            allReviewsVC.serviceId = service.id
             allReviewsVC.serviceName = service.name
             
             print("✅ Passing serviceId: \(service.id)")
