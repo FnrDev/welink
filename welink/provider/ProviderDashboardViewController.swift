@@ -283,6 +283,16 @@ class ProviderDashboardViewController: UIViewController {
         if value == 0 { return "0" }
         return String(format: "%.2f", value)
     }
+
+    @IBAction func seeAllButtonTapped(_ sender: UIButton) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let searchVC = storyboard.instantiateViewController(withIdentifier: "SearchVC") as? SearchViewController else {
+            print("Could not instantiate SearchViewController")
+            return
+        }
+        searchVC.showAllOnLoad = true
+        navigationController?.pushViewController(searchVC, animated: true)
+    }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource

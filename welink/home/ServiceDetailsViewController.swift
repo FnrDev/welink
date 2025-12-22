@@ -33,10 +33,11 @@ class ServiceDetailsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         setupDateTimeTapGestures()
         setupReviewsTableView()
-        
+        setupCloseButtonIfNeeded()
+
         if let service = service {
             // Service data was passed directly
             displayServiceData(service)
@@ -48,6 +49,21 @@ class ServiceDetailsViewController: UIViewController {
             // No data provided - show error
             showError(message: "No service data available")
         }
+    }
+
+    private func setupCloseButtonIfNeeded() {
+        // Add close button if presented modally
+        if presentingViewController != nil {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(
+                barButtonSystemItem: .close,
+                target: self,
+                action: #selector(closeTapped)
+            )
+        }
+    }
+
+    @objc private func closeTapped() {
+        dismiss(animated: true)
     }
     
     // MARK: - Hides the tab bar when viewing service details
