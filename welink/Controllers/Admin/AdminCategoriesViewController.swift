@@ -6,29 +6,34 @@
 //
 
 import UIKit
-class AdminCategoriesViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
-{
+
+class AdminCategoriesViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UISearchBarDelegate {
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var searchBar: UISearchBar!
 
-    private let categories: [String] = [
-        "Home", "Tutoring", "Design"
-    ]
+    private var allCategories: [String] = []
+    private var filteredCategories: [String] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         collectionView.dataSource = self
         collectionView.delegate = self
+
+        searchBar.delegate = self
+
+        Task { [weak self] in
+            await self?.loadCategories()
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return categories.count
+        return filteredCategories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CategoryCell", for: indexPath)
-        let title = categories[indexPath.item]
+        let title = filteredCategories[indexPath.item]
 
         cell.layer.cornerRadius = 16
         cell.layer.masksToBounds = true
@@ -50,6 +55,51 @@ class AdminCategoriesViewController: UIViewController, UICollectionViewDataSourc
         }
 
         return cell
+    }
+
+    private struct ServiceCategoriesRow: Decodable {
+        let categories: [String]?
+    }
+
+    private func loadCategories() async {
+        let client = SupabaseClientManager.shared.client
+
+        do {
+            let rows: [ServiceCategoriesRow] = try await client.database
+                .from("services")
+                .select("categories")
+                .execute()
+                .value
+
+            let categories = rows
+                .compactMap { $0.categories }
+                .flatMap { $0 }
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+
+            let uniqueSorted = Array(Set(categories)).sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending })
+
+            await MainActor.run {
+                self.allCategories = uniqueSorted
+                self.applyFilter(text: self.searchBar.text)
+            }
+        } catch {
+            print("Error loading categories:", error.localizedDescription)
+            await MainActor.run {
+                self.allCategories = []
+                self.applyFilter(text: self.searchBar.text)
+            }
+        }
+    }
+
+    private func applyFilter(text: String?) {
+        let query = (text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if query.isEmpty {
+            filteredCategories = allCategories
+        } else {
+            filteredCategories = allCategories.filter { $0.localizedCaseInsensitiveContains(query) }
+        }
+        collectionView.reloadData()
     }
 
     func collectionView(_ collectionView: UICollectionView,
@@ -77,4 +127,11 @@ class AdminCategoriesViewController: UIViewController, UICollectionViewDataSourc
         return 12
     }
 
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        applyFilter(text: searchText)
+    }
+
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
 }

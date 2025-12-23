@@ -171,15 +171,15 @@
                                         </userDefinedRuntimeAttributes>
                                     </view>
                                     <button opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BZU-Pz-EPK">
-                                        <rect key="frame" x="350" y="120" width="25" height="26"/>
+                                        <rect key="frame" x="323.33333333333331" y="120" width="51.666666666666686" height="26"/>
                                         <color key="tintColor" systemColor="labelColor"/>
                                         <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
                                         <state key="normal" title="" image="bell" catalog="system">
                                             <color key="titleColor" systemColor="labelColor"/>
                                         </state>
                                     </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Total Analyses" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pso-Qt-iwz">
-                                        <rect key="frame" x="15.999999999999993" y="125.99999999999999" width="109.33333333333331" height="20.333333333333329"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Total Analytics" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pso-Qt-iwz">
+                                        <rect key="frame" x="16" y="126" width="124" height="20"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
@@ -266,7 +266,7 @@
                                     <constraint firstItem="iNI-9z-i7w" firstAttribute="trailing" secondItem="Uwd-18-zKC" secondAttribute="trailing" id="7Nx-Eq-uY3"/>
                                     <constraint firstItem="iNI-9z-i7w" firstAttribute="leading" secondItem="Uwd-18-zKC" secondAttribute="leading" id="BZu-px-aeN"/>
                                     <constraint firstItem="5qC-nM-3XJ" firstAttribute="leading" secondItem="Lxg-p9-i8Y" secondAttribute="leading" id="H62-2K-J3C"/>
-                                    <constraint firstItem="BZU-Pz-EPK" firstAttribute="leading" secondItem="pso-Qt-iwz" secondAttribute="trailing" constant="224.66666666666669" id="Hvg-WR-1Ca"/>
+                                    <constraint firstItem="BZU-Pz-EPK" firstAttribute="leading" secondItem="pso-Qt-iwz" secondAttribute="trailing" constant="196.66666666666669" id="Hvg-WR-1Ca"/>
                                     <constraint firstItem="IQ3-3O-ff0" firstAttribute="trailing" secondItem="iNI-9z-i7w" secondAttribute="trailing" constant="16" id="LRj-1U-ein"/>
                                     <constraint firstItem="pso-Qt-iwz" firstAttribute="leading" secondItem="IQ3-3O-ff0" secondAttribute="leading" constant="16" id="MVm-M7-Foj"/>
                                     <constraint firstItem="Uwd-18-zKC" firstAttribute="top" secondItem="iNI-9z-i7w" secondAttribute="bottom" constant="8" id="Nv8-Vv-bgt"/>
@@ -287,7 +287,7 @@
                                     <constraint firstItem="3DH-wN-jrP" firstAttribute="top" secondItem="UKe-El-UZa" secondAttribute="bottom" constant="8" id="nRm-f2-kpD"/>
                                     <constraint firstItem="pso-Qt-iwz" firstAttribute="top" secondItem="IQ3-3O-ff0" secondAttribute="top" constant="2" id="u8N-SB-eAI"/>
                                     <constraint firstItem="5qC-nM-3XJ" firstAttribute="trailing" secondItem="Uwd-18-zKC" secondAttribute="trailing" id="vC7-az-6hh"/>
-                                    <constraint firstItem="BZU-Pz-EPK" firstAttribute="leading" secondItem="pso-Qt-iwz" secondAttribute="trailing" constant="224.66666666666669" id="xBq-VJ-1bd"/>
+                                    <constraint firstItem="BZU-Pz-EPK" firstAttribute="leading" secondItem="pso-Qt-iwz" secondAttribute="trailing" constant="196.66666666666669" id="xBq-VJ-1bd"/>
                                 </constraints>
                             </view>
                         </subviews>
@@ -296,16 +296,20 @@
                     </view>
                     <connections>
                         <outlet property="providerRequestsTableView" destination="5qC-nM-3XJ" id="7gQ-JA-BET"/>
+                        <outlet property="totalCategoriesValueLabel" destination="mLS-vf-vdZ" id="Ojl-Qr-CNm"/>
+                        <outlet property="totalProvidersValueLabel" destination="Wfe-KL-dTW" id="S4j-yg-PhX"/>
+                        <outlet property="totalSeekersValueLabel" destination="Hae-0y-iSg" id="e5l-w1-skd"/>
+                        <outlet property="totalUsersValueLabel" destination="V6c-dI-xIg" id="xMo-g8-MJg"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="UDk-ne-Dkr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="717.91044776119395" y="-2.0594965675057209"/>
         </scene>
-        <!--View Controller-->
+        <!--Admin Provider Request View Controller-->
         <scene sceneID="2mU-aC-0Gc">
             <objects>
-                <viewController storyboardIdentifier="AdminProviderRequest" useStoryboardIdentifierAsRestorationIdentifier="YES" id="lbr-88-QLa" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="AdminProviderRequest" useStoryboardIdentifierAsRestorationIdentifier="YES" id="lbr-88-QLa" customClass="AdminProviderRequestViewController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="g8Y-2c-X0w">
                         <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

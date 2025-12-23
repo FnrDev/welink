@@ -10,17 +10,22 @@ import UIKit
 class AdminDashboardViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     @IBOutlet weak var providerRequestsTableView: UITableView!
+    @IBOutlet weak var totalUsersValueLabel: UILabel!
+    @IBOutlet weak var totalCategoriesValueLabel: UILabel!
+    @IBOutlet weak var totalProvidersValueLabel: UILabel!
+    @IBOutlet weak var totalSeekersValueLabel: UILabel!
 
     private struct ProviderRequest {
+        let id: Int
         let name: String
         let requestedAtText: String
+        let phone: String
+        let email: String
+        let skills: [String]
+        let services: [AdminProviderRequestViewController.Service]
     }
 
-    private var providerRequests: [ProviderRequest] = [
-        ProviderRequest(name: "Mohammed Ahmed", requestedAtText: "Requested at March 2, 2025"),
-        ProviderRequest(name: "Fares Ali", requestedAtText: "Requested at March 2, 2025"),
-        ProviderRequest(name: "Amal Yahya", requestedAtText: "Requested at March 3, 2025")
-    ]
+    private var providerRequests: [ProviderRequest] = []
 
     private let providerRequestDetailsStoryboardID = "AdminProviderRequest"
 
@@ -32,6 +37,130 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         providerRequestsTableView.rowHeight = 140
         providerRequestsTableView.estimatedRowHeight = 140
         providerRequestsTableView.tableFooterView = UIView()
+
+        Task { [weak self] in
+            await self?.loadPendingApplications()
+            await self?.loadAnalytics()
+        }
+    }
+
+    private struct UserCountRow: Decodable {
+        let id: String
+        let role: String?
+    }
+
+    private struct ServiceCategoriesRow: Decodable {
+        let categories: [String]?
+    }
+
+    private func loadAnalytics() async {
+        let client = SupabaseClientManager.shared.client
+
+        do {
+            let users: [UserCountRow] = try await client.database
+                .from("users")
+                .select("id, role")
+                .execute()
+                .value
+
+            let services: [ServiceCategoriesRow] = try await client.database
+                .from("services")
+                .select("categories")
+                .execute()
+                .value
+
+            let categories = services
+                .compactMap { $0.categories }
+                .flatMap { $0 }
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            let uniqueCategoriesCount = Set(categories).count
+
+            let providersCount = users.filter { ($0.role ?? "seeker").lowercased() == "provider" }.count
+            let seekersCount = users.filter { ($0.role ?? "seeker").lowercased() == "seeker" }.count
+
+            await MainActor.run {
+                self.totalUsersValueLabel.text = "\(users.count)"
+                self.totalCategoriesValueLabel.text = "\(uniqueCategoriesCount)"
+                self.totalProvidersValueLabel.text = "\(providersCount)"
+                self.totalSeekersValueLabel.text = "\(seekersCount)"
+            }
+        } catch {
+            print("Error loading admin analytics:", error.localizedDescription)
+        }
+    }
+
+    private struct ApplicationRow: Decodable {
+        let id: Int
+        let user_id: String
+        let full_name: String
+        let email: String
+        let phone: String
+        let status: String
+        let created_at: Date
+        let services: [String]?
+        let skills: [String]?
+    }
+
+    private func loadPendingApplications() async {
+        let client = SupabaseClientManager.shared.client
+
+        do {
+            let rows: [ApplicationRow] = try await client.database
+                .from("applications")
+                .select("id, user_id, full_name, email, phone, status, created_at, services, skills")
+                .eq("status", value: "pending")
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+
+            let mapped: [ProviderRequest] = rows.map { row in
+                let serviceItems: [AdminProviderRequestViewController.Service] = (row.services ?? []).map {
+                    AdminProviderRequestViewController.Service(
+                        title: $0,
+                        subtitle: "",
+                        priceText: "",
+                        ratingText: ""
+                    )
+                }
+                return ProviderRequest(
+                    id: row.id,
+                    name: row.full_name,
+                    requestedAtText: "Requested at \(formatDate(row.created_at))",
+                    phone: row.phone,
+                    email: row.email,
+                    skills: row.skills ?? [],
+                    services: serviceItems
+                )
+            }
+
+            await MainActor.run {
+                self.providerRequests = mapped
+                self.providerRequestsTableView.reloadData()
+            }
+        } catch {
+            print("Error loading pending applications:", error.localizedDescription)
+            await MainActor.run {
+                self.providerRequests = []
+                self.providerRequestsTableView.reloadData()
+            }
+        }
+    }
+
+    private func updateApplicationStatus(id: Int, status: String) async throws {
+        let client = SupabaseClientManager.shared.client
+        _ = try await client.database
+            .from("applications")
+            .update(["status": status])
+            .eq("id", value: id)
+            .execute()
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -88,9 +217,62 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard providerRequests.indices.contains(indexPath.row) else { return }
+        let item = providerRequests[indexPath.row]
+        let selectedIndex = indexPath.row
         let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
         let detailsVC = storyboard.instantiateViewController(withIdentifier: providerRequestDetailsStoryboardID)
-        navigationController?.pushViewController(detailsVC, animated: true)
+        guard let providerRequestVC = detailsVC as? AdminProviderRequestViewController else {
+            let alert = UIAlertController(
+                title: "Setup Error",
+                message: "AdminProviderRequest scene is not using AdminProviderRequestViewController. Please set the scene custom class in AdminDashboard.storyboard.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        providerRequestVC.request = AdminProviderRequestViewController.ProviderRequestDetails(
+            id: item.id,
+            name: item.name,
+            requestedAtText: item.requestedAtText,
+            phone: item.phone,
+            email: item.email,
+            skills: item.skills,
+            services: item.services
+        )
+        providerRequestVC.onApprove = { [weak self] in
+            guard let self else { return }
+            Task {
+                do {
+                    try await self.updateApplicationStatus(id: item.id, status: "accepted")
+                    await MainActor.run {
+                        guard self.providerRequests.indices.contains(selectedIndex) else { return }
+                        self.providerRequests.remove(at: selectedIndex)
+                        self.providerRequestsTableView.reloadData()
+                    }
+                } catch {
+                    print("Approve error:", error.localizedDescription)
+                }
+            }
+        }
+        providerRequestVC.onReject = { [weak self] in
+            guard let self else { return }
+            Task {
+                do {
+                    try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    await MainActor.run {
+                        guard self.providerRequests.indices.contains(selectedIndex) else { return }
+                        self.providerRequests.remove(at: selectedIndex)
+                        self.providerRequestsTableView.reloadData()
+                    }
+                } catch {
+                    print("Reject error:", error.localizedDescription)
+                }
+            }
+        }
+        navigationController?.pushViewController(providerRequestVC, animated: true)
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -102,11 +284,23 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         guard providerRequests.indices.contains(index) else { return }
         let item = providerRequests[index]
 
-        let alert = UIAlertController(title: "Provider Approved",
-                                      message: "You have successfully approved \(item.name).",
-                                      preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.updateApplicationStatus(id: item.id, status: "accepted")
+                await MainActor.run {
+                    self.providerRequests.remove(at: index)
+                    self.providerRequestsTableView.reloadData()
+                    let alert = UIAlertController(title: "Provider Approved",
+                                                  message: "You have successfully approved \(item.name).",
+                                                  preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            } catch {
+                print("Approve error:", error.localizedDescription)
+            }
+        }
     }
 
     @objc private func didTapReject(_ sender: UIButton) {
@@ -120,21 +314,19 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         alert.addAction(UIAlertAction(title: "Reject", style: .destructive, handler: { [weak self] _ in
             guard let self else { return }
-            self.providerRequests.remove(at: index)
-            self.providerRequestsTableView.reloadData()
+            Task {
+                do {
+                    try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    await MainActor.run {
+                        guard self.providerRequests.indices.contains(index) else { return }
+                        self.providerRequests.remove(at: index)
+                        self.providerRequestsTableView.reloadData()
+                    }
+                } catch {
+                    print("Reject error:", error.localizedDescription)
+                }
+            }
         }))
         present(alert, animated: true)
     }
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
