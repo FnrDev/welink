@@ -685,7 +685,7 @@
                                 <color key="backgroundColor" red="0.94117647059999998" green="0.60392156860000001" blue="0.602715373" alpha="1" colorSpace="calibratedRGB"/>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OMV-pA-wWy">
-                                <rect key="frame" x="0.0" y="156" width="393" height="696"/>
+                                <rect key="frame" x="0.0" y="218" width="393" height="634"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Sumaya Ali" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HPI-dk-smg">
                                         <rect key="frame" x="16" y="69" width="266" height="24"/>
@@ -882,7 +882,7 @@
                         <viewLayoutGuide key="safeArea" id="mIY-Qc-KgV"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="OMV-pA-wWy" firstAttribute="top" secondItem="mIY-Qc-KgV" secondAttribute="top" constant="38" id="DYH-H9-Egh"/>
+                            <constraint firstItem="OMV-pA-wWy" firstAttribute="top" secondItem="mIY-Qc-KgV" secondAttribute="top" constant="100" id="DYH-H9-Egh"/>
                             <constraint firstItem="OMV-pA-wWy" firstAttribute="trailing" secondItem="mIY-Qc-KgV" secondAttribute="trailing" id="Mqx-xh-h7u"/>
                             <constraint firstItem="OMV-pA-wWy" firstAttribute="leading" secondItem="mIY-Qc-KgV" secondAttribute="leading" id="QF9-cc-j67"/>
                             <constraint firstAttribute="bottom" secondItem="OMV-pA-wWy" secondAttribute="bottom" id="yYw-gd-thL"/>
