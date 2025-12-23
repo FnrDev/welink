@@ -27,10 +27,10 @@
                                 <rect key="frame" x="0.0" y="103" width="393" height="749"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="A5M-sW-xeS">
-                                        <rect key="frame" x="0.0" y="0.0" width="385" height="800"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="385" height="1000"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BUf-eR-ygo">
-                                                <rect key="frame" x="30" y="749" width="325" height="50"/>
+                                                <rect key="frame" x="35" y="918" width="325" height="50"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <color key="tintColor" name="AccentColor"/>
                                                 <state key="normal" title="Button"/>
@@ -39,8 +39,15 @@
                                                     <action selector="createService:" destination="Y6W-OH-hqX" eventType="touchUpInside" id="l2P-1g-7Fu"/>
                                                 </connections>
                                             </button>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Time Availability" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5kG-lj-3MM">
-                                                <rect key="frame" x="8" y="635" width="154" height="24"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Start Date" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5kG-lj-3MM">
+                                                <rect key="frame" x="8" y="635" width="96" height="24"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="End Date" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Q4-nE-27R">
+                                                <rect key="frame" x="12" y="716" width="114" height="77"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="20"/>
                                                 <nil key="textColor"/>
@@ -60,10 +67,14 @@
                                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                                             </textView>
+                                            <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="1" translatesAutoresizingMaskIntoConstraints="NO" id="iKq-J2-1bx">
+                                                <rect key="frame" x="10" y="771" width="222" height="54"/>
+                                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                            </datePicker>
                                         </subviews>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="800" id="28i-Hg-Eb9"/>
+                                            <constraint firstAttribute="height" constant="1000" id="Kvx-Tu-Ogl"/>
                                         </constraints>
                                     </view>
                                     <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Service name" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="XVf-uR-oA2">
@@ -203,11 +214,12 @@
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="categoryButton" destination="SCs-5c-OHe" id="yu5-HA-J2x"/>
-                        <outlet property="datePicker" destination="aVT-nR-EPl" id="23h-yF-cmC"/>
                         <outlet property="descriptionTextView" destination="4tp-96-IQN" id="bNa-7x-sJt"/>
+                        <outlet property="endDatePicker" destination="iKq-J2-1bx" id="fwN-VP-ArO"/>
                         <outlet property="previewImageView" destination="OOO-rC-zfx" id="KVk-Tj-tsc"/>
                         <outlet property="priceTextField" destination="euy-rJ-sa4" id="abH-Wx-30R"/>
                         <outlet property="serviceNameTextField" destination="XVf-uR-oA2" id="9eD-O9-X9A"/>
+                        <outlet property="startDatePicker" destination="aVT-nR-EPl" id="23h-yF-cmC"/>
                         <outlet property="uploadButton" destination="oI5-pb-odl" id="mux-aa-W8v"/>
                         <outlet property="uploadContainerView" destination="xVy-uJ-fDD" id="3XW-KZ-Xtz"/>
                         <outlet property="uploadIcon" destination="h2v-GP-fYt" id="wcw-Nq-qyo"/>
@@ -215,7 +227,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ief-a0-LHa" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="337" y="124"/>
+            <point key="canvasLocation" x="336.64122137404581" y="123.94366197183099"/>
         </scene>
         <!--Home-->
         <scene sceneID="y1M-is-oQq">
@@ -564,7 +576,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Agn-iz-DLo"/>
+        <segue reference="48g-3j-JwR"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>
