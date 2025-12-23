@@ -166,23 +166,16 @@ class ServiceDetailsViewController: UIViewController {
     
     // MARK: - Display Functions
     func displayServiceData(_ service: SeekerSearchResult) {
-        // Set service name as title
         self.title = service.name
-        
-        // Set provider name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
-        
-        // Set description
         descriptionLabel.text = service.description
-        
-        // Set price
         priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour)
         
         // Load service image
         if let imageUrl = service.image {
             loadImage(from: imageUrl, into: serviceImageView)
         } else {
-            serviceImageView.backgroundColor = .systemPink
+            serviceImageView.backgroundColor = UIColor(hex: "2D493A")
         }
         
         // Setup provider profile image
@@ -194,7 +187,7 @@ class ServiceDetailsViewController: UIViewController {
         if let providerImageUrl = service.providerImage,
            let url = URL(string: providerImageUrl),
            !providerImageUrl.isEmpty {
-            // Load image from URL (same as SearchViewController)
+            // Load image from URL
             loadProviderImageAsync(from: url, providerName: service.providerName)
         } else {
             // No image URL, show initial
