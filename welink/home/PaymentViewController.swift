@@ -69,16 +69,24 @@ class PaymentViewController: UIViewController {
     }
     
     func updatePaymentMethodButtons() {
+        // Create configurations
+        var creditConfig = UIButton.Configuration.filled()
+        var appleConfig = UIButton.Configuration.filled()
+        
         if selectedPaymentMethod == .creditCard {
-            // Credit Card selected (green)
-            creditCardButton.backgroundColor = UIColor(hex: "2D493A")
-            creditCardButton.setTitleColor(.white, for: .normal)
+            // Credit Card selected
+            creditConfig.baseBackgroundColor = UIColor(hex: "2D493A")
+            creditConfig.baseForegroundColor = .white
+            creditConfig.title = "Credit/Debit Card"
+            creditCardButton.configuration = creditConfig
             
-            // Apple Pay unselected (light gray)
-            applePayButton.backgroundColor = UIColor(hex: "E8E8E8")
-            applePayButton.setTitleColor(.black, for: .normal)
+            // Apple Pay unselected
+            appleConfig.baseBackgroundColor = UIColor(hex: "E8E8E8")
+            appleConfig.baseForegroundColor = .black
+            appleConfig.title = "Apple Pay"
+            applePayButton.configuration = appleConfig
             
-            // Show form fields AND labels
+            // Show form fields
             cardHolderNameLabel.isHidden = false
             cardHolderNameField.isHidden = false
             cardNumberLabel.isHidden = false
@@ -90,14 +98,18 @@ class PaymentViewController: UIViewController {
             
         } else {
             // Apple Pay selected
-            applePayButton.backgroundColor = UIColor(hex: "2D493A")
-            applePayButton.setTitleColor(.white, for: .normal)
+            appleConfig.baseBackgroundColor = UIColor(hex: "2D493A")
+            appleConfig.baseForegroundColor = .white
+            appleConfig.title = "Apple Pay"
+            applePayButton.configuration = appleConfig
             
             // Credit Card unselected
-            creditCardButton.backgroundColor = UIColor(hex: "E8E8E8")
-            creditCardButton.setTitleColor(.black, for: .normal)
+            creditConfig.baseBackgroundColor = UIColor(hex: "E8E8E8")
+            creditConfig.baseForegroundColor = .black
+            creditConfig.title = "Credit/Debit Card"
+            creditCardButton.configuration = creditConfig
             
-            // Hide form fields AND labels
+            // Hide form fields
             cardHolderNameLabel.isHidden = true
             cardHolderNameField.isHidden = true
             cardNumberLabel.isHidden = true
