@@ -86,15 +86,34 @@ class ProviderDashboardViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         todayBookingsField.text = "0"
         todayReveune.text = "0"
         totalBookingField.text = "0"
         totalReveune.text = "0"
-        
+
         setupTableView()
         setupLoadingView()
-        
+
+        // Listen for refresh notification (e.g., after deleting a service)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshDashboard),
+            name: NSNotification.Name("RefreshProviderDashboard"),
+            object: nil
+        )
+
+        Task {
+            await loadDashboard()
+            await loadMyServices()
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func refreshDashboard() {
         Task {
             await loadDashboard()
             await loadMyServices()
@@ -316,7 +335,15 @@ extension ProviderDashboardViewController: UITableViewDelegate, UITableViewDataS
             return
         }
         vc.serviceId = service.id.uuidString
-        navigationController?.pushViewController(vc, animated: true)
+
+        if let navController = navigationController {
+            navController.pushViewController(vc, animated: true)
+        } else {
+            // If no navigation controller, present modally with a nav controller
+            let navVC = UINavigationController(rootViewController: vc)
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+        }
     }
 }
 
