@@ -925,26 +925,31 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Payment Method" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2ne-5C-r1t">
-                                <rect key="frame" x="16" y="113" width="150" height="24"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mgH-gW-Qoc">
-                                <rect key="frame" x="16" y="160" width="361" height="46"/>
+                                <rect key="frame" x="16" y="165" width="361" height="46"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="tintColor" name="AccentColor"/>
+                                <color key="backgroundColor" systemColor="secondarySystemFillColor"/>
+                                <color key="tintColor" systemColor="secondarySystemFillColor"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title=" Credit/Debit Card"/>
+                                <buttonConfiguration key="configuration" style="filled" title=" Credit/Debit Card">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                    <color key="baseBackgroundColor" systemColor="secondarySystemFillColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="creditCardButtonTapped:" destination="GMj-zN-M2P" eventType="touchUpInside" id="3Yy-Ar-Se2"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="leading" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ais-1C-BBH">
-                                <rect key="frame" x="16" y="225" width="361" height="46"/>
+                                <rect key="frame" x="16" y="233" width="361" height="46"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" systemColor="secondarySystemFillColor"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Apple Pay"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Apple Pay">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="applePayButtonTapped:" destination="GMj-zN-M2P" eventType="touchUpInside" id="Fm7-qU-7Lu"/>
+                                </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MsK-h5-qe1">
                                 <rect key="frame" x="299" y="169" width="0.0" height="0.0"/>
@@ -990,7 +995,7 @@
                                 <rect key="frame" x="16" y="535" width="164" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" textContentType="cc-csc"/>
+                                <textInputTraits key="textInputTraits" textContentType="password"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Expiry Date" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="J1G-j3-t4h">
                                 <rect key="frame" x="213" y="507" width="83" height="20"/>
@@ -1018,7 +1023,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="5 BD" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Y2o-9J-hum">
-                                <rect key="frame" x="299" y="696" width="78" height="28"/>
+                                <rect key="frame" x="316" y="695" width="77" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="23"/>
                                 <nil key="textColor"/>
@@ -1030,7 +1035,17 @@
                                 <color key="tintColor" name="AccentColor"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Pay"/>
+                                <connections>
+                                    <action selector="payButtonTapped:" destination="GMj-zN-M2P" eventType="touchUpInside" id="cqc-hv-nuY"/>
+                                </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Payment Method" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2ne-5C-r1t">
+                                <rect key="frame" x="16" y="119" width="133" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="AUg-Hp-c6y"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -1038,10 +1053,14 @@
                     <connections>
                         <outlet property="applePayButton" destination="ais-1C-BBH" id="83V-je-2p8"/>
                         <outlet property="cardHolderNameField" destination="iVa-gG-eOe" id="2cY-48-hQu"/>
+                        <outlet property="cardHolderNameLabel" destination="gvp-hN-eXl" id="bEE-uU-AFU"/>
                         <outlet property="cardNumberField" destination="8w1-R8-UM3" id="xYa-h8-Kat"/>
+                        <outlet property="cardNumberLabel" destination="eqn-OE-hUG" id="fYX-I7-e1w"/>
                         <outlet property="creditCardButton" destination="mgH-gW-Qoc" id="l94-85-bgN"/>
                         <outlet property="cvvField" destination="vfl-d9-AKJ" id="y9l-FI-y4s"/>
+                        <outlet property="cvvLabel" destination="q0z-jW-i3e" id="2an-rA-Gzy"/>
                         <outlet property="expiryDateField" destination="BLA-LR-2mi" id="Rrm-ee-6Cm"/>
+                        <outlet property="expiryDateLabel" destination="J1G-j3-t4h" id="urt-Lz-xWJ"/>
                         <outlet property="payButton" destination="wgx-8n-1HV" id="OJm-Sk-KnU"/>
                         <outlet property="totalAmountLabel" destination="Y2o-9J-hum" id="fmo-2y-nCZ"/>
                     </connections>
@@ -1049,6 +1068,56 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Itl-tx-oRS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="3519.8473282442746" y="-687.32394366197184"/>
+        </scene>
+        <!--Payment Success View Controller-->
+        <scene sceneID="Nti-HE-YVV">
+            <objects>
+                <viewController storyboardIdentifier="PaymentSuccessVC" id="XHV-Tq-7dO" customClass="PaymentSuccessViewController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="njV-Fe-GvP">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zc4-fw-pqf">
+                                <rect key="frame" x="47" y="153" width="300" height="300"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Payment Successful" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1R0-b4-hU4">
+                                <rect key="frame" x="88" y="456" width="216" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="24"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Your payment was completed successfully" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OEc-rJ-c5i">
+                                <rect key="frame" x="68" y="493" width="257" height="53"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                <color key="textColor" systemColor="systemGrayColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="qfv-2u-ExZ">
+                                <rect key="frame" x="16" y="660" width="361" height="39"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="tintColor" name="AccentColor"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Back to Home"/>
+                                <connections>
+                                    <action selector="backToHomeButtonTapped:" destination="XHV-Tq-7dO" eventType="touchUpInside" id="8m4-0d-Nyp"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="by4-y1-bJm"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                    </view>
+                    <connections>
+                        <outlet property="backToHomeButton" destination="qfv-2u-ExZ" id="zej-LT-8De"/>
+                        <outlet property="messageLabel" destination="OEc-rJ-c5i" id="05y-SA-eFG"/>
+                        <outlet property="successImageView" destination="Zc4-fw-pqf" id="dOe-8Q-iS3"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="nfq-Ll-v8T" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4307.6335877862593" y="-687.32394366197184"/>
         </scene>
         <!--All Reviews View Controller-->
         <scene sceneID="oVg-nv-gQd">
@@ -1478,6 +1547,9 @@
         <namedColor name="AccentColor">
             <color red="0.17647058823529413" green="0.28627450980392155" blue="0.22745098039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="linkColor">
             <color red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
