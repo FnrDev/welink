@@ -259,24 +259,44 @@ class ServiceDetailsViewController: UIViewController {
             let fullStars = Int(round(averageRating))
             let emptyStars = 5 - fullStars
             
-            let filledStar = "★"  // Filled star
-            let emptyStar = "☆"   // Empty star
+            let filledStar = "★"
+            let emptyStar = "☆"
             
             let starString = String(repeating: filledStar, count: fullStars) +
                             String(repeating: emptyStar, count: emptyStars)
             
             ratingLabel.text = starString
         } else {
-            ratingLabel.text = "☆☆☆☆☆"  // No ratings
+            ratingLabel.text = "☆☆☆☆☆"
         }
         
-        // Reload reviews table to show fetched reviews
-        reviewsTableView.reloadData()
-        
-        print("Average rating: \(averageRating)/5")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.updateReviewsTableHeight()
+        // Handle empty state - No reviews
+        if ratings.isEmpty {
+            let emptyLabel = UILabel()
+            emptyLabel.text = "No reviews yet"
+            emptyLabel.textAlignment = .center
+            emptyLabel.textColor = UIColor.darkGray
+            emptyLabel.font = UIFont.systemFont(ofSize: 16)
+            emptyLabel.numberOfLines = 0
+
+            reviewsTableView.backgroundView = emptyLabel
+            reviewsTableView.separatorStyle = .none
+            reviewsTableViewHeight.constant = 80
+            
+            seeAllButton.isHidden = true
+            
+            print("No reviews for this service")
+        } else {
+            // Has reviews - remove empty state
+            reviewsTableView.backgroundView = nil
+            reviewsTableView.separatorStyle = .singleLine
+            seeAllButton.isHidden = false
+            
+            reviewsTableView.reloadData()
+            // Update table height based on content
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.updateReviewsTableHeight()
+            }
         }
     }
     
