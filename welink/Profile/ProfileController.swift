@@ -69,6 +69,13 @@ class ProfileController: UIViewController {
         setupMenu()
         fetchUserProfile()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Refresh data every time the page appears
+        fetchUserProfile()
+    }
 
     // MARK: - Setup UI
 
@@ -135,11 +142,17 @@ class ProfileController: UIViewController {
     }
 
     private func openSettings() {
-        print("Settings tapped")
+        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
+        settingsVC.modalPresentationStyle = .fullScreen
+        present(settingsVC, animated: true)
     }
 
     private func openHistory() {
-        print("History tapped")
+        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
+        historyVC.modalPresentationStyle = .fullScreen
+        present(historyVC, animated: true)
     }
 
     // MARK: - Setup Skills Collection View
