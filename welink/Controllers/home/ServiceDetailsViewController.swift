@@ -551,11 +551,17 @@ class ServiceDetailsViewController: UIViewController {
                 return
             }
             
-            // Pass service price and name
+            // Pass all required data
             paymentVC.servicePrice = service.pricePerHour
             paymentVC.serviceName = service.name
+            paymentVC.serviceId = service.id
+            paymentVC.selectedDate = dateLabel.text ?? ""
             
-            print("✅ Navigating to payment screen with price: \(service.pricePerHour) BD")
+            print("Navigating to payment screen")
+            print("Service ID: \(service.id)")
+            print("Price: \(service.pricePerHour) BD")
+            print("Selected Date: \(dateLabel.text ?? "none")")
+            
             navigationController?.pushViewController(paymentVC, animated: true)
     }
     
@@ -575,8 +581,8 @@ class ServiceDetailsViewController: UIViewController {
             allReviewsVC.serviceId = service.id
             allReviewsVC.serviceName = service.name
             
-            print("✅ Passing serviceId: \(service.id)")
-            print("✅ Passing serviceName: \(service.name)")
+            print("Passing serviceId: \(service.id)")
+            print("Passing serviceName: \(service.name)")
             
             navigationController?.pushViewController(allReviewsVC, animated: true)
     }

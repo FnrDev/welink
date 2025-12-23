@@ -9,7 +9,6 @@ import UIKit
 
 class PaymentViewController: UIViewController, UITextFieldDelegate {
     
-    
     @IBOutlet weak var creditCardButton: UIButton!
     @IBOutlet weak var applePayButton: UIButton!
     @IBOutlet weak var cardHolderNameLabel: UILabel!
@@ -26,6 +25,8 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     // MARK: - Properties
     var servicePrice: Double = 0.0
     var serviceName: String = ""
+    var serviceId: String = ""
+    var selectedDate: String = ""
     
     private var selectedPaymentMethod: PaymentMethod = .creditCard
     
@@ -40,6 +41,8 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
         title = "Payment Details"
                 
         print("✅ Payment screen loaded")
+        print("Service ID: \(serviceId)")
+        print("Selected Date: \(selectedDate)")
         updateTotalAmount()
         setupUI()
         setupTextFieldDelegates()
@@ -86,85 +89,61 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
         guard let stringRange = Range(range, in: currentText) else { return false }
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         
-        // Card Holder Name: Only letters and spaces
         if textField == cardHolderNameField {
             let allowedCharacters = CharacterSet.letters.union(.whitespaces)
             let characterSet = CharacterSet(charactersIn: string)
             return allowedCharacters.isSuperset(of: characterSet)
         }
         
-        // Card Number: Only numbers, max 16 digits, auto-format with spaces
         if textField == cardNumberField {
-            // Remove spaces for counting
             let digitsOnly = updatedText.replacingOccurrences(of: " ", with: "")
-            
-            // Only allow numbers
             let allowedCharacters = CharacterSet.decimalDigits
             let characterSet = CharacterSet(charactersIn: string)
             if !allowedCharacters.isSuperset(of: characterSet) {
                 return false
             }
-            
-            // Max 16 digits
             if digitsOnly.count > 16 {
                 return false
             }
-            
-            // Auto-format: Add space every 4 digits
             if digitsOnly.count > 0 {
                 let formatted = formatCardNumber(digitsOnly)
                 textField.text = formatted
                 return false
             }
-            
             return true
         }
         
-        // CVV: Only numbers, max 3 digits
         if textField == cvvField {
-            // Only allow numbers
             let allowedCharacters = CharacterSet.decimalDigits
             let characterSet = CharacterSet(charactersIn: string)
             if !allowedCharacters.isSuperset(of: characterSet) {
                 return false
             }
-            
-            // Max 3 digits
             return updatedText.count <= 3
         }
         
-        // Expiry Date: Only numbers, auto-format as MM/YY
         if textField == expiryDateField {
-            // Remove slash for counting
             let digitsOnly = updatedText.replacingOccurrences(of: "/", with: "")
-            
-            // Only allow numbers
             let allowedCharacters = CharacterSet.decimalDigits
             let characterSet = CharacterSet(charactersIn: string)
             if !allowedCharacters.isSuperset(of: characterSet) {
                 return false
             }
-            
-            // Max 4 digits (MMYY)
             if digitsOnly.count > 4 {
                 return false
             }
-            
-            // Auto-format: Add slash after MM
             if digitsOnly.count >= 2 {
                 let month = String(digitsOnly.prefix(2))
                 let year = digitsOnly.count > 2 ? String(digitsOnly.suffix(from: digitsOnly.index(digitsOnly.startIndex, offsetBy: 2))) : ""
                 textField.text = year.isEmpty ? month : "\(month)/\(year)"
                 return false
             }
-            
             return true
         }
         
         return true
     }
     
-    // Format card number as: 1234 5678 9012 3456
     func formatCardNumber(_ number: String) -> String {
         var formatted = ""
         for (index, character) in number.enumerated() {
@@ -181,24 +160,20 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     }
     
     func updatePaymentMethodButtons() {
-        // Create configurations
         var creditConfig = UIButton.Configuration.filled()
         var appleConfig = UIButton.Configuration.filled()
         
         if selectedPaymentMethod == .creditCard {
-            // Credit Card selected
             creditConfig.baseBackgroundColor = UIColor(hex: "2D493A")
             creditConfig.baseForegroundColor = .white
             creditConfig.title = "Credit/Debit Card"
             creditCardButton.configuration = creditConfig
             
-            // Apple Pay unselected
             appleConfig.baseBackgroundColor = UIColor(hex: "E8E8E8")
             appleConfig.baseForegroundColor = .black
             appleConfig.title = "Apple Pay"
             applePayButton.configuration = appleConfig
             
-            // Show form fields
             cardHolderNameLabel.isHidden = false
             cardHolderNameField.isHidden = false
             cardNumberLabel.isHidden = false
@@ -209,19 +184,16 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             expiryDateField.isHidden = false
             
         } else {
-            // Apple Pay selected
             appleConfig.baseBackgroundColor = UIColor(hex: "2D493A")
             appleConfig.baseForegroundColor = .white
             appleConfig.title = "Apple Pay"
             applePayButton.configuration = appleConfig
             
-            // Credit Card unselected
             creditConfig.baseBackgroundColor = UIColor(hex: "E8E8E8")
             creditConfig.baseForegroundColor = .black
             creditConfig.title = "Credit/Debit Card"
             creditCardButton.configuration = creditConfig
             
-            // Hide form fields
             cardHolderNameLabel.isHidden = true
             cardHolderNameField.isHidden = true
             cardNumberLabel.isHidden = true
@@ -249,13 +221,11 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     @IBAction func payButtonTapped(_ sender: UIButton) {
         print("Pay button tapped")
         
-        // If Apple Pay is selected, skip validation
         if selectedPaymentMethod == .applePay {
             processPayment()
             return
         }
         
-        // Validate form fields - For Credit Card
         guard let cardHolder = cardHolderNameField.text, !cardHolder.isEmpty else {
             showAlert(message: "Please enter card holder name")
             return
@@ -266,7 +236,6 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             return
         }
         
-        // Check card number has 16 digits
         let digitsOnly = cardNumber.replacingOccurrences(of: " ", with: "")
         guard digitsOnly.count == 16 else {
             showAlert(message: "Card number must be 16 digits")
@@ -288,7 +257,6 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             return
         }
         
-        // Validate expiry format MM/YY
         let expiryDigits = expiry.replacingOccurrences(of: "/", with: "")
         guard expiryDigits.count == 4 else {
             showAlert(message: "Expiry date must be in MM/YY format")
@@ -299,10 +267,67 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     }
     
     func processPayment() {
-        // Navigate to success screen
+        // Show loading indicator
+        payButton.isEnabled = false
+        payButton.setTitle("Processing...", for: .normal)
+        
+        // Save booking to database
+        Task {
+            await saveBookingToDatabase()
+        }
+    }
+    
+    func saveBookingToDatabase() async {
+        do {
+            // Get current user ID
+            let session = try await SupabaseClientManager.shared.client.auth.session
+            let userId = session.user.id.uuidString
+            
+            // Format the booked date (use the date selected in Service Details)
+            let formatter = ISO8601DateFormatter()
+            let bookedDate = selectedDate.isEmpty ? formatter.string(from: Date()) : selectedDate
+            
+            // Create booking request
+            let bookingRequest = CreateBookingRequest(
+                service_id: serviceId,
+                user_id: userId,
+                status: "confirmed",  // or "pending", "completed", etc.
+                booked_date: bookedDate
+            )
+            
+            // Insert into database
+            try await SupabaseClientManager.shared.client.database
+                .from("bookings")
+                .insert(bookingRequest)
+                .execute()
+            
+            print("✅ Booking saved successfully")
+            print("   Service ID: \(serviceId)")
+            print("   User ID: \(userId)")
+            print("   Date: \(bookedDate)")
+            
+            // Navigate to success screen
+            await MainActor.run {
+                navigateToSuccessScreen()
+            }
+            
+        } catch {
+            print("❌ Error saving booking: \(error)")
+            
+            await MainActor.run {
+                payButton.isEnabled = true
+                payButton.setTitle("Pay", for: .normal)
+                showAlert(message: "Failed to complete booking. Please try again.")
+            }
+        }
+    }
+    
+    func navigateToSuccessScreen() {
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         guard let successVC = storyboard.instantiateViewController(withIdentifier: "PaymentSuccessVC") as? PaymentSuccessViewController else {
             print("Could not load success screen")
+            payButton.isEnabled = true
+            payButton.setTitle("Pay", for: .normal)
             return
         }
         
@@ -317,5 +342,4 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }
-
 }
