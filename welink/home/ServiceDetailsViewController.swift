@@ -266,8 +266,10 @@ class ServiceDetailsViewController: UIViewController {
                             String(repeating: emptyStar, count: emptyStars)
             
             ratingLabel.text = starString
+            ratingLabel.textColor = UIColor(hex: "2D493A")
         } else {
             ratingLabel.text = "☆☆☆☆☆"
+            ratingLabel.textColor = .lightGray
         }
         
         // Handle empty state - No reviews
