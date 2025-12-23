@@ -325,7 +325,7 @@
                         <viewLayoutGuide key="safeArea" id="SVL-Ep-Hli"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" id="lv8-Tu-eif"/>
+                    <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="lv8-Tu-eif"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Brt-Qm-xgm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -657,20 +657,11 @@
                                     </userDefinedRuntimeAttribute>
                                 </userDefinedRuntimeAttributes>
                             </view>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fVG-7d-QWz">
-                                <rect key="frame" x="233" y="197" width="138" height="39"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Service Details"/>
-                                <connections>
-                                    <segue destination="ZXm-ER-JXg" kind="show" id="Jp4-3q-9YP"/>
-                                </connections>
-                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="UUv-PI-84E"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Category" id="2Gd-ey-HWW"/>
+                    <navigationItem key="navigationItem" title="Category" largeTitleDisplayMode="never" id="2Gd-ey-HWW"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qzN-Y6-eb4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -694,7 +685,7 @@
                                 <color key="backgroundColor" red="0.94117647059999998" green="0.60392156860000001" blue="0.602715373" alpha="1" colorSpace="calibratedRGB"/>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="OMV-pA-wWy">
-                                <rect key="frame" x="0.0" y="200" width="393" height="652"/>
+                                <rect key="frame" x="0.0" y="156" width="393" height="696"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Sumaya Ali" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="HPI-dk-smg">
                                         <rect key="frame" x="16" y="69" width="266" height="24"/>
@@ -1259,7 +1250,7 @@
                         <viewLayoutGuide key="safeArea" id="uAT-uS-hIV"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" id="rpJ-hj-q6v"/>
+                    <navigationItem key="navigationItem" largeTitleDisplayMode="never" id="rpJ-hj-q6v"/>
                     <connections>
                         <outlet property="clearAllButton" destination="Ep8-Ur-Nas" id="3Xc-6f-u6M"/>
                         <outlet property="recentSearchesLabel" destination="D39-k2-Dza" id="vFK-bj-7r7"/>
@@ -1424,7 +1415,7 @@
                             <constraint firstItem="ehg-HL-ehk" firstAttribute="top" secondItem="15J-xA-e7C" secondAttribute="top" constant="20" id="skh-Vf-CQV"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Filter" id="yj8-Y4-0wW">
+                    <navigationItem key="navigationItem" title="Filter" largeTitleDisplayMode="never" id="yj8-Y4-0wW">
                         <barButtonItem key="leftBarButtonItem" title="Cencel" id="HMy-wG-lq3">
                             <connections>
                                 <action selector="cancelButtonTapped:" destination="MD5-mQ-nWm" id="H84-fr-5e2"/>
@@ -1454,7 +1445,7 @@
         <!--Tab Bar Controller-->
         <scene sceneID="JgK-1U-flb">
             <objects>
-                <tabBarController storyboardIdentifier="SeekerTabController" id="0eW-Ub-9FS" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="SeekerTabController" extendedLayoutIncludesOpaqueBars="YES" id="0eW-Ub-9FS" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" backgroundImage="house" catalog="system" id="wk6-5B-VHl">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -1472,7 +1463,8 @@
         <!--Home-->
         <scene sceneID="WyP-z8-wkf">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="e4p-ka-7w2" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" toolbarHidden="NO" id="e4p-ka-7w2" sceneMemberID="viewController">
+                    <extendedEdge key="edgesForExtendedLayout" top="YES"/>
                     <tabBarItem key="tabBarItem" title="Home" image="house" catalog="system" id="20l-6I-akd">
                         <color key="badgeColor" name="AccentColor"/>
                     </tabBarItem>
@@ -1511,7 +1503,7 @@
         <!--Search-->
         <scene sceneID="6Th-N2-gtk">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="zpI-7R-CVr" sceneMemberID="viewController">
+                <navigationController extendedLayoutIncludesOpaqueBars="YES" automaticallyAdjustsScrollViewInsets="NO" id="zpI-7R-CVr" sceneMemberID="viewController">
                     <tabBarItem key="tabBarItem" title="Search" image="magnifyingglass" catalog="system" id="G0w-Nq-1g2">
                         <color key="badgeColor" name="AccentColor"/>
                     </tabBarItem>
