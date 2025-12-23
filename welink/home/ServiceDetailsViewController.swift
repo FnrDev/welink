@@ -110,7 +110,9 @@ class ServiceDetailsViewController: UIViewController {
                     image: response.image,
                     userId: response.user_id,
                     providerName: response.users?.name,
-                    providerImage: response.users?.image
+                    providerImage: response.users?.image,
+                    startDate: response.start_date,
+                    endDate: response.end_date
                 )
                 
                 self.service = service
@@ -180,7 +182,6 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-    // MARK: - Display Functions
     func displayServiceData(_ service: SeekerSearchResult) {
         self.title = service.name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
@@ -203,7 +204,6 @@ class ServiceDetailsViewController: UIViewController {
         if let providerImageUrl = service.providerImage,
            let url = URL(string: providerImageUrl),
            !providerImageUrl.isEmpty {
-            // Load image from URL
             loadProviderImageAsync(from: url, providerName: service.providerName)
         } else {
             // No image URL, show initial
@@ -217,10 +217,41 @@ class ServiceDetailsViewController: UIViewController {
             }
         }
         
-        // Placeholder for availability
-        dateLabel.text = "Available"
-        timeLabel.text = "Select time"
-        
+        // Display availability date range
+        if let startDate = service.startDate, let endDate = service.endDate {
+            // Try multiple date formats
+            let dateFormatter = DateFormatter()
+            
+            // Try format 1: "2025-12-25 02:49:00" 
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            var start = dateFormatter.date(from: startDate)
+            var end = dateFormatter.date(from: endDate)
+            
+            // Try format 2: ISO8601 (if format 1 fails)
+            if start == nil || end == nil {
+                let iso8601Formatter = ISO8601DateFormatter()
+                start = iso8601Formatter.date(from: startDate)
+                end = iso8601Formatter.date(from: endDate)
+            }
+            
+            if let start = start, let end = end {
+                let displayFormatter = DateFormatter()
+                displayFormatter.dateFormat = "dd MMM yyyy"
+                
+                let startString = displayFormatter.string(from: start)
+                let endString = displayFormatter.string(from: end)
+                
+                dateLabel.text = "\(startString) - \(endString)"
+                timeLabel.text = "Select time"
+            } else {
+                dateLabel.text = "Available"
+                timeLabel.text = "Select time"
+            }
+        } else {
+            // No dates provided
+            dateLabel.text = "Available"
+            timeLabel.text = "Select time"
+        }
     }
     
     // Add this new function for loading provider image
@@ -345,7 +376,47 @@ class ServiceDetailsViewController: UIViewController {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
-        datePicker.minimumDate = Date() // Can't book in the past
+        
+        // Set minimum and maximum dates based on service availability
+        if let service = service,
+           let startDateString = service.startDate,
+           let endDateString = service.endDate {
+            
+            print("Parsing dates...")
+            print("Start: \(startDateString)")
+            print("End: \(endDateString)")
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            
+            var startDate: Date?
+            var endDate: Date?
+            
+            // Try format 1: "2025-12-23T19:51:54" (ISO8601-style with T)
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            startDate = dateFormatter.date(from: startDateString)
+            endDate = dateFormatter.date(from: endDateString)
+            
+            // Try format 2: "2025-12-23 19:51:54" (space instead of T)
+            if startDate == nil || endDate == nil {
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                startDate = dateFormatter.date(from: startDateString)
+                endDate = dateFormatter.date(from: endDateString)
+            }
+            
+            if let startDate = startDate, let endDate = endDate {
+                datePicker.minimumDate = startDate
+                datePicker.maximumDate = endDate
+                print("Date picker range: \(startDate) to \(endDate)")
+            } else {
+                print("Failed to parse, using default")
+                datePicker.minimumDate = Date()
+            }
+        } else {
+            datePicker.minimumDate = Date()
+        }
+        
         datePicker.frame = CGRect(x: 0, y: 50, width: alert.view.bounds.width - 20, height: 200)
         
         alert.view.addSubview(datePicker)
