@@ -1149,7 +1149,7 @@
                                                     </userDefinedRuntimeAttributes>
                                                 </imageView>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fahead Naser" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2Al-Xb-DqM" userLabel="Reviewer Name Label">
-                                                    <rect key="frame" x="78" y="12" width="148" height="16"/>
+                                                    <rect key="frame" x="78" y="12" width="83.333333333333314" height="16"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1161,8 +1161,8 @@
                                                     <color key="textColor" systemColor="opaqueSeparatorColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Yq-mV-LUC" userLabel="Review Text Label">
-                                                    <rect key="frame" x="78" y="32" width="295" height="61"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Yq-mV-LUC" userLabel="Review Text Label">
+                                                    <rect key="frame" x="78" y="19" width="303" height="70"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                     <color key="textColor" systemColor="systemGrayColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1172,12 +1172,11 @@
                                                 <constraint firstAttribute="bottomMargin" secondItem="gez-HV-g9h" secondAttribute="bottom" constant="31" id="6O7-65-BGG"/>
                                                 <constraint firstItem="gez-HV-g9h" firstAttribute="leading" secondItem="PLV-bv-Q95" secondAttribute="leadingMargin" id="9Xf-r6-hX1"/>
                                                 <constraint firstItem="2Al-Xb-DqM" firstAttribute="top" secondItem="PLV-bv-Q95" secondAttribute="topMargin" id="Dkm-Dx-RyB"/>
+                                                <constraint firstItem="4Yq-mV-LUC" firstAttribute="top" secondItem="2Al-Xb-DqM" secondAttribute="bottom" constant="-9" id="Lqn-zY-W1Q"/>
                                                 <constraint firstItem="4Yq-mV-LUC" firstAttribute="leading" secondItem="gez-HV-g9h" secondAttribute="trailing" constant="8" symbolic="YES" id="O2R-tD-Np9"/>
                                                 <constraint firstAttribute="bottom" secondItem="4Yq-mV-LUC" secondAttribute="bottom" constant="16" id="S1p-46-1qI"/>
                                                 <constraint firstItem="gez-HV-g9h" firstAttribute="top" secondItem="PLV-bv-Q95" secondAttribute="topMargin" id="Vg3-eX-vcb"/>
                                                 <constraint firstItem="2Al-Xb-DqM" firstAttribute="leading" secondItem="gez-HV-g9h" secondAttribute="trailing" constant="8" symbolic="YES" id="a2Y-k5-wAd"/>
-                                                <constraint firstItem="4Yq-mV-LUC" firstAttribute="top" secondItem="2Al-Xb-DqM" secondAttribute="bottom" constant="4" id="j0J-t9-0kU"/>
-                                                <constraint firstItem="4Yq-mV-LUC" firstAttribute="top" secondItem="2Al-Xb-DqM" secondAttribute="bottom" constant="4" id="qma-Q0-DlU"/>
                                                 <constraint firstAttribute="trailing" secondItem="4Yq-mV-LUC" secondAttribute="trailing" constant="12" id="wVP-gO-7h1"/>
                                             </constraints>
                                         </tableViewCellContentView>
