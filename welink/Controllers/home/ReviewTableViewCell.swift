@@ -38,7 +38,7 @@ class ReviewTableViewCell: UITableViewCell {
         let filledStars = String(repeating: "★", count: rating.starsCount)
         let emptyStars = String(repeating: "☆", count: 5 - rating.starsCount)
         starsLabel.text = filledStars + emptyStars
-        starsLabel.textColor = .black
+        starsLabel.textColor = UIColor(hex: "2D493A")
         
         // Fallback to initial
         if let imageURL = rating.userImage,

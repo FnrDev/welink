@@ -106,14 +106,16 @@ class SearchViewController: UIViewController {
                 var queryBuilder = client.database
                     .from("services")
                     .select("""
-                        id,
-                        name,
-                        description,
-                        price_per_hour,
-                        image,
-                        user_id,
-                        users!inner(name, image)
-                    """)
+                            id,
+                            name,
+                            description,
+                            price_per_hour,
+                            image,
+                            user_id,
+                            start_date,
+                            end_date,
+                            users!inner(name, image)
+                        """)
                     .ilike("name", value: "%\(query)%")
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
                 
@@ -137,7 +139,9 @@ class SearchViewController: UIViewController {
                         image: serviceWithUser.image,
                         userId: serviceWithUser.user_id,
                         providerName: serviceWithUser.users?.name,
-                        providerImage: serviceWithUser.users?.image
+                        providerImage: serviceWithUser.users?.image,
+                        startDate: serviceWithUser.start_date,
+                        endDate: serviceWithUser.end_date
                     )
                 }
                 
@@ -197,6 +201,8 @@ class SearchViewController: UIViewController {
                         price_per_hour,
                         image,
                         user_id,
+                        start_date,
+                        end_date,
                         users!inner(name, image)
                     """)
                     .order("created_at", ascending: false)
@@ -212,7 +218,9 @@ class SearchViewController: UIViewController {
                         image: serviceWithUser.image,
                         userId: serviceWithUser.user_id,
                         providerName: serviceWithUser.users?.name,
-                        providerImage: serviceWithUser.users?.image
+                        providerImage: serviceWithUser.users?.image,
+                        startDate: serviceWithUser.start_date,
+                        endDate: serviceWithUser.end_date
                     )
                 }
 

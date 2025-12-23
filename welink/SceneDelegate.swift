@@ -22,8 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if testMode {
             let storyboard = UIStoryboard(name: testStoryboard, bundle: nil)
             let vc = storyboard.instantiateViewController(withIdentifier: testViewControllerID)
-            let navController = UINavigationController(rootViewController: vc)
-            window?.rootViewController = navController
+            window?.rootViewController = vc
             window?.makeKeyAndVisible()
             return
         }

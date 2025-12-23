@@ -15,6 +15,8 @@ struct SeekerSearchResult: Codable, Identifiable {
     let userId: String?
     let providerName: String?
     let providerImage: String?
+    let startDate: String?
+    let endDate: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -25,6 +27,8 @@ struct SeekerSearchResult: Codable, Identifiable {
         case userId = "user_id"
         case providerName = "provider_name"
         case providerImage = "provider_image"
+        case startDate = "start_date"
+        case endDate = "end_date"
     }
 }
 
@@ -36,6 +40,8 @@ struct ServiceWithUser: Codable {
     let price_per_hour: Double
     let image: String?
     let user_id: String?
+    let start_date: String?    
+    let end_date: String?
     let users: UserInfo?
     
     struct UserInfo: Codable {

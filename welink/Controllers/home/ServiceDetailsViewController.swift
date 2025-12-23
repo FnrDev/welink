@@ -110,7 +110,9 @@ class ServiceDetailsViewController: UIViewController {
                     image: response.image,
                     userId: response.user_id,
                     providerName: response.users?.name,
-                    providerImage: response.users?.image
+                    providerImage: response.users?.image,
+                    startDate: response.start_date,
+                    endDate: response.end_date
                 )
                 
                 self.service = service
@@ -180,25 +182,17 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-    // MARK: - Display Functions
     func displayServiceData(_ service: SeekerSearchResult) {
-        // Set service name as title
         self.title = service.name
-        
-        // Set provider name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
-        
-        // Set description
         descriptionLabel.text = service.description
-        
-        // Set price
         priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour)
         
         // Load service image
         if let imageUrl = service.image {
             loadImage(from: imageUrl, into: serviceImageView)
         } else {
-            serviceImageView.backgroundColor = .systemPink
+            serviceImageView.backgroundColor = UIColor(hex: "2D493A")
         }
         
         // Setup provider profile image
@@ -210,7 +204,6 @@ class ServiceDetailsViewController: UIViewController {
         if let providerImageUrl = service.providerImage,
            let url = URL(string: providerImageUrl),
            !providerImageUrl.isEmpty {
-            // Load image from URL (same as SearchViewController)
             loadProviderImageAsync(from: url, providerName: service.providerName)
         } else {
             // No image URL, show initial
@@ -224,10 +217,41 @@ class ServiceDetailsViewController: UIViewController {
             }
         }
         
-        // Placeholder for availability
-        dateLabel.text = "Available"
-        timeLabel.text = "Select time"
-        
+        // Display availability date range
+        if let startDate = service.startDate, let endDate = service.endDate {
+            // Try multiple date formats
+            let dateFormatter = DateFormatter()
+            
+            // Try format 1: "2025-12-25 02:49:00" 
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            var start = dateFormatter.date(from: startDate)
+            var end = dateFormatter.date(from: endDate)
+            
+            // Try format 2: ISO8601 (if format 1 fails)
+            if start == nil || end == nil {
+                let iso8601Formatter = ISO8601DateFormatter()
+                start = iso8601Formatter.date(from: startDate)
+                end = iso8601Formatter.date(from: endDate)
+            }
+            
+            if let start = start, let end = end {
+                let displayFormatter = DateFormatter()
+                displayFormatter.dateFormat = "dd MMM yyyy"
+                
+                let startString = displayFormatter.string(from: start)
+                let endString = displayFormatter.string(from: end)
+                
+                dateLabel.text = "\(startString) - \(endString)"
+                timeLabel.text = "Select time"
+            } else {
+                dateLabel.text = "Available"
+                timeLabel.text = "Select time"
+            }
+        } else {
+            // No dates provided
+            dateLabel.text = "Available"
+            timeLabel.text = "Select time"
+        }
     }
     
     // Add this new function for loading provider image
@@ -275,24 +299,46 @@ class ServiceDetailsViewController: UIViewController {
             let fullStars = Int(round(averageRating))
             let emptyStars = 5 - fullStars
             
-            let filledStar = "★"  // Filled star
-            let emptyStar = "☆"   // Empty star
+            let filledStar = "★"
+            let emptyStar = "☆"
             
             let starString = String(repeating: filledStar, count: fullStars) +
                             String(repeating: emptyStar, count: emptyStars)
             
             ratingLabel.text = starString
+            ratingLabel.textColor = UIColor(hex: "2D493A")
         } else {
-            ratingLabel.text = "☆☆☆☆☆"  // No ratings
+            ratingLabel.text = "☆☆☆☆☆"
+            ratingLabel.textColor = .lightGray
         }
         
-        // Reload reviews table to show fetched reviews
-        reviewsTableView.reloadData()
-        
-        print("Average rating: \(averageRating)/5")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.updateReviewsTableHeight()
+        // Handle empty state - No reviews
+        if ratings.isEmpty {
+            let emptyLabel = UILabel()
+            emptyLabel.text = "No reviews yet"
+            emptyLabel.textAlignment = .center
+            emptyLabel.textColor = UIColor.darkGray
+            emptyLabel.font = UIFont.systemFont(ofSize: 16)
+            emptyLabel.numberOfLines = 0
+
+            reviewsTableView.backgroundView = emptyLabel
+            reviewsTableView.separatorStyle = .none
+            reviewsTableViewHeight.constant = 80
+            
+            seeAllButton.isHidden = true
+            
+            print("No reviews for this service")
+        } else {
+            // Has reviews - remove empty state
+            reviewsTableView.backgroundView = nil
+            reviewsTableView.separatorStyle = .singleLine
+            seeAllButton.isHidden = false
+            
+            reviewsTableView.reloadData()
+            // Update table height based on content
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.updateReviewsTableHeight()
+            }
         }
     }
     
@@ -330,7 +376,47 @@ class ServiceDetailsViewController: UIViewController {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
-        datePicker.minimumDate = Date() // Can't book in the past
+        
+        // Set minimum and maximum dates based on service availability
+        if let service = service,
+           let startDateString = service.startDate,
+           let endDateString = service.endDate {
+            
+            print("Parsing dates...")
+            print("Start: \(startDateString)")
+            print("End: \(endDateString)")
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            
+            var startDate: Date?
+            var endDate: Date?
+            
+            // Try format 1: "2025-12-23T19:51:54" (ISO8601-style with T)
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            startDate = dateFormatter.date(from: startDateString)
+            endDate = dateFormatter.date(from: endDateString)
+            
+            // Try format 2: "2025-12-23 19:51:54" (space instead of T)
+            if startDate == nil || endDate == nil {
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                startDate = dateFormatter.date(from: startDateString)
+                endDate = dateFormatter.date(from: endDateString)
+            }
+            
+            if let startDate = startDate, let endDate = endDate {
+                datePicker.minimumDate = startDate
+                datePicker.maximumDate = endDate
+                print("Date picker range: \(startDate) to \(endDate)")
+            } else {
+                print("Failed to parse, using default")
+                datePicker.minimumDate = Date()
+            }
+        } else {
+            datePicker.minimumDate = Date()
+        }
+        
         datePicker.frame = CGRect(x: 0, y: 50, width: alert.view.bounds.width - 20, height: 200)
         
         alert.view.addSubview(datePicker)
@@ -452,8 +538,25 @@ class ServiceDetailsViewController: UIViewController {
     
     @IBAction func bookNowButtonTapped(_ sender: UIButton) {
         print("Book Now button tapped")
-        guard let service = service else { return }
-        // TODO: Navigate to booking screen
+            
+            guard let service = service else {
+                print("❌ No service available")
+                return
+            }
+            
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+            
+            guard let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentVC") as? PaymentViewController else {
+                print("❌ Could not instantiate PaymentViewController")
+                return
+            }
+            
+            // Pass service price and name
+            paymentVC.servicePrice = service.pricePerHour
+            paymentVC.serviceName = service.name
+            
+            print("✅ Navigating to payment screen with price: \(service.pricePerHour) BD")
+            navigationController?.pushViewController(paymentVC, animated: true)
     }
     
     @IBAction func seeAllReviewsTapped(_ sender: UIButton) {
@@ -469,8 +572,7 @@ class ServiceDetailsViewController: UIViewController {
                 return
             }
             
-            // ✅ Pass non-optional serviceId
-            allReviewsVC.serviceId = service.id  // This is already a String, not String?
+            allReviewsVC.serviceId = service.id
             allReviewsVC.serviceName = service.name
             
             print("✅ Passing serviceId: \(service.id)")
