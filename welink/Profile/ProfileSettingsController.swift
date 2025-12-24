@@ -18,11 +18,18 @@ struct UpdateUserRequest: Encodable {
 class ProfileSettingsController: UIViewController {
 
     @IBOutlet weak var navigationBar: UINavigationBar!
+    @IBOutlet weak var segmentedControl: UISegmentedControl!
     @IBOutlet weak var saveChangesBTN: UIButton!
     @IBOutlet weak var phoneNumber: UITextField!
     @IBOutlet weak var fullName: UITextField!
     @IBOutlet weak var email: UITextField!
     @IBOutlet weak var userAvatar: UIImageView!
+    @IBOutlet weak var profileView: UIView!
+    @IBOutlet weak var preferencesView: UIView!
+    @IBOutlet weak var pincleView: UIView!
+    @IBOutlet weak var changePasswordView: UIView!
+    @IBOutlet weak var logoutBTN: UIButton!
+    @IBOutlet weak var darkThemeContainer: UIView!
     
     private var currentUserId: String = ""
     private var currentImagePath: String?
@@ -34,18 +41,114 @@ class ProfileSettingsController: UIViewController {
         
         setupNavigationBar()
         setupUI()
+        setupSegmentedControl()
+        setupChangePassword()
+        setupLogout()
         fetchUserProfile()
         
-        // Connect save button action
         saveChangesBTN.addTarget(self, action: #selector(saveChangesTapped(_:)), for: .touchUpInside)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        // Make avatar circular - use the smaller dimension to ensure circle
+        // Avatar circular
         let size = min(userAvatar.frame.width, userAvatar.frame.height)
         userAvatar.layer.cornerRadius = size / 2
+        
+        // Pincle view full rounded (pill shape)
+        pincleView.layer.cornerRadius = pincleView.frame.height / 2
+    }
+    
+    // MARK: - Setup Logout
+    
+    private func setupLogout() {
+        logoutBTN.addTarget(self, action: #selector(logoutTapped), for: .touchUpInside)
+    }
+    
+    @objc private func logoutTapped() {
+        let alert = UIAlertController(
+            title: "Logout",
+            message: "Are you sure you want to logout?",
+            preferredStyle: .alert
+        )
+        
+        let logoutAction = UIAlertAction(title: "Logout", style: .destructive) { _ in
+            Task {
+                await self.performLogout()
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
+        
+        alert.addAction(logoutAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true)
+    }
+    
+    private func performLogout() async {
+        do {
+            try await SupabaseClientManager.shared.client.auth.signOut()
+            
+            await MainActor.run {
+                // Navigate to login screen
+                let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                let loginVC = storyboard.instantiateViewController(withIdentifier: "ViewController")
+                
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first {
+                    window.rootViewController = loginVC
+                    window.makeKeyAndVisible()
+                    
+                    UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+                }
+            }
+        } catch {
+            print("Error logging out: \(error)")
+            await MainActor.run {
+                showAlert(title: "Error", message: "Failed to logout: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    // MARK: - Setup Change Password
+    
+    private func setupChangePassword() {
+        let changePasswordTap = UITapGestureRecognizer(target: self, action: #selector(changePasswordTapped))
+        changePasswordView.isUserInteractionEnabled = true
+        changePasswordView.addGestureRecognizer(changePasswordTap)
+    }
+    
+    @objc private func changePasswordTapped() {
+        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let resetPasswordVC = storyboard.instantiateViewController(withIdentifier: "forgetPassword")
+        resetPasswordVC.modalPresentationStyle = .fullScreen
+        present(resetPasswordVC, animated: true)
+    }
+    
+    // MARK: - Setup Segmented Control
+    
+    private func setupSegmentedControl() {
+        segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
+        
+        // Show profile by default
+        profileView.isHidden = false
+        preferencesView.isHidden = true
+    }
+    
+    @objc private func segmentChanged(_ sender: UISegmentedControl) {
+        if sender.selectedSegmentIndex == 0 {
+            // Profile selected
+            profileView.isHidden = false
+            preferencesView.isHidden = true
+            navigationBar.topItem?.title = "Settings"
+        } else {
+            // Preferences selected
+            profileView.isHidden = true
+            preferencesView.isHidden = false
+            navigationBar.topItem?.title = "Preferences"
+        }
     }
     
     // MARK: - Setup UI
@@ -56,12 +159,33 @@ class ProfileSettingsController: UIViewController {
         userAvatar.contentMode = .scaleAspectFill
         userAvatar.isUserInteractionEnabled = true
         
-        // Add tap gesture to avatar for changing photo
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
         userAvatar.addGestureRecognizer(tapGesture)
         
         // Save button styling
         saveChangesBTN.layer.cornerRadius = 12
+        
+        // Profile view rounded corners
+        profileView.layer.cornerRadius = 12
+        profileView.clipsToBounds = true
+        
+        // Preferences view rounded corners
+        preferencesView.layer.cornerRadius = 12
+        preferencesView.clipsToBounds = true
+        
+        // Pincle view styling
+        pincleView.clipsToBounds = true
+        
+        // Change password view styling
+        changePasswordView.layer.cornerRadius = 12
+        changePasswordView.clipsToBounds = true
+        
+        // Dark theme container styling
+        darkThemeContainer.layer.cornerRadius = 12
+        darkThemeContainer.clipsToBounds = true
+        
+        // Logout button styling
+        logoutBTN.layer.cornerRadius = 12
     }
     
     private func setupNavigationBar() {
@@ -88,7 +212,6 @@ class ProfileSettingsController: UIViewController {
                 let session = try await SupabaseClientManager.shared.client.auth.session
                 currentUserId = session.user.id.uuidString
                 
-                // Set email from auth session
                 await MainActor.run {
                     email.text = session.user.email
                 }
@@ -106,7 +229,6 @@ class ProfileSettingsController: UIViewController {
                         phoneNumber.text = user.phone
                         currentImagePath = user.image
                         
-                        // Load avatar if available
                         if let imagePath = user.image, !imagePath.isEmpty {
                             loadAvatar(from: imagePath)
                         }
@@ -163,7 +285,7 @@ class ProfileSettingsController: UIViewController {
     // MARK: - Save Changes
     
     @objc func saveChangesTapped(_ sender: UIButton) {
-        print("Save button tapped") // Debug
+        print("Save button tapped")
         
         guard let name = fullName.text, !name.isEmpty else {
             showAlert(title: "Missing Information", message: "Please enter your full name")
@@ -191,15 +313,12 @@ class ProfileSettingsController: UIViewController {
         do {
             var imagePath = currentImagePath
             
-            // Upload new image if selected
             if let image = selectedImage {
                 imagePath = await uploadImageToSupabase(image: image)
             }
             
-            // Update email in Supabase Auth
             try await SupabaseClientManager.shared.client.auth.update(user: .init(email: email))
             
-            // Update user in database
             let updateRequest = UpdateUserRequest(
                 name: name,
                 phone: phone,
