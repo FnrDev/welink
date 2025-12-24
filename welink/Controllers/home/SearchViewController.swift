@@ -32,7 +32,9 @@ class SearchViewController: UIViewController {
         // Setup table view
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
+        let nib = UINib(nibName: "SearchResultCell", bundle: nil)
+        tableView.register(nib, forCellReuseIdentifier: "SearchResultCell")
 
         // Get saved searches from phone storage and update the screen
         loadRecentSearches()
