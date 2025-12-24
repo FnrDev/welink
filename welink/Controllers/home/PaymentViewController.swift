@@ -39,6 +39,10 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
         super.viewDidLoad()
 
         title = "Payment Details"
+        
+        creditCardButton.applyAppStyle()
+        applePayButton.applyAppStyle()
+        payButton.applyAppStyle()
                 
         print("✅ Payment screen loaded")
         print("Service ID: \(serviceId)")
@@ -59,10 +63,6 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     }
     
     func setupUI() {
-        creditCardButton.layer.cornerRadius = 12
-        applePayButton.layer.cornerRadius = 12
-        payButton.layer.cornerRadius = 12
-        
         cvvField.isSecureTextEntry = true
         
         // Set keyboard types

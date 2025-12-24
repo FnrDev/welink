@@ -35,6 +35,9 @@ class ServiceDetailsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        messageButton.applyAppStyle()
+        bookNowButton.applyAppStyle()
 
         setupDateTimeTapGestures()
         setupReviewsTableView()

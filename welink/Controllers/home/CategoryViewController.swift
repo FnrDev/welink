@@ -36,6 +36,10 @@ class CategoryViewController: UIViewController {
             button?.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         }
         
+        homeButton.applyAppStyle()
+        tutoringButton.applyAppStyle()
+        designButton.applyAppStyle()
+        
         // Highlight selected category
         updateButtonStates()
     }
