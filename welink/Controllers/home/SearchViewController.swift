@@ -121,7 +121,6 @@ class SearchViewController: UIViewController {
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
                 
                 // Add category filter if any selected
-                // Add category filter if any selected
                 if !activeFilters.selectedCategories.isEmpty {
                     queryBuilder = queryBuilder.overlaps("categories", value: activeFilters.selectedCategories)
                     print("✅ Filtering by categories: \(activeFilters.selectedCategories)")
@@ -144,13 +143,25 @@ class SearchViewController: UIViewController {
                         providerImage: serviceWithUser.users?.image,
                         startDate: serviceWithUser.start_date,
                         endDate: serviceWithUser.end_date,
-                        categories: serviceWithUser.categories
+                        categories: serviceWithUser.categories,
+                        averageRating: nil
                     )
+                }
+
+                // Fetch ratings for each service
+                for index in results.indices {
+                    if let rating = try? await fetchServiceRating(serviceId: results[index].id) {
+                        results[index].averageRating = rating
+                        print("✅ Service '\(results[index].name)' has rating: \(rating)")
+                    } else {
+                        print("⚠️ No ratings found for '\(results[index].name)'")
+                    }
                 }
                 
                 // Filter by rating
                 if activeFilters.minRating > 0 {
-                    print("Rating filter not yet implemented - need rating data")
+                    results = results.filter { ($0.averageRating ?? 0) >= activeFilters.minRating }
+                    print("✅ Filtered by rating: \(activeFilters.minRating)+ stars")
                 }
                 
                 // Sort results
@@ -163,7 +174,12 @@ class SearchViewController: UIViewController {
                     }
                     print("Sorted by price (\(activeFilters.sortAscending ? "↑" : "↓"))")
                 case .rating:
-                    print("Sort by rating not yet implemented")
+                    results.sort {
+                        let rating1 = $0.averageRating ?? 0
+                        let rating2 = $1.averageRating ?? 0
+                        return activeFilters.sortAscending ? rating1 < rating2 : rating1 > rating2
+                    }
+                    print("Sorted by rating (\(activeFilters.sortAscending ? "↑" : "↓"))")
                 }
                 
                 await MainActor.run {
@@ -206,13 +222,14 @@ class SearchViewController: UIViewController {
                         user_id,
                         start_date,
                         end_date,
+                        categories,
                         users!inner(name, image)
                     """)
                     .order("created_at", ascending: false)
                     .execute()
                     .value
 
-                let results = response.map { serviceWithUser in
+                var results = response.map { serviceWithUser in
                     SeekerSearchResult(
                         id: serviceWithUser.id,
                         name: serviceWithUser.name,
@@ -224,8 +241,16 @@ class SearchViewController: UIViewController {
                         providerImage: serviceWithUser.users?.image,
                         startDate: serviceWithUser.start_date,
                         endDate: serviceWithUser.end_date,
-                        categories: serviceWithUser.categories
+                        categories: serviceWithUser.categories,
+                        averageRating: nil
                     )
+                }
+
+                // Fetch ratings for each service
+                for index in results.indices {
+                    if let rating = try? await fetchServiceRating(serviceId: results[index].id) {
+                        results[index].averageRating = rating
+                    }
                 }
 
                 await MainActor.run {
@@ -249,6 +274,38 @@ class SearchViewController: UIViewController {
         isShowingResults = false
         searchResults = []
         updateUI()
+    }
+    
+    // Fetch average rating for a service
+    func fetchServiceRating(serviceId: String) async throws -> Double? {
+        let client = SupabaseClientManager.shared.client
+        
+        print("Fetching ratings for service ID: \(serviceId)")
+        
+        do {
+            let response: [RatingWithUser] = try await client.database
+                .from("ratings")
+                .select("*")
+                .eq("service_id", value: serviceId)
+                .execute()
+                .value
+            
+            print("📊 Found \(response.count) ratings")
+            
+            guard !response.isEmpty else {
+                return nil
+            }
+            
+            let sum = response.reduce(0) { $0 + $1.stars_count }
+            let average = Double(sum) / Double(response.count)
+            
+            print("Average rating: \(average)")
+            return average
+            
+        } catch {
+            print("Error fetching ratings: \(error)")
+            return nil
+        }
     }
 
     // Clear all searches when button tapped
@@ -281,7 +338,6 @@ extension SearchViewController: UISearchBarDelegate {
             
             addRecentSearch(searchText)
             performSearch(query: searchText)
-            // print("Searching for: \(searchText)")
             searchBar.resignFirstResponder()
         }
     
@@ -305,98 +361,32 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
         return isShowingResults ? searchResults.count : recentSearches.count
     }
     
-    // Create circular image with initial
-    func createInitialImage(text: String) -> UIImage {
-        let size = CGSize(width: 40, height: 40)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        
-        return renderer.image { context in
-            // Light gray circle
-            UIColor(hex: "D9D9D9").setFill()
-            context.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
-            
-            // Dark green text
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: 20, weight: .medium),
-                .foregroundColor: UIColor(hex: "2D493A")
-            ]
-            
-            let textSize = text.size(withAttributes: attributes)
-            let textRect = CGRect(
-                x: (size.width - textSize.width) / 2,
-                y: (size.height - textSize.height) / 2,
-                width: textSize.width,
-                height: textSize.height
-            )
-            
-            text.draw(in: textRect, withAttributes: attributes)
-        }
-    }
-    
-    // Resize image to specific size
-    func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(size: targetSize)
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: targetSize))
-        }
-    }
-    
-    // Load image asynchronously
-    func loadImageAsync(from url: URL, into imageView: UIImageView?) {
-        // Set placeholder first (first letter)
-        let initial = String(url.lastPathComponent.prefix(1)).uppercased()
-        imageView?.image = createInitialImage(text: initial)
-        
-        Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                if let image = UIImage(data: data) {
-                    await MainActor.run {
-                        let resizedImage = self.resizeImage(image: image, targetSize: CGSize(width: 40, height: 40))
-                        imageView?.image = resizedImage
-                        imageView?.contentMode = .scaleAspectFill
-                        imageView?.clipsToBounds = true
-                        imageView?.layer.cornerRadius = 20
-                    }
-                }
-            } catch {
-                print("Failed to load image: \(error)")
-            }
-        }
+    // Set custom row height
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return isShowingResults ? 80 : 44
     }
     
     // What to show in each row
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         
         if isShowingResults {
-            let service = searchResults[indexPath.row]
-            cell.textLabel?.text = service.name
-            let providerName = service.providerName ?? "Unknown Provider"
-            cell.detailTextLabel?.text = "\(providerName) - BD \(service.pricePerHour)/hr"
-            cell.textLabel?.textColor = .black
-            cell.textLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-            cell.detailTextLabel?.textColor = .gray
-            
-            // Try to show image, fallback to initial
-            if let imageURL = service.image,
-               let url = URL(string: imageURL),
-               !imageURL.isEmpty {
-                // Load image from URL
-                loadImageAsync(from: url, into: cell.imageView)
-            } else {
-                // Show first letter as fallback
-                let initial = String(service.name.prefix(1)).uppercased()
-                cell.imageView?.image = createInitialImage(text: initial)
+            // Use custom cell for search results
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "SearchResultCell", for: indexPath) as? SearchResultCell else {
+                print("Failed to load SearchResultCell")
+                return UITableViewCell()
             }
             
+            let service = searchResults[indexPath.row]
+            cell.configure(with: service)
+            return cell
+            
         } else {
+            // Use basic cell for recent searches
+            let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
             cell.textLabel?.text = recentSearches[indexPath.row]
             cell.textLabel?.textColor = .lightGray
-            cell.imageView?.image = nil
+            return cell
         }
-        
-        return cell
     }
     
     // When user taps a row
@@ -482,6 +472,7 @@ extension SearchViewController: FilterViewControllerDelegate {
         print("filters:")
         print("   Sort by: \(filters.sortBy)")
         print("   Max price: BD\(filters.maxPrice)")
+        print("   Min rating: \(filters.minRating)+")
         print("   Categories: \(filters.selectedCategories)")
         
         // Re-perform search with filters

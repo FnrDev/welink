@@ -18,6 +18,7 @@ struct SeekerSearchResult: Codable, Identifiable {
     let startDate: String?
     let endDate: String?
     let categories: [String]?
+    var averageRating: Double?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -31,6 +32,7 @@ struct SeekerSearchResult: Codable, Identifiable {
         case startDate = "start_date"
         case endDate = "end_date"
         case categories
+        case averageRating = "average_rating"
     }
 }
 
