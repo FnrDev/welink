@@ -51,6 +51,9 @@ class FilterViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        applyButton.applyAppStyle()
+        
         setupUI()
     }
     

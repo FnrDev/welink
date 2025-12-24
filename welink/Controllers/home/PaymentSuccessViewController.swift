@@ -21,6 +21,7 @@ class PaymentSuccessViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        backToHomeButton.applyAppStyle()
         title = "Payment Details"
         setupUI()
     }
@@ -37,7 +38,7 @@ class PaymentSuccessViewController: UIViewController {
     
     func setupUI() {
         // Style button
-        backToHomeButton.layer.cornerRadius = 12
+//        backToHomeButton.layer.cornerRadius = 12
         backToHomeButton.backgroundColor = UIColor(hex: "2D493A")
         backToHomeButton.setTitleColor(.white, for: .normal)
     

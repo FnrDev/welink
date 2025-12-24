@@ -32,7 +32,9 @@ class SearchViewController: UIViewController {
         // Setup table view
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
+        let nib = UINib(nibName: "SearchResultCell", bundle: nil)
+        tableView.register(nib, forCellReuseIdentifier: "SearchResultCell")
 
         // Get saved searches from phone storage and update the screen
         loadRecentSearches()
@@ -378,6 +380,7 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
             
             let service = searchResults[indexPath.row]
             cell.configure(with: service)
+//            cell.contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
             return cell
             
         } else {
@@ -385,6 +388,7 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
             let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
             cell.textLabel?.text = recentSearches[indexPath.row]
             cell.textLabel?.textColor = .lightGray
+//            cell.contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
             return cell
         }
     }
