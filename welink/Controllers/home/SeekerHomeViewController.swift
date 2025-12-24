@@ -279,4 +279,27 @@ extension SeekerHomeViewController: UITableViewDelegate, UITableViewDataSource {
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
+    
+    @IBAction func homeCategoryTapped(_ sender: UIButton) {
+        navigateToCategory("Home")
+    }
+
+    @IBAction func tutoringCategoryTapped(_ sender: UIButton) {
+        navigateToCategory("Tutoring")
+    }
+
+    @IBAction func designCategoryTapped(_ sender: UIButton) {
+        navigateToCategory("Design")
+    }
+
+    func navigateToCategory(_ category: String) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        
+        guard let categoryVC = storyboard.instantiateViewController(withIdentifier: "CategoryVC") as? CategoryViewController else {
+            return
+        }
+        
+        categoryVC.selectedCategory = category
+        navigationController?.pushViewController(categoryVC, animated: true)
+    }
 }
