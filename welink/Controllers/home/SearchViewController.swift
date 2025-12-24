@@ -114,15 +114,17 @@ class SearchViewController: UIViewController {
                             user_id,
                             start_date,
                             end_date,
+                            categories,
                             users!inner(name, image)
                         """)
                     .ilike("name", value: "%\(query)%")
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
                 
                 // Add category filter if any selected
+                // Add category filter if any selected
                 if !activeFilters.selectedCategories.isEmpty {
-                    // TODO: Filter by categories when database has category column
-                    print("Category filter not yet implemented in database")
+                    queryBuilder = queryBuilder.overlaps("categories", value: activeFilters.selectedCategories)
+                    print("✅ Filtering by categories: \(activeFilters.selectedCategories)")
                 }
                 
                 let response: [ServiceWithUser] = try await queryBuilder
@@ -141,7 +143,8 @@ class SearchViewController: UIViewController {
                         providerName: serviceWithUser.users?.name,
                         providerImage: serviceWithUser.users?.image,
                         startDate: serviceWithUser.start_date,
-                        endDate: serviceWithUser.end_date
+                        endDate: serviceWithUser.end_date,
+                        categories: serviceWithUser.categories
                     )
                 }
                 
@@ -220,7 +223,8 @@ class SearchViewController: UIViewController {
                         providerName: serviceWithUser.users?.name,
                         providerImage: serviceWithUser.users?.image,
                         startDate: serviceWithUser.start_date,
-                        endDate: serviceWithUser.end_date
+                        endDate: serviceWithUser.end_date,
+                        categories: serviceWithUser.categories
                     )
                 }
 

@@ -112,7 +112,8 @@ class ServiceDetailsViewController: UIViewController {
                     providerName: response.users?.name,
                     providerImage: response.users?.image,
                     startDate: response.start_date,
-                    endDate: response.end_date
+                    endDate: response.end_date,
+                    categories: response.categories
                 )
                 
                 self.service = service
