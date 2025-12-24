@@ -86,15 +86,34 @@ class ProviderDashboardViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         todayBookingsField.text = "0"
         todayReveune.text = "0"
         totalBookingField.text = "0"
         totalReveune.text = "0"
-        
+
         setupTableView()
         setupLoadingView()
-        
+
+        // Listen for refresh notification (e.g., after deleting a service)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(refreshDashboard),
+            name: NSNotification.Name("RefreshProviderDashboard"),
+            object: nil
+        )
+
+        Task {
+            await loadDashboard()
+            await loadMyServices()
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    @objc private func refreshDashboard() {
         Task {
             await loadDashboard()
             await loadMyServices()
@@ -108,31 +127,29 @@ class ProviderDashboardViewController: UIViewController {
         servicesTableView.rowHeight = 80
         servicesTableView.separatorStyle = .none
     }
-    
+
     private func setupLoadingView() {
         view.addSubview(loadingContainer)
         loadingContainer.addSubview(activityIndicator)
         loadingContainer.addSubview(loadingLabel)
         view.addSubview(emptyStateLabel)
-        
+
         NSLayoutConstraint.activate([
             loadingContainer.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
             loadingContainer.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor),
-            
+
             activityIndicator.topAnchor.constraint(equalTo: loadingContainer.topAnchor),
             activityIndicator.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
-            
+
             loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 8),
             loadingLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
             loadingLabel.bottomAnchor.constraint(equalTo: loadingContainer.bottomAnchor),
-            
+
             emptyStateLabel.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
-            emptyStateLabel.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor),
-            emptyStateLabel.leadingAnchor.constraint(equalTo: servicesTableView.leadingAnchor, constant: 32),
-            emptyStateLabel.trailingAnchor.constraint(equalTo: servicesTableView.trailingAnchor, constant: -32)
+            emptyStateLabel.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor)
         ])
     }
-    
+
     private func showLoading() {
         loadingContainer.isHidden = false
         activityIndicator.startAnimating()
@@ -283,6 +300,16 @@ class ProviderDashboardViewController: UIViewController {
         if value == 0 { return "0" }
         return String(format: "%.2f", value)
     }
+
+    @IBAction func seeAllButtonTapped(_ sender: UIButton) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let searchVC = storyboard.instantiateViewController(withIdentifier: "SearchVC") as? SearchViewController else {
+            print("Could not instantiate SearchViewController")
+            return
+        }
+        searchVC.showAllOnLoad = true
+        navigationController?.pushViewController(searchVC, animated: true)
+    }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
@@ -303,9 +330,20 @@ extension ProviderDashboardViewController: UITableViewDelegate, UITableViewDataS
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let service = myServices[indexPath.row]
-        print(service)
-        // TODO: handle redirect to service details when card clicked
-        // it should pass the service object to the view controller of service details
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            return
+        }
+        vc.serviceId = service.id.uuidString
+
+        if let navController = navigationController {
+            navController.pushViewController(vc, animated: true)
+        } else {
+            // If no navigation controller, present modally with a nav controller
+            let navVC = UINavigationController(rootViewController: vc)
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+        }
     }
 }
 

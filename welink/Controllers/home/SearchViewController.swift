@@ -20,23 +20,28 @@ class SearchViewController: UIViewController {
     let maxRecentSearches = 3 //how many searches to save
     var searchResults: [SeekerSearchResult] = []  // store services from database
     var isShowingResults = false  // false = recent searches, true = search results
-    
+    var showAllOnLoad = false  // When true, load all services immediately
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Remove search bar border
         searchBar.backgroundImage = UIImage()
         searchBar.layer.borderWidth = 0
         searchBar.layer.borderColor = UIColor.clear.cgColor
-        
+
         // Setup table view
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-                
+
         // Get saved searches from phone storage and update the screen
         loadRecentSearches()
-        updateUI()
 
+        if showAllOnLoad {
+            loadAllServices()
+        } else {
+            updateUI()
+        }
     }
     
     // Load saved searches from phone storage
@@ -101,14 +106,16 @@ class SearchViewController: UIViewController {
                 var queryBuilder = client.database
                     .from("services")
                     .select("""
-                        id,
-                        name,
-                        description,
-                        price_per_hour,
-                        image,
-                        user_id,
-                        users!inner(name)
-                    """)
+                            id,
+                            name,
+                            description,
+                            price_per_hour,
+                            image,
+                            user_id,
+                            start_date,
+                            end_date,
+                            users!inner(name, image)
+                        """)
                     .ilike("name", value: "%\(query)%")
                     .lte("price_per_hour", value: activeFilters.maxPrice)  // Price filter
                 
@@ -131,7 +138,10 @@ class SearchViewController: UIViewController {
                         pricePerHour: serviceWithUser.price_per_hour,
                         image: serviceWithUser.image,
                         userId: serviceWithUser.user_id,
-                        providerName: serviceWithUser.users?.name
+                        providerName: serviceWithUser.users?.name,
+                        providerImage: serviceWithUser.users?.image,
+                        startDate: serviceWithUser.start_date,
+                        endDate: serviceWithUser.end_date
                     )
                 }
                 
@@ -171,13 +181,72 @@ class SearchViewController: UIViewController {
         }
     }
 
+    // Load all services (used when coming from "See All" button)
+    func loadAllServices() {
+        isShowingResults = true
+        recentSearchesLabel.text = "All Services"
+        clearAllButton.isHidden = true
+        tableView.isHidden = false
+
+        Task {
+            do {
+                let client = SupabaseClientManager.shared.client
+
+                let response: [ServiceWithUser] = try await client.database
+                    .from("services")
+                    .select("""
+                        id,
+                        name,
+                        description,
+                        price_per_hour,
+                        image,
+                        user_id,
+                        start_date,
+                        end_date,
+                        users!inner(name, image)
+                    """)
+                    .order("created_at", ascending: false)
+                    .execute()
+                    .value
+
+                let results = response.map { serviceWithUser in
+                    SeekerSearchResult(
+                        id: serviceWithUser.id,
+                        name: serviceWithUser.name,
+                        description: serviceWithUser.description,
+                        pricePerHour: serviceWithUser.price_per_hour,
+                        image: serviceWithUser.image,
+                        userId: serviceWithUser.user_id,
+                        providerName: serviceWithUser.users?.name,
+                        providerImage: serviceWithUser.users?.image,
+                        startDate: serviceWithUser.start_date,
+                        endDate: serviceWithUser.end_date
+                    )
+                }
+
+                await MainActor.run {
+                    self.searchResults = results
+                    self.tableView.reloadData()
+                    print("Loaded \(results.count) services")
+                }
+
+            } catch {
+                print("Error loading all services: \(error)")
+                await MainActor.run {
+                    self.searchResults = []
+                    self.tableView.reloadData()
+                }
+            }
+        }
+    }
+
     // Go back to recent searches
     func showRecentSearches() {
         isShowingResults = false
         searchResults = []
         updateUI()
     }
-    
+
     // Clear all searches when button tapped
     @IBAction func clearAllButtonTapped(_ sender: UIButton) {
         recentSearches.removeAll()
@@ -330,7 +399,31 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isShowingResults {
             let service = searchResults[indexPath.row]
-            // TODO: Navigate to service detail screen
+
+            print("Selected service:")
+            print("Name: \(service.name)")
+            print("ID: \(service.id)")
+            print("Provider: \(service.providerName ?? "nil")")
+
+            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+
+            guard let detailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+                print("❌ Could not instantiate ServiceDetailsViewController!")
+                return
+            }
+
+            // Pass the service data
+            detailsVC.service = service
+
+            if let navController = navigationController {
+                navController.pushViewController(detailsVC, animated: true)
+            } else {
+                // Fallback: wrap in nav controller and present modally
+                let navController = UINavigationController(rootViewController: detailsVC)
+                navController.modalPresentationStyle = .fullScreen
+                present(navController, animated: true)
+            }
+
         } else {
             let searchText = recentSearches[indexPath.row]
             searchBar.text = searchText

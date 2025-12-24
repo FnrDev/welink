@@ -12,14 +12,27 @@ struct CreateServiceRequest: Encodable {
     let name: String
     let description: String
     let price_per_hour: Double
-    let availability: ServiceAvailability
+    let start_date: String
+    let end_date: String
     let image: String?
     let user_id: String
     let categories: [String]
 }
 
-struct ServiceAvailability: Encodable {
-    let date: String
+// Response struct to capture created service ID
+struct CreateServiceResponse: Decodable {
+    let id: UUID
+}
+
+// Struct for updating an existing service
+struct UpdateServiceRequest: Encodable {
+    let name: String
+    let description: String
+    let price_per_hour: Double
+    let start_date: String
+    let end_date: String
+    let image: String?
+    let categories: [String]
 }
 
 class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -31,9 +44,9 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     @IBOutlet weak var uploadButton: UIButton!
     @IBOutlet weak var previewImageView: UIImageView!
     @IBOutlet weak var uploadContainerView: RoundedView!
-    @IBOutlet weak var datePicker: UIDatePicker!
+    @IBOutlet weak var startDatePicker: UIDatePicker!
+    @IBOutlet weak var endDatePicker: UIDatePicker!
     
-    // Add these outlets - connect them in Storyboard
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
     
@@ -45,9 +58,14 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     // Store the uploaded image URL
     private var uploadedImageURL: String?
     private var isUploading = false
-    
+
     // Changed to array for multiple categories
     private var selectedCategories: Set<String> = []
+
+    // Edit mode properties
+    var isEditMode: Bool = false
+    var editingServiceId: String?
+    var existingService: SeekerSearchResult?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -65,8 +83,128 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         descriptionTextView.delegate = self
         descriptionTextView.text = placeholderText
         descriptionTextView.textColor = placeholderColor
-        
+
         setupDottedBorder()
+        setupPreviewImageViewConstraints()
+
+        // If in edit mode, populate fields with existing data
+        if isEditMode {
+            populateFieldsForEditing()
+        }
+    }
+
+    private func populateFieldsForEditing() {
+        guard let service = existingService else { return }
+
+        // Update title
+        self.title = "Edit Service"
+
+        // Populate service name
+        serviceNameTextField.text = service.name
+
+        // Populate price
+        priceTextField.text = String(format: "%.0f", service.pricePerHour)
+
+        // Populate description
+        descriptionTextView.text = service.description
+        descriptionTextView.textColor = textColor
+
+        // Populate dates
+        if let startDateString = service.startDate, let endDateString = service.endDate {
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+            // Try format 1: ISO8601 with T
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            var startDate = dateFormatter.date(from: startDateString)
+            var endDate = dateFormatter.date(from: endDateString)
+
+            // Try format 2: space instead of T
+            if startDate == nil || endDate == nil {
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                startDate = dateFormatter.date(from: startDateString)
+                endDate = dateFormatter.date(from: endDateString)
+            }
+
+            if let start = startDate {
+                startDatePicker.date = start
+            }
+            if let end = endDate {
+                endDatePicker.date = end
+            }
+        }
+
+        // Populate image if exists
+        if let imageUrl = service.image, !imageUrl.isEmpty {
+            uploadedImageURL = imageUrl
+            loadExistingImage(from: imageUrl)
+        }
+
+        // Fetch and populate categories
+        fetchServiceCategories()
+    }
+
+    private func loadExistingImage(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        previewImageView.image = image
+                        previewImageView.isHidden = false
+                        previewImageView.contentMode = .scaleAspectFill
+                        previewImageView.clipsToBounds = true
+                        previewImageView.layer.cornerRadius = 12
+
+                        uploadIcon.isHidden = true
+                        uploadButton.isHidden = true
+                    }
+                }
+            } catch {
+                print("Failed to load existing image: \(error)")
+            }
+        }
+    }
+
+    private func fetchServiceCategories() {
+        guard let serviceId = editingServiceId else { return }
+
+        Task {
+            do {
+                let response: [[String: String]] = try await SupabaseClientManager.shared.client
+                    .database
+                    .from("service_categories")
+                    .select("category")
+                    .eq("service_id", value: serviceId)
+                    .execute()
+                    .value
+
+                let categories = response.compactMap { $0["category"] }
+
+                await MainActor.run {
+                    self.selectedCategories = Set(categories)
+                    self.updateCategoryButtonTitle()
+                }
+            } catch {
+                print("Failed to fetch categories: \(error)")
+            }
+        }
+    }
+
+    private func setupPreviewImageViewConstraints() {
+        // Remove any existing constraints on previewImageView
+        previewImageView.translatesAutoresizingMaskIntoConstraints = false
+
+        // Pin previewImageView to all edges of uploadContainerView
+        NSLayoutConstraint.activate([
+            previewImageView.topAnchor.constraint(equalTo: uploadContainerView.topAnchor),
+            previewImageView.leadingAnchor.constraint(equalTo: uploadContainerView.leadingAnchor),
+            previewImageView.trailingAnchor.constraint(equalTo: uploadContainerView.trailingAnchor),
+            previewImageView.bottomAnchor.constraint(equalTo: uploadContainerView.bottomAnchor)
+        ])
     }
     
     @IBAction func categoryButtonTapped(_ sender: Any) {
@@ -188,13 +326,9 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             // Show selected image
             previewImageView.image = selectedImage
             previewImageView.isHidden = false
-            previewImageView.alpha = 1.0
             previewImageView.contentMode = .scaleAspectFill
             previewImageView.clipsToBounds = true
-            previewImageView.backgroundColor = .red  // Debug: should see red if visible
-            
-            // Bring to front
-            previewImageView.superview?.bringSubviewToFront(previewImageView)
+            previewImageView.layer.cornerRadius = 12
             
             // Hide other elements
             uploadIcon.isHidden = true
@@ -277,7 +411,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     // date picker
     
     @IBAction func dateChanged(_ sender: Any) {
-        let selectedDate = datePicker.date
+        let selectedDate = startDatePicker.date
         print("Selected date: \(selectedDate)")
     }
     
@@ -307,31 +441,97 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             return
         }
         
-        // Get availability from date picker
-        let selectedDate = datePicker.date
+        // Get dates from date pickers
         let formatter = ISO8601DateFormatter()
-        let availability: [String: Any] = [
-            "date": formatter.string(from: selectedDate)
-        ]
-        
-        // Create service in database
+        let startDate = formatter.string(from: startDatePicker.date)
+        let endDate = formatter.string(from: endDatePicker.date)
+
+        // Validate that end date is after start date
+        guard endDatePicker.date >= startDatePicker.date else {
+            showAlert(title: "Invalid Dates", message: "End date must be after start date")
+            return
+        }
+
+        // Create or update service in database
         Task {
-            await saveServiceToDatabase(
-                name: serviceName,
-                description: description,
-                price: price,
-                availability: availability,
-                imageURL: uploadedImageURL,
-                categories: Array(selectedCategories)
-            )
+            if isEditMode {
+                await updateServiceInDatabase(
+                    name: serviceName,
+                    description: description,
+                    price: price,
+                    startDate: startDate,
+                    endDate: endDate,
+                    imageURL: uploadedImageURL,
+                    categories: Array(selectedCategories)
+                )
+            } else {
+                await saveServiceToDatabase(
+                    name: serviceName,
+                    description: description,
+                    price: price,
+                    startDate: startDate,
+                    endDate: endDate,
+                    imageURL: uploadedImageURL,
+                    categories: Array(selectedCategories)
+                )
+            }
         }
     }
-    
+
+    private func updateServiceInDatabase(
+        name: String,
+        description: String,
+        price: Decimal,
+        startDate: String,
+        endDate: String,
+        imageURL: String?,
+        categories: [String]
+    ) async {
+        guard let serviceId = editingServiceId else {
+            await MainActor.run {
+                showAlert(title: "Error", message: "Service ID not found")
+            }
+            return
+        }
+
+        do {
+            // Update service request
+            let updateRequest = UpdateServiceRequest(
+                name: name,
+                description: description,
+                price_per_hour: NSDecimalNumber(decimal: price).doubleValue,
+                start_date: startDate,
+                end_date: endDate,
+                image: imageURL,
+                categories: categories
+            )
+
+            try await SupabaseClientManager.shared.client.database
+                .from("services")
+                .update(updateRequest)
+                .eq("id", value: serviceId)
+                .execute()
+
+            await MainActor.run {
+                showAlert(title: "Success", message: "Service updated successfully") {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            }
+
+        } catch {
+            print("Error updating service: \(error)")
+            await MainActor.run {
+                showAlert(title: "Error", message: "Failed to update service: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func saveServiceToDatabase(
         name: String,
         description: String,
         price: Decimal,
-        availability: [String: Any],
+        startDate: String,
+        endDate: String,
         imageURL: String?,
         categories: [String]
     ) async {
@@ -339,35 +539,37 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             // Get current user ID
             let session = try await SupabaseClientManager.shared.client.auth.session
             let userId = session.user.id
-            
-            // Create availability struct
-            let formatter = ISO8601DateFormatter()
-            let availabilityData = ServiceAvailability(
-                date: availability["date"] as? String ?? formatter.string(from: Date())
-            )
-            
+
             // Create service request
             let serviceRequest = CreateServiceRequest(
                 name: name,
                 description: description,
                 price_per_hour: NSDecimalNumber(decimal: price).doubleValue,
-                availability: availabilityData,
+                start_date: startDate,
+                end_date: endDate,
                 image: imageURL,
                 user_id: userId.uuidString,
                 categories: categories
             )
-            
-            try await SupabaseClientManager.shared.client.database
+
+            let response: [CreateServiceResponse] = try await SupabaseClientManager.shared.client.database
                 .from("services")
                 .insert(serviceRequest)
+                .select("id")
                 .execute()
-            
-            await MainActor.run {
-                showAlert(title: "Success", message: "Service created successfully!") { [weak self] in
-                    self?.navigationController?.popViewController(animated: true)
+                .value
+
+            guard let createdService = response.first else {
+                await MainActor.run {
+                    showAlert(title: "Error", message: "Service created but failed to get service ID")
                 }
+                return
             }
-            
+
+            await MainActor.run {
+                self.navigateToServiceDetails(serviceId: createdService.id.uuidString)
+            }
+
         } catch {
             print("Error creating service: \(error)")
             await MainActor.run {
@@ -384,5 +586,14 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             completion?()
         })
         present(alert, animated: true)
+    }
+
+    private func navigateToServiceDetails(serviceId: String) {
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            return
+        }
+        vc.serviceId = serviceId
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
