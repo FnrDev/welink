@@ -1527,12 +1527,27 @@
                     </tabBar>
                     <connections>
                         <segue destination="e4p-ka-7w2" kind="relationship" relationship="viewControllers" id="clt-5n-geX"/>
+<<<<<<< HEAD
+                        <segue destination="afB-a0-dvD" kind="relationship" relationship="viewControllers" id="GZh-rb-Pcm"/>
+                        <segue destination="Xc7-aP-Bcb" kind="relationship" relationship="viewControllers" id="zax-18-oyN"/>
+=======
                         <segue destination="zpI-7R-CVr" kind="relationship" relationship="viewControllers" id="cfd-Dr-WnP"/>
+>>>>>>> origin/main
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gE6-lv-sw5" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-903" y="-311"/>
+            <point key="canvasLocation" x="-905" y="-301"/>
+        </scene>
+        <!--Profile-->
+        <scene sceneID="5EH-m4-lcO">
+            <objects>
+                <viewControllerPlaceholder storyboardName="Profile" id="Xc7-aP-Bcb" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Item" id="dcP-6n-LVr"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="9U5-xk-hvK" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-904" y="-788"/>
         </scene>
         <!--Home-->
         <scene sceneID="WyP-z8-wkf">
