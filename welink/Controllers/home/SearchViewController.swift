@@ -380,6 +380,7 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
             
             let service = searchResults[indexPath.row]
             cell.configure(with: service)
+//            cell.contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
             return cell
             
         } else {
@@ -387,6 +388,7 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
             let cell = UITableViewCell(style: .default, reuseIdentifier: "cell")
             cell.textLabel?.text = recentSearches[indexPath.row]
             cell.textLabel?.textColor = .lightGray
+//            cell.contentView.layoutMargins = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
             return cell
         }
     }
