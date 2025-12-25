@@ -214,6 +214,7 @@
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="categoryButton" destination="SCs-5c-OHe" id="yu5-HA-J2x"/>
+                        <outlet property="createButton" destination="BUf-eR-ygo" id="mpp-hp-Ddl"/>
                         <outlet property="descriptionTextView" destination="4tp-96-IQN" id="bNa-7x-sJt"/>
                         <outlet property="endDatePicker" destination="iKq-J2-1bx" id="fwN-VP-ArO"/>
                         <outlet property="previewImageView" destination="OOO-rC-zfx" id="KVk-Tj-tsc"/>
@@ -555,10 +556,10 @@
             </objects>
             <point key="canvasLocation" x="-245" y="-975"/>
         </scene>
-        <!--Provider Tab Bar Controller-->
+        <!--Custom Tab Bar Controller-->
         <scene sceneID="kAA-rS-Ywg">
             <objects>
-                <tabBarController storyboardIdentifier="ProviderDashboardVC" id="sND-SP-g3H" customClass="ProviderTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="ProviderDashboardVC" id="sND-SP-g3H" customClass="CustomTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="RSf-3i-jHP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -576,7 +577,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="48g-3j-JwR"/>
+        <segue reference="M2d-g8-9qn"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>

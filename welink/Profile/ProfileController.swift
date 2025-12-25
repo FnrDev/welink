@@ -114,22 +114,32 @@ class ProfileController: UIViewController {
     // MARK: - Setup Menu
 
     private func setupMenu() {
-        let providerDashboard = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "hammer.fill")) { _ in
-            self.openProviderDashboard()
+        menuButton.addTarget(self, action: #selector(menuButtonTapped), for: .touchUpInside)
+    }
+
+    @objc private func menuButtonTapped() {
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Provider Dashboard", style: .default) { [weak self] _ in
+            self?.openProviderDashboard()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "Settings", style: .default) { [weak self] _ in
+            self?.openSettings()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "History", style: .default) { [weak self] _ in
+            self?.openHistory()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        if let popover = actionSheet.popoverPresentationController {
+            popover.sourceView = menuButton
+            popover.sourceRect = menuButton.bounds
         }
 
-        let settings = UIAction(title: "Settings", image: UIImage(systemName: "gear")) { _ in
-            self.openSettings()
-        }
-
-        let history = UIAction(title: "History", image: UIImage(systemName: "clock.arrow.circlepath")) { _ in
-            self.openHistory()
-        }
-
-        let menu = UIMenu(title: "", children: [providerDashboard, settings, history])
-
-        menuButton.menu = menu
-        menuButton.showsMenuAsPrimaryAction = true
+        self.present(actionSheet, animated: true)
     }
 
     // MARK: - Menu Actions
@@ -137,22 +147,30 @@ class ProfileController: UIViewController {
     private func openProviderDashboard() {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC")
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+
+        // Change the window's root view controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+
+        window.rootViewController = vc
+        window.makeKeyAndVisible()
+
+        // Add transition animation
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
     }
 
     private func openSettings() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-        settingsVC.modalPresentationStyle = .fullScreen
-        present(settingsVC, animated: true)
+        navigationController?.pushViewController(settingsVC, animated: true)
     }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
-        historyVC.modalPresentationStyle = .fullScreen
-        present(historyVC, animated: true)
+        navigationController?.pushViewController(historyVC, animated: true)
     }
 
     // MARK: - Setup Skills Collection View
