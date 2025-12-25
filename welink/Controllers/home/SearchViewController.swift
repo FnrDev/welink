@@ -21,6 +21,7 @@ class SearchViewController: UIViewController {
     var searchResults: [SeekerSearchResult] = []  // store services from database
     var isShowingResults = false  // false = recent searches, true = search results
     var showAllOnLoad = false  // When true, load all services immediately
+    var showOnlyUserServices = false  // When true, only show current user's services
 
     // Loading UI
     private let loadingContainer: UIView = {
@@ -285,7 +286,7 @@ class SearchViewController: UIViewController {
     // Load all services (used when coming from "See All" button)
     func loadAllServices() {
         isShowingResults = true
-        recentSearchesLabel.text = "All Services"
+        recentSearchesLabel.text = showOnlyUserServices ? "My Services" : "All Services"
         clearAllButton.isHidden = true
         showLoading()
 
@@ -293,7 +294,7 @@ class SearchViewController: UIViewController {
             do {
                 let client = SupabaseClientManager.shared.client
 
-                let response: [ServiceWithUser] = try await client.database
+                var queryBuilder = client.database
                     .from("services")
                     .select("""
                         id,
@@ -307,6 +308,15 @@ class SearchViewController: UIViewController {
                         categories,
                         users!inner(name, image)
                     """)
+
+                // Filter by current user if showOnlyUserServices is true
+                if showOnlyUserServices {
+                    if let session = try? await client.auth.session {
+                        queryBuilder = queryBuilder.eq("user_id", value: session.user.id.uuidString)
+                    }
+                }
+
+                let response: [ServiceWithUser] = try await queryBuilder
                     .order("created_at", ascending: false)
                     .execute()
                     .value

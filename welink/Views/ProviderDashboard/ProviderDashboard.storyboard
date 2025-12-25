@@ -526,7 +526,6 @@
         <!--Search-->
         <scene sceneID="fj2-fI-MRh">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="8JY-5F-LC2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <viewController id="Jem-oM-6lJ" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="vdG-Uz-ooC">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
@@ -536,13 +535,13 @@
                     </view>
                     <tabBarItem key="tabBarItem" title="Search" image="tabBarItem:kGR-rS-b9x:image" id="kGR-rS-b9x"/>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="8JY-5F-LC2" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1031" y="-975"/>
         </scene>
         <!--Messages-->
         <scene sceneID="4rv-u5-8Yz">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="KA5-wE-dFm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
                 <viewController id="dBt-UN-1EJ" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="y6s-n8-FKx">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
@@ -550,16 +549,16 @@
                         <viewLayoutGuide key="safeArea" id="rO0-0m-eZF"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Messages" image="tabBarItem:y9r-fk-YLp:image" catalog="system" id="y9r-fk-YLp"/>
+                    <tabBarItem key="tabBarItem" title="Messages" image="tabBarItem:y9r-fk-YLp:image" id="y9r-fk-YLp"/>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="KA5-wE-dFm" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-245" y="-975"/>
         </scene>
         <!--Custom Tab Bar Controller-->
         <scene sceneID="kAA-rS-Ywg">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="6fI-zZ-uGg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-                <tabBarController storyboardIdentifier="ProviderDashboardVC" id="sND-SP-g3H" customClass="CustomTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="ProviderDashboardVC" id="sND-SP-g3H" customClass="ProviderTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="RSf-3i-jHP">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -571,6 +570,7 @@
                         <segue destination="dBt-UN-1EJ" kind="relationship" relationship="viewControllers" id="fZe-pC-rFk"/>
                     </connections>
                 </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6fI-zZ-uGg" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1914" y="-664"/>
         </scene>
@@ -16715,7 +16715,7 @@ swAOr7UADq+3AA6vwAAOr8UADq/LAA6v0wAOr9UADq/XAA6v2QAOr9sADsF7AA7BgAAOwY0ADsGQAA7B
 nQAOwaIADsGqAA7BrQAOwbIADsG6AAAAAAAABAEAAAAAAAAAWgAAAAAAAAAAAAAAAAAOwb0
 </mutableData>
         </image>
-        <image name="tabBarItem:y9r-fk-YLp:image" catalog="system" width="128" height="114">
+        <image name="tabBarItem:y9r-fk-YLp:image" width="128" height="114">
             <mutableData key="keyedArchiveRepresentation">
 YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0b3BYJG9iamVjdHMSAAGGoF8QD05T
 S2V5ZWRBcmNoaXZlctEICVRyb290gAGvEBELDB0eIxsoLS41ODtHT1BUV1UkbnVsbNgNDg8QERITFBUW
