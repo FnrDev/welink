@@ -22,6 +22,9 @@ class SearchResultCell: UITableViewCell {
         profileImageView.layer.cornerRadius = 25
         profileImageView.clipsToBounds = true
         profileImageView.contentMode = .scaleAspectFill
+        
+        // Align price to right
+        priceLabel.textAlignment = .center
     }
     
     override func prepareForReuse() {
@@ -29,33 +32,48 @@ class SearchResultCell: UITableViewCell {
         profileImageView.image = nil
     }
     
+    // MARK: - Configure with SeekerSearchResult
+    
     func configure(with service: SeekerSearchResult) {
-        // Service name
         serviceNameLabel.text = service.name
-        
-        // Provider name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
+        priceLabel.text = "BD \(Int(service.pricePerHour))/hr"
         
-        // Price
-        priceLabel.text = "BD \(service.pricePerHour)/hr"
-        
-        // Stars 
         let rating = service.averageRating ?? 0
-        if rating > 0 {
-            starsLabel.text = String(format: "%.1f", rating)
-        } else {
-            starsLabel.text = "0.0"
-        }
+        starsLabel.text = rating > 0 ? String(format: "%.1f", rating) : "0.0"
         starsLabel.textColor = UIColor(hex: "2D493A")
         
-        // Load image
-        if let imageURL = service.image,
+        loadImage(from: service.image, fallbackName: service.providerName)
+    }
+    
+    // MARK: - Configure with ServiceData
+    
+    func configure(with service: ServiceData, providerName: String? = nil) {
+        serviceNameLabel.text = service.name
+        providerNameLabel.text = providerName ?? "Your Service"
+        
+        if let price = service.price_per_hour {
+            priceLabel.text = "BD \(Int(price))/hr"
+        } else {
+            priceLabel.text = "BD 0/hr"
+        }
+        
+        let rating = service.rating ?? 0
+        starsLabel.text = rating > 0 ? String(format: "%.1f", rating) : "0.0"
+        starsLabel.textColor = UIColor(hex: "2D493A")
+        
+        loadImage(from: service.image, fallbackName: providerName)
+    }
+    
+    // MARK: - Image Loading
+    
+    private func loadImage(from imageURL: String?, fallbackName: String?) {
+        if let imageURL = imageURL,
            let url = URL(string: imageURL),
            !imageURL.isEmpty {
-            loadImageAsync(from: url, fallbackName: service.providerName)
+            loadImageAsync(from: url, fallbackName: fallbackName)
         } else {
-            // Show initial as fallback
-            if let name = service.providerName, !name.isEmpty {
+            if let name = fallbackName, !name.isEmpty {
                 let initial = String(name.prefix(1)).uppercased()
                 profileImageView.image = createInitialImage(text: initial)
             } else {

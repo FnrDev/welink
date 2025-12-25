@@ -27,8 +27,6 @@ struct ServiceData: Decodable {
     let image: String?
     let user_id: String?
     let categories: [String]?
-
-    // ⭐️ Add this (must exist in your DB or be returned by query). Optional so it won't crash if missing.
     let rating: Double?
 }
 
@@ -43,134 +41,99 @@ class ProfileController: UIViewController {
     @IBOutlet weak var raitings: UIView!
     @IBOutlet weak var noSkillsLabel: UILabel!
     @IBOutlet weak var menuButton: UIButton!
-    @IBOutlet weak var servicesCollectionView: UICollectionView!
+    @IBOutlet weak var servicesTableView: UITableView!
     @IBOutlet weak var noServicesLabel: UILabel!
-
-    // ✅ NEW: connect these from storyboard
     @IBOutlet weak var totalServicesLabel: UILabel!
     @IBOutlet weak var ratingLabel: UILabel!
-    @IBOutlet weak var starsStackView: UIStackView! // contains 5 UIImageViews
 
-    // Store skills for collection view
     private var userSkills: [String] = []
-
-    // Store services for collection view
     private var userServices: [ServiceData] = []
-
-    // Store user ID
     private var currentUserId: String = ""
+    private var currentUserName: String = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupUI()
         setupSkillsCollectionView()
-        setupServicesCollectionView()
+        setupServicesTableView()
         setupMenu()
         fetchUserProfile()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        // Refresh data every time the page appears
         fetchUserProfile()
     }
 
     // MARK: - Setup UI
 
     private func setupUI() {
-        // Avatar - rounded corners
         avatar.layer.cornerRadius = 12
         avatar.clipsToBounds = true
         avatar.contentMode = .scaleAspectFill
 
-        // Services icon container - rounded
         servicesIconContainer.layer.cornerRadius = 12
         servicesIconContainer.clipsToBounds = true
 
-        // Services container - rounded
         servicesContainer.layer.cornerRadius = 12
         servicesContainer.clipsToBounds = true
 
-        // Rating icon container - rounded
         raitingIconContainer.layer.cornerRadius = 12
         raitingIconContainer.clipsToBounds = true
 
-        // Ratings view - rounded
         raitings.layer.cornerRadius = 12
         raitings.clipsToBounds = true
 
-        // Hide labels initially
         noSkillsLabel.isHidden = true
         noServicesLabel.isHidden = true
 
-        // Default stats
         totalServicesLabel?.text = "0"
         ratingLabel?.text = "0.0"
-        updateStars(average: 0)
     }
 
     // MARK: - Setup Menu
 
     private func setupMenu() {
-        menuButton.addTarget(self, action: #selector(menuButtonTapped), for: .touchUpInside)
-    }
-
-    @objc private func menuButtonTapped() {
-        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-
-        actionSheet.addAction(UIAlertAction(title: "Provider Dashboard", style: .default) { [weak self] _ in
-            self?.openProviderDashboard()
-        })
-
-        actionSheet.addAction(UIAlertAction(title: "Settings", style: .default) { [weak self] _ in
-            self?.openSettings()
-        })
-
-        actionSheet.addAction(UIAlertAction(title: "History", style: .default) { [weak self] _ in
-            self?.openHistory()
-        })
-
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
-        if let popover = actionSheet.popoverPresentationController {
-            popover.sourceView = menuButton
-            popover.sourceRect = menuButton.bounds
+        let providerDashboard = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "hammer.fill")) { _ in
+            self.openProviderDashboard()
         }
 
-        self.present(actionSheet, animated: true)
+        let settings = UIAction(title: "Settings", image: UIImage(systemName: "gear")) { _ in
+            self.openSettings()
+        }
+
+        let history = UIAction(title: "History", image: UIImage(systemName: "clock.arrow.circlepath")) { _ in
+            self.openHistory()
+        }
+
+        let menu = UIMenu(title: "", children: [providerDashboard, settings, history])
+
+        menuButton.menu = menu
+        menuButton.showsMenuAsPrimaryAction = true
     }
 
     // MARK: - Menu Actions
 
     private func openProviderDashboard() {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
-
-        // Change the window's root view controller
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = windowScene.windows.first else {
-            return
-        }
-
-        window.rootViewController = vc
-        window.makeKeyAndVisible()
-
-        // Add transition animation
-        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC")
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
 
     private func openSettings() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-        navigationController?.pushViewController(settingsVC, animated: true)
+        settingsVC.modalPresentationStyle = .fullScreen
+        present(settingsVC, animated: true)
     }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
-        navigationController?.pushViewController(historyVC, animated: true)
+        historyVC.modalPresentationStyle = .fullScreen
+        present(historyVC, animated: true)
     }
 
     // MARK: - Setup Skills Collection View
@@ -192,28 +155,19 @@ class ProfileController: UIViewController {
         skillsCollectionView.showsHorizontalScrollIndicator = false
     }
 
-    // MARK: - Setup Services Collection View
+    // MARK: - Setup Services Table View
 
-    private func setupServicesCollectionView() {
-        servicesCollectionView.delegate = self
-        servicesCollectionView.dataSource = self
-        servicesCollectionView.register(ServiceImageCell.self, forCellWithReuseIdentifier: "ServiceImageCell")
-        servicesCollectionView.tag = 2
-
-        // Enable selection
-        servicesCollectionView.allowsSelection = true
-        servicesCollectionView.isUserInteractionEnabled = true
-        print("🔥 Collection view setup: allowsSelection=\(servicesCollectionView.allowsSelection), isUserInteractionEnabled=\(servicesCollectionView.isUserInteractionEnabled)")
-
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 8
-        layout.minimumLineSpacing = 8
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
-
-        servicesCollectionView.collectionViewLayout = layout
-        servicesCollectionView.backgroundColor = .clear
-        servicesCollectionView.showsVerticalScrollIndicator = false
+    private func setupServicesTableView() {
+        servicesTableView.delegate = self
+        servicesTableView.dataSource = self
+        
+        let nib = UINib(nibName: "SearchResultCell", bundle: nil)
+        servicesTableView.register(nib, forCellReuseIdentifier: "SearchResultCell")
+        
+        servicesTableView.rowHeight = 80
+        servicesTableView.separatorStyle = .none
+        servicesTableView.backgroundColor = .clear
+        servicesTableView.showsVerticalScrollIndicator = false
     }
 
     // MARK: - Fetch User Profile
@@ -234,15 +188,13 @@ class ProfileController: UIViewController {
 
                 if let user = response.first {
                     await MainActor.run {
-                        // Set header title
                         header.title = user.name
+                        currentUserName = user.name
 
-                        // Load avatar if available
                         if let imagePath = user.image, !imagePath.isEmpty {
                             loadAvatar(from: imagePath)
                         }
 
-                        // Load skills
                         if let skills = user.skills, !skills.isEmpty {
                             userSkills = skills
                             skillsCollectionView.isHidden = false
@@ -256,7 +208,6 @@ class ProfileController: UIViewController {
                     }
                 }
 
-                // Fetch services
                 await fetchUserServices(userId: userId)
 
             } catch {
@@ -279,21 +230,17 @@ class ProfileController: UIViewController {
             await MainActor.run {
                 if !response.isEmpty {
                     userServices = response
-                    servicesCollectionView.isHidden = false
+                    servicesTableView.isHidden = false
                     noServicesLabel.isHidden = true
-                    servicesCollectionView.reloadData()
-
+                    servicesTableView.reloadData()
                     updateStats()
                 } else {
                     userServices = []
-                    servicesCollectionView.isHidden = true
+                    servicesTableView.isHidden = true
                     noServicesLabel.isHidden = false
                     noServicesLabel.text = "The user has not listed any services."
-
-                    // reset stats
-                    totalServicesLabel.text = "0"
-                    ratingLabel.text = "0.0"
-                    updateStars(average: 0)
+                    totalServicesLabel?.text = "0"
+                    ratingLabel?.text = "0.0"
                 }
             }
 
@@ -302,62 +249,30 @@ class ProfileController: UIViewController {
         }
     }
 
-    // MARK: - Stats (Total services + average rating out of 5)
+    // MARK: - Stats
 
     private func updateStats() {
-        totalServicesLabel.text = "\(userServices.count)"
+        totalServicesLabel?.text = "\(userServices.count)"
 
         let ratings = userServices.compactMap { $0.rating }
         let avg = ratings.isEmpty ? 0 : (ratings.reduce(0, +) / Double(ratings.count))
 
-        ratingLabel.text = String(format: "%.1f", avg)
-        updateStars(average: avg)
+        ratingLabel?.text = String(format: "%.1f", avg)
     }
 
-    private func updateStars(average: Double) {
-        // If you didn't connect starsStackView yet, avoid crashing.
-        guard let starsStackView = starsStackView else { return }
-
-        let fullStars = max(0, min(5, Int(average.rounded(.down))))
-        let hasHalf = (average - Double(fullStars)) >= 0.5
-
-        for (index, view) in starsStackView.arrangedSubviews.enumerated() {
-            guard let iv = view as? UIImageView else { continue }
-            let starIndex = index + 1
-
-            if starIndex <= fullStars {
-                iv.image = UIImage(systemName: "star.fill")
-            } else if starIndex == fullStars + 1 && hasHalf {
-                iv.image = UIImage(systemName: "star.leadinghalf.filled")
-            } else {
-                iv.image = UIImage(systemName: "star")
-            }
-        }
-    }
-
-    // MARK: - Navigation
+    // MARK: - Navigate to Service Details
 
     private func navigateToServiceDetails(serviceId: String) {
-        print("🔥 navigateToServiceDetails called with serviceId: \(serviceId)")
-
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         guard let serviceDetailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
-            print("❌ Could not instantiate ServiceDetailsViewController")
             return
         }
 
-        print("🔥 ServiceDetailsViewController instantiated successfully")
-
-        // Pass the service ID
         serviceDetailsVC.serviceId = serviceId
 
-        // Check if we have navigation controller
         if let navController = navigationController {
-            print("🔥 Navigation controller found, pushing view controller")
             navController.pushViewController(serviceDetailsVC, animated: true)
         } else {
-            print("🔥 No navigation controller found, presenting modally")
-            // Wrap in navigation controller for modal presentation
             let navController = UINavigationController(rootViewController: serviceDetailsVC)
             navController.modalPresentationStyle = .fullScreen
             present(navController, animated: true)
@@ -399,58 +314,45 @@ class ProfileController: UIViewController {
 extension ProfileController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView.tag == 1 {
-            return userSkills.count
-        } else {
-            return userServices.count
-        }
+        return userSkills.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView.tag == 1 {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SkillCell", for: indexPath) as! SkillCell
-            cell.configure(with: userSkills[indexPath.item])
-            return cell
-        } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ServiceImageCell", for: indexPath) as! ServiceImageCell
-            let service = userServices[indexPath.item]
-            cell.configure(with: service.image)
-            return cell
-        }
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SkillCell", for: indexPath) as! SkillCell
+        cell.configure(with: userSkills[indexPath.item])
+        return cell
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if collectionView.tag == 1 {
-            let skill = userSkills[indexPath.item]
-            let font = UIFont.systemFont(ofSize: 14, weight: .medium)
-            let width = skill.size(withAttributes: [.font: font]).width + 32
-            return CGSize(width: width, height: 36)
-        } else {
-            // 3 columns grid
-            let spacing: CGFloat = 8
-            let totalSpacing = spacing * 2
-            let width = (collectionView.frame.width - totalSpacing) / 3
-            return CGSize(width: width, height: width)
-        }
+        let skill = userSkills[indexPath.item]
+        let font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        let width = skill.size(withAttributes: [.font: font]).width + 32
+        return CGSize(width: width, height: 36)
     }
+}
 
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print("🔥 Collection view tapped! Tag: \(collectionView.tag), IndexPath: \(indexPath)")
+// MARK: - UITableViewDelegate & UITableViewDataSource
 
-        // Only handle selection for services collection view (tag 2)
-        if collectionView.tag == 2 {
-            print("🔥 Services collection view tapped!")
-            guard indexPath.item < userServices.count else {
-                print("❌ Index out of bounds: \(indexPath.item) >= \(userServices.count)")
-                return
-            }
-
-            let service = userServices[indexPath.item]
-            print("🔥 Navigating to service: \(service.name) with ID: \(service.id)")
-            navigateToServiceDetails(serviceId: service.id)
-        } else {
-            print("🔥 Skills collection view tapped (tag: \(collectionView.tag))")
+extension ProfileController: UITableViewDelegate, UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return userServices.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "SearchResultCell", for: indexPath) as? SearchResultCell else {
+            return UITableViewCell()
         }
+        
+        let service = userServices[indexPath.row]
+        cell.configure(with: service, providerName: currentUserName)
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let service = userServices[indexPath.row]
+        navigateToServiceDetails(serviceId: service.id)
     }
 }
 
@@ -494,74 +396,3 @@ class SkillCell: UICollectionViewCell {
         label.text = skill
     }
 }
-
-// MARK: - Service Image Cell
-
-class ServiceImageCell: UICollectionViewCell {
-
-    private let imageView: UIImageView = {
-        let iv = UIImageView()
-        iv.contentMode = .scaleAspectFill
-        iv.clipsToBounds = true
-        iv.layer.cornerRadius = 12
-        iv.backgroundColor = .systemGray5
-        iv.translatesAutoresizingMaskIntoConstraints = false
-        return iv
-    }()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupCell()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupCell()
-    }
-
-    private func setupCell() {
-        contentView.addSubview(imageView)
-        NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
-    }
-
-    func configure(with imagePath: String?) {
-        guard let path = imagePath, !path.isEmpty else {
-            imageView.image = UIImage(systemName: "photo")
-            return
-        }
-
-        let imageURL: URL?
-
-        if path.starts(with: "http") {
-            imageURL = URL(string: path)
-        } else {
-            imageURL = try? SupabaseClientManager.shared.client.storage
-                .from("images")
-                .getPublicURL(path: path)
-        }
-
-        guard let url = imageURL else {
-            imageView.image = UIImage(systemName: "photo")
-            return
-        }
-
-        Task {
-            do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                if let image = UIImage(data: data) {
-                    await MainActor.run {
-                        self.imageView.image = image
-                    }
-                }
-            } catch {
-                print("Error loading service image: \(error)")
-            }
-        }
-    }
-}
-
