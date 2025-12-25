@@ -1,21 +1,27 @@
 //
-//  ReviewTableViewCell.swift
+//  SearchResultCell.swift
 //  welink
 //
-//  Created by Zahra on 19/12/2025.
+//  Created by Zahra on 24/12/2025.
 //
 
 import UIKit
 
-class ReviewTableViewCell: UITableViewCell {
+class SearchResultCell: UITableViewCell {
     
     @IBOutlet weak var profileImageView: UIImageView!
-    @IBOutlet weak var reviewerNameLabel: UILabel!
+    @IBOutlet weak var serviceNameLabel: UILabel!
+    @IBOutlet weak var providerNameLabel: UILabel!
+    @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var starsLabel: UILabel!
-    @IBOutlet weak var reviewTextLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
+        
+        // Make image circular
+        profileImageView.layer.cornerRadius = 25
+        profileImageView.clipsToBounds = true
+        profileImageView.contentMode = .scaleAspectFill
     }
     
     override func prepareForReuse() {
@@ -23,33 +29,34 @@ class ReviewTableViewCell: UITableViewCell {
         profileImageView.image = nil
     }
     
-    // Display each review
-    func configure(with rating: ServiceRating) {
-        print("Configuring review:")
-        print("Name: \(rating.userName ?? "nil")")
-        print("Image URL: \(rating.userImage ?? "nil")")
-        print("Stars: \(rating.starsCount)")
-        print("Content: \(rating.reviewContent)")
+    func configure(with service: SeekerSearchResult) {
+        // Service name
+        serviceNameLabel.text = service.name
         
-        reviewerNameLabel.text = rating.userName ?? "Anonymous"
-        reviewTextLabel.text = rating.reviewContent
+        // Provider name
+        providerNameLabel.text = service.providerName ?? "Unknown Provider"
         
-        // Show FILLED stars
-        let filledStars = String(repeating: "★", count: rating.starsCount)
-        let emptyStars = String(repeating: "☆", count: 5 - rating.starsCount)
-        starsLabel.text = filledStars + emptyStars
+        // Price
+        priceLabel.text = "BD \(service.pricePerHour)/hr"
+        
+        // Stars 
+        let rating = service.averageRating ?? 0
+        if rating > 0 {
+            starsLabel.text = String(format: "%.1f", rating)
+        } else {
+            starsLabel.text = "0.0"
+        }
         starsLabel.textColor = UIColor(hex: "2D493A")
         
-        // Fallback to initial
-        if let imageURL = rating.userImage,
+        // Load image
+        if let imageURL = service.image,
            let url = URL(string: imageURL),
            !imageURL.isEmpty {
-            // Load image from URL (just like SearchViewController)
-            loadImageAsync(from: url, fallbackName: rating.userName)
+            loadImageAsync(from: url, fallbackName: service.providerName)
         } else {
             // Show initial as fallback
-            if let userName = rating.userName, !userName.isEmpty {
-                let initial = String(userName.prefix(1)).uppercased()
+            if let name = service.providerName, !name.isEmpty {
+                let initial = String(name.prefix(1)).uppercased()
                 profileImageView.image = createInitialImage(text: initial)
             } else {
                 profileImageView.image = createInitialImage(text: "?")
@@ -59,15 +66,13 @@ class ReviewTableViewCell: UITableViewCell {
     
     // Create circular image with initial
     private func createInitialImage(text: String) -> UIImage {
-        let size = CGSize(width: 50, height: 50)  // Match image view size
+        let size = CGSize(width: 50, height: 50)
         let renderer = UIGraphicsImageRenderer(size: size)
         
         return renderer.image { context in
-            // Light gray circle
             UIColor(hex: "D9D9D9").setFill()
             context.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
             
-            // Dark green text
             let attributes: [NSAttributedString.Key: Any] = [
                 .font: UIFont.systemFont(ofSize: 20, weight: .medium),
                 .foregroundColor: UIColor(hex: "2D493A")
@@ -85,7 +90,7 @@ class ReviewTableViewCell: UITableViewCell {
         }
     }
     
-    // Resize image to specific size
+    // Resize image
     private func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: targetSize)
         return renderer.image { _ in
@@ -95,7 +100,6 @@ class ReviewTableViewCell: UITableViewCell {
     
     // Load image asynchronously
     private func loadImageAsync(from url: URL, fallbackName: String?) {
-        // Set placeholder first (initial letter)
         if let name = fallbackName, !name.isEmpty {
             let initial = String(name.prefix(1)).uppercased()
             profileImageView.image = createInitialImage(text: initial)
@@ -108,17 +112,12 @@ class ReviewTableViewCell: UITableViewCell {
                 let (data, _) = try await URLSession.shared.data(from: url)
                 if let image = UIImage(data: data) {
                     await MainActor.run {
-                        // Resize and apply to image view
                         let resizedImage = self.resizeImage(image: image, targetSize: CGSize(width: 50, height: 50))
                         self.profileImageView.image = resizedImage
-                        self.profileImageView.contentMode = .scaleAspectFill
-                        self.profileImageView.clipsToBounds = true
-                        self.profileImageView.layer.cornerRadius = 25
-                        print("✅ Image loaded and displayed")
                     }
                 }
             } catch {
-                print("❌ Failed to load image: \(error)")
+                print("Failed to load image: \(error)")
             }
         }
     }

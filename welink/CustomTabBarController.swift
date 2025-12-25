@@ -8,24 +8,45 @@
 import UIKit
 
 class CustomTabBarController: UITabBarController {
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Keep existing view controllers from current storyboard
-        var controllers = self.viewControllers ?? []
-        
-        // Load the Search VC from SeekerHome storyboard
+
+        setupTabBar()
+        setupViewControllers()
+    }
+
+    private func setupTabBar() {
+        // Style the tab bar
+        tabBar.tintColor = UIColor(hex: "2D493A")
+        tabBar.unselectedItemTintColor = .gray
+        tabBar.backgroundColor = .systemBackground
+    }
+
+    private func setupViewControllers() {
         let seekerStoryboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-        if let searchVC = seekerStoryboard.instantiateViewController(withIdentifier: "SearchVC") as? SearchViewController {
-            
-            // Set up the tab bar item
-            searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), tag: 1)
-            
-            // Replace the search tab with the new VC
-            controllers[1] = searchVC // Assuming search is at index 1
-            
-            self.viewControllers = controllers
-        }
+        let profileStoryboard = UIStoryboard(name: "Profile", bundle: nil)
+
+        var controllers: [UIViewController] = []
+
+        // Tab 1: Home
+        let homeVC = seekerStoryboard.instantiateViewController(withIdentifier: "HomeVC")
+        let homeNavController = UINavigationController(rootViewController: homeVC)
+        homeNavController.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
+        controllers.append(homeNavController)
+
+        // Tab 2: Search
+        let searchVC = seekerStoryboard.instantiateViewController(withIdentifier: "SearchVC")
+        let searchNavController = UINavigationController(rootViewController: searchVC)
+        searchNavController.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), selectedImage: UIImage(systemName: "magnifyingglass"))
+        controllers.append(searchNavController)
+
+        // Tab 3: Profile
+        let profileVC = profileStoryboard.instantiateViewController(withIdentifier: "ProfileVC")
+        let profileNavController = UINavigationController(rootViewController: profileVC)
+        profileNavController.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), selectedImage: UIImage(systemName: "person.fill"))
+        controllers.append(profileNavController)
+
+        self.viewControllers = controllers
     }
 }

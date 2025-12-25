@@ -51,6 +51,9 @@ class FilterViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        applyButton.applyAppStyle()
+        
         setupUI()
     }
     
@@ -176,7 +179,7 @@ class FilterViewController: UIViewController {
     }
     
     func updateSortDirectionButton() {
-        let imageName = currentFilters.sortAscending ? "arrow.up" : "arrow.down"
+        let imageName = currentFilters.sortAscending ? "arrow.down" : "arrow.up"
         sortDirectionButton.setImage(UIImage(systemName: imageName), for: .normal)
         sortDirectionButton.tintColor = UIColor(red: 0x2D/255, green: 0x49/255, blue: 0x3A/255, alpha: 1.0)
     }
