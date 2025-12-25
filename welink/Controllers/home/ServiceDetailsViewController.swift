@@ -28,11 +28,16 @@ class ServiceDetailsViewController: UIViewController {
     // MARK: - Properties
     var service: SeekerSearchResult? // Holds the service data passed from Search/Home/Category
     var serviceId: String? // Or just pass the ID
-    
+
     private var ratings: [ServiceRating] = []
+    private var isServiceOwner: Bool = false
+    private var deleteButton: UIButton?
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        messageButton.applyAppStyle()
+        bookNowButton.applyAppStyle()
 
         setupDateTimeTapGestures()
         setupReviewsTableView()
@@ -42,6 +47,9 @@ class ServiceDetailsViewController: UIViewController {
             // Service data was passed directly
             displayServiceData(service)
             fetchRatings(serviceId: service.id)
+            if let userId = service.userId {
+                checkIfServiceOwner(serviceUserId: userId)
+            }
         } else if let serviceId = serviceId {
             // Only ID was passed, fetch full details
             fetchServiceDetails(serviceId: serviceId)
@@ -49,6 +57,181 @@ class ServiceDetailsViewController: UIViewController {
             // No data provided - show error
             showError(message: "No service data available")
         }
+    }
+
+    private func checkIfServiceOwner(serviceUserId: String) {
+        Task {
+            do {
+                let session = try await SupabaseClientManager.shared.client.auth.session
+                let currentUserId = session.user.id.uuidString
+
+                print("Current user ID: \(currentUserId)")
+                print("Service owner ID: \(serviceUserId)")
+
+                await MainActor.run {
+                    // Compare case-insensitively since UUIDs may have different cases
+                    if currentUserId.lowercased() == serviceUserId.lowercased() {
+                        self.isServiceOwner = true
+                        self.setupEditButton()
+                        self.hideBookingButtonsForOwner()
+                        print("User is the owner - showing Edit button")
+                    } else {
+                        print("User is NOT the owner")
+                    }
+                }
+            } catch {
+                print("Error checking service ownership: \(error)")
+            }
+        }
+    }
+
+    private func setupEditButton() {
+        let editButton = UIBarButtonItem(
+            title: "Edit",
+            style: .plain,
+            target: self,
+            action: #selector(editButtonTapped)
+        )
+        editButton.tintColor = UIColor(hex: "2D493A")
+        navigationItem.rightBarButtonItem = editButton
+    }
+
+    private func hideBookingButtonsForOwner() {
+        // Hide both buttons for service owner
+        messageButton.isHidden = true
+        bookNowButton.isHidden = true
+
+        // Add delete button for owner
+        setupDeleteButton()
+    }
+
+    private func setupDeleteButton() {
+        guard let buttonSuperview = bookNowButton.superview else { return }
+
+        let button = UIButton(type: .system)
+        button.setTitle("Delete Service", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemRed
+        button.layer.cornerRadius = 12
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
+
+        buttonSuperview.addSubview(button)
+
+        // Position using the same constraints as the original buttons
+        NSLayoutConstraint.activate([
+            button.leadingAnchor.constraint(equalTo: messageButton.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: bookNowButton.trailingAnchor),
+            button.topAnchor.constraint(equalTo: bookNowButton.topAnchor),
+            button.heightAnchor.constraint(equalTo: bookNowButton.heightAnchor)
+        ])
+
+        self.deleteButton = button
+    }
+
+    @objc private func deleteButtonTapped() {
+        let alert = UIAlertController(
+            title: "Delete Service",
+            message: "Are you sure you want to delete this service? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.deleteService()
+        })
+
+        present(alert, animated: true)
+    }
+
+    private func deleteService() {
+        guard let serviceId = service?.id else { return }
+
+        Task {
+            do {
+                try await SupabaseClientManager.shared.client.database
+                    .from("services")
+                    .delete()
+                    .eq("id", value: serviceId)
+                    .execute()
+
+                await MainActor.run {
+                    // Show success and navigate to Provider Dashboard
+                    let alert = UIAlertController(
+                        title: "Deleted",
+                        message: "Service has been deleted successfully.",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                        self?.navigateToProviderDashboard()
+                    })
+                    self.present(alert, animated: true)
+                }
+            } catch {
+                print("Error deleting service: \(error)")
+                await MainActor.run {
+                    let alert = UIAlertController(
+                        title: "Error",
+                        message: "Failed to delete service: \(error.localizedDescription)",
+                        preferredStyle: .alert
+                    )
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            }
+        }
+    }
+
+    private func navigateToProviderDashboard() {
+        // If presented modally, dismiss first
+        if presentingViewController != nil {
+            dismiss(animated: true) {
+                // Post notification to refresh dashboard
+                NotificationCenter.default.post(name: NSNotification.Name("RefreshProviderDashboard"), object: nil)
+            }
+            return
+        }
+
+        // If pushed, create new dashboard and set as root
+        let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
+        guard let dashboardVC = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC") as? ProviderDashboardViewController else {
+            navigationController?.popViewController(animated: true)
+            return
+        }
+
+        // Replace the navigation stack with the dashboard
+        if let navController = navigationController {
+            let navVC = UINavigationController(rootViewController: dashboardVC)
+            navVC.modalPresentationStyle = .fullScreen
+
+            // Get the window and set new root
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let window = windowScene.windows.first {
+                window.rootViewController = navVC
+                window.makeKeyAndVisible()
+            }
+        } else {
+            // Fallback - just pop
+            navigationController?.popViewController(animated: true)
+        }
+    }
+
+    @objc private func editButtonTapped() {
+        guard let service = service else { return }
+
+        let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
+        guard let createServiceVC = storyboard.instantiateViewController(withIdentifier: "ProviderCreateVC") as? CreateServiceViewController else {
+            print("Could not instantiate CreateServiceViewController")
+            return
+        }
+
+        // Set up edit mode
+        createServiceVC.isEditMode = true
+        createServiceVC.editingServiceId = service.id
+        createServiceVC.existingService = service
+
+        navigationController?.pushViewController(createServiceVC, animated: true)
     }
 
     private func setupCloseButtonIfNeeded() {
@@ -91,16 +274,18 @@ class ServiceDetailsViewController: UIViewController {
     func fetchServiceDetails(serviceId: String) {
         Task {
             do {
-                // Fetch service with provider info
+                // Fetch service with provider info (explicitly include user_id)
                 let response: ServiceWithUser = try await SupabaseClientManager.shared.client
                     .database
                     .from("services")
-                    .select("*, users(name, image)")
+                    .select("id, name, description, price_per_hour, image, user_id, start_date, end_date, users(name, image)")
                     .eq("id", value: serviceId)
                     .single()
                     .execute()
                     .value
                 
+                print("Fetched service user_id: \(response.user_id ?? "nil")")
+
                 // Convert to SeekerSearchResult
                 let service = SeekerSearchResult(
                     id: response.id,
@@ -110,14 +295,24 @@ class ServiceDetailsViewController: UIViewController {
                     image: response.image,
                     userId: response.user_id,
                     providerName: response.users?.name,
-                    providerImage: response.users?.image
+                    providerImage: response.users?.image,
+                    startDate: response.start_date,
+                    endDate: response.end_date,
+                    categories: response.categories
                 )
-                
+
                 self.service = service
-                
+
                 // Fetch ratings
                 await fetchRatings(serviceId: serviceId)
-                
+
+                // Check if current user owns this service
+                if let userId = service.userId {
+                    self.checkIfServiceOwner(serviceUserId: userId)
+                } else {
+                    print("Warning: service.userId is nil, cannot check ownership")
+                }
+
                 // Update UI
                 await MainActor.run {
                     self.displayServiceData(service)
@@ -180,25 +375,17 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-    // MARK: - Display Functions
     func displayServiceData(_ service: SeekerSearchResult) {
-        // Set service name as title
         self.title = service.name
-        
-        // Set provider name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
-        
-        // Set description
         descriptionLabel.text = service.description
-        
-        // Set price
         priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour)
         
         // Load service image
         if let imageUrl = service.image {
             loadImage(from: imageUrl, into: serviceImageView)
         } else {
-            serviceImageView.backgroundColor = .systemPink
+            serviceImageView.backgroundColor = UIColor(hex: "2D493A")
         }
         
         // Setup provider profile image
@@ -210,7 +397,6 @@ class ServiceDetailsViewController: UIViewController {
         if let providerImageUrl = service.providerImage,
            let url = URL(string: providerImageUrl),
            !providerImageUrl.isEmpty {
-            // Load image from URL (same as SearchViewController)
             loadProviderImageAsync(from: url, providerName: service.providerName)
         } else {
             // No image URL, show initial
@@ -224,10 +410,41 @@ class ServiceDetailsViewController: UIViewController {
             }
         }
         
-        // Placeholder for availability
-        dateLabel.text = "Available"
-        timeLabel.text = "Select time"
-        
+        // Display availability date range
+        if let startDate = service.startDate, let endDate = service.endDate {
+            // Try multiple date formats
+            let dateFormatter = DateFormatter()
+            
+            // Try format 1: "2025-12-25 02:49:00" 
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+            var start = dateFormatter.date(from: startDate)
+            var end = dateFormatter.date(from: endDate)
+            
+            // Try format 2: ISO8601 (if format 1 fails)
+            if start == nil || end == nil {
+                let iso8601Formatter = ISO8601DateFormatter()
+                start = iso8601Formatter.date(from: startDate)
+                end = iso8601Formatter.date(from: endDate)
+            }
+            
+            if let start = start, let end = end {
+                let displayFormatter = DateFormatter()
+                displayFormatter.dateFormat = "dd MMM yyyy"
+                
+                let startString = displayFormatter.string(from: start)
+                let endString = displayFormatter.string(from: end)
+                
+                dateLabel.text = "\(startString) - \(endString)"
+                timeLabel.text = "Select time"
+            } else {
+                dateLabel.text = "Available"
+                timeLabel.text = "Select time"
+            }
+        } else {
+            // No dates provided
+            dateLabel.text = "Available"
+            timeLabel.text = "Select time"
+        }
     }
     
     // Add this new function for loading provider image
@@ -275,24 +492,46 @@ class ServiceDetailsViewController: UIViewController {
             let fullStars = Int(round(averageRating))
             let emptyStars = 5 - fullStars
             
-            let filledStar = "★"  // Filled star
-            let emptyStar = "☆"   // Empty star
+            let filledStar = "★"
+            let emptyStar = "☆"
             
             let starString = String(repeating: filledStar, count: fullStars) +
                             String(repeating: emptyStar, count: emptyStars)
             
             ratingLabel.text = starString
+            ratingLabel.textColor = UIColor(hex: "2D493A")
         } else {
-            ratingLabel.text = "☆☆☆☆☆"  // No ratings
+            ratingLabel.text = "☆☆☆☆☆"
+            ratingLabel.textColor = .lightGray
         }
         
-        // Reload reviews table to show fetched reviews
-        reviewsTableView.reloadData()
-        
-        print("Average rating: \(averageRating)/5")
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            self.updateReviewsTableHeight()
+        // Handle empty state - No reviews
+        if ratings.isEmpty {
+            let emptyLabel = UILabel()
+            emptyLabel.text = "No reviews yet"
+            emptyLabel.textAlignment = .center
+            emptyLabel.textColor = UIColor.darkGray
+            emptyLabel.font = UIFont.systemFont(ofSize: 16)
+            emptyLabel.numberOfLines = 0
+
+            reviewsTableView.backgroundView = emptyLabel
+            reviewsTableView.separatorStyle = .none
+            reviewsTableViewHeight.constant = 80
+            
+            seeAllButton.isHidden = true
+            
+            print("No reviews for this service")
+        } else {
+            // Has reviews - remove empty state
+            reviewsTableView.backgroundView = nil
+            reviewsTableView.separatorStyle = .singleLine
+            seeAllButton.isHidden = false
+            
+            reviewsTableView.reloadData()
+            // Update table height based on content
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.updateReviewsTableHeight()
+            }
         }
     }
     
@@ -330,7 +569,47 @@ class ServiceDetailsViewController: UIViewController {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
-        datePicker.minimumDate = Date() // Can't book in the past
+        
+        // Set minimum and maximum dates based on service availability
+        if let service = service,
+           let startDateString = service.startDate,
+           let endDateString = service.endDate {
+            
+            print("Parsing dates...")
+            print("Start: \(startDateString)")
+            print("End: \(endDateString)")
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            
+            var startDate: Date?
+            var endDate: Date?
+            
+            // Try format 1: "2025-12-23T19:51:54" (ISO8601-style with T)
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            startDate = dateFormatter.date(from: startDateString)
+            endDate = dateFormatter.date(from: endDateString)
+            
+            // Try format 2: "2025-12-23 19:51:54" (space instead of T)
+            if startDate == nil || endDate == nil {
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                startDate = dateFormatter.date(from: startDateString)
+                endDate = dateFormatter.date(from: endDateString)
+            }
+            
+            if let startDate = startDate, let endDate = endDate {
+                datePicker.minimumDate = startDate
+                datePicker.maximumDate = endDate
+                print("Date picker range: \(startDate) to \(endDate)")
+            } else {
+                print("Failed to parse, using default")
+                datePicker.minimumDate = Date()
+            }
+        } else {
+            datePicker.minimumDate = Date()
+        }
+        
         datePicker.frame = CGRect(x: 0, y: 50, width: alert.view.bounds.width - 20, height: 200)
         
         alert.view.addSubview(datePicker)
@@ -452,8 +731,47 @@ class ServiceDetailsViewController: UIViewController {
     
     @IBAction func bookNowButtonTapped(_ sender: UIButton) {
         print("Book Now button tapped")
-        guard let service = service else { return }
-        // TODO: Navigate to booking screen
+
+        guard let service = service else {
+            print("❌ No service available")
+            return
+        }
+
+        // Validate date selection
+        let dateText = dateLabel.text ?? ""
+        if dateText.isEmpty || dateText == "Available" || dateText.contains(" - ") {
+            showError(message: "Please select a booking date")
+            return
+        }
+
+        // Validate time selection
+        let timeText = timeLabel.text ?? ""
+        if timeText.isEmpty || timeText == "Select time" {
+            showError(message: "Please select a booking time")
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+
+        guard let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentVC") as? PaymentViewController else {
+            print("❌ Could not instantiate PaymentViewController")
+            return
+        }
+
+        // Pass all required data
+        paymentVC.servicePrice = service.pricePerHour
+        paymentVC.serviceName = service.name
+        paymentVC.serviceId = service.id
+        paymentVC.selectedDate = dateText
+        paymentVC.selectedTime = timeText
+
+        print("Navigating to payment screen")
+        print("Service ID: \(service.id)")
+        print("Price: \(service.pricePerHour) BD")
+        print("Selected Date: \(dateText)")
+        print("Selected Time: \(timeText)")
+
+        navigationController?.pushViewController(paymentVC, animated: true)
     }
     
     @IBAction func seeAllReviewsTapped(_ sender: UIButton) {
@@ -469,12 +787,11 @@ class ServiceDetailsViewController: UIViewController {
                 return
             }
             
-            // ✅ Pass non-optional serviceId
-            allReviewsVC.serviceId = service.id  // This is already a String, not String?
+            allReviewsVC.serviceId = service.id
             allReviewsVC.serviceName = service.name
             
-            print("✅ Passing serviceId: \(service.id)")
-            print("✅ Passing serviceName: \(service.name)")
+            print("Passing serviceId: \(service.id)")
+            print("Passing serviceName: \(service.name)")
             
             navigationController?.pushViewController(allReviewsVC, animated: true)
     }

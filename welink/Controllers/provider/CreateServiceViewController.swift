@@ -24,6 +24,17 @@ struct CreateServiceResponse: Decodable {
     let id: UUID
 }
 
+// Struct for updating an existing service
+struct UpdateServiceRequest: Encodable {
+    let name: String
+    let description: String
+    let price_per_hour: Double
+    let start_date: String
+    let end_date: String
+    let image: String?
+    let categories: [String]
+}
+
 class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     @IBOutlet weak var categoryButton: UIButton!
@@ -38,6 +49,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
+    @IBOutlet weak var createButton: UIButton!
     
     // const
     let placeholderText = "Describe your service in details"
@@ -47,9 +59,14 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     // Store the uploaded image URL
     private var uploadedImageURL: String?
     private var isUploading = false
-    
+
     // Changed to array for multiple categories
     private var selectedCategories: Set<String> = []
+
+    // Edit mode properties
+    var isEditMode: Bool = false
+    var editingServiceId: String?
+    var existingService: SeekerSearchResult?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -67,9 +84,118 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         descriptionTextView.delegate = self
         descriptionTextView.text = placeholderText
         descriptionTextView.textColor = placeholderColor
-        
+
         setupDottedBorder()
         setupPreviewImageViewConstraints()
+
+        // If in edit mode, populate fields with existing data
+        if isEditMode {
+            populateFieldsForEditing()
+        }
+    }
+
+    private func populateFieldsForEditing() {
+        guard let service = existingService else { return }
+
+        // Update title
+        self.title = "Edit Service"
+
+        // Update button title
+        createButton?.setTitle("Update Service", for: .normal)
+
+        // Populate service name
+        serviceNameTextField.text = service.name
+
+        // Populate price
+        priceTextField.text = String(format: "%.0f", service.pricePerHour)
+
+        // Populate description
+        descriptionTextView.text = service.description
+        descriptionTextView.textColor = textColor
+
+        // Populate dates
+        if let startDateString = service.startDate, let endDateString = service.endDate {
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+
+            // Try format 1: ISO8601 with T
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+            var startDate = dateFormatter.date(from: startDateString)
+            var endDate = dateFormatter.date(from: endDateString)
+
+            // Try format 2: space instead of T
+            if startDate == nil || endDate == nil {
+                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+                startDate = dateFormatter.date(from: startDateString)
+                endDate = dateFormatter.date(from: endDateString)
+            }
+
+            if let start = startDate {
+                startDatePicker.date = start
+            }
+            if let end = endDate {
+                endDatePicker.date = end
+            }
+        }
+
+        // Populate image if exists
+        if let imageUrl = service.image, !imageUrl.isEmpty {
+            uploadedImageURL = imageUrl
+            loadExistingImage(from: imageUrl)
+        }
+
+        // Fetch and populate categories
+        fetchServiceCategories()
+    }
+
+    private func loadExistingImage(from urlString: String) {
+        guard let url = URL(string: urlString) else { return }
+
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        previewImageView.image = image
+                        previewImageView.isHidden = false
+                        previewImageView.contentMode = .scaleAspectFill
+                        previewImageView.clipsToBounds = true
+                        previewImageView.layer.cornerRadius = 12
+
+                        uploadIcon.isHidden = true
+                        uploadButton.isHidden = true
+                    }
+                }
+            } catch {
+                print("Failed to load existing image: \(error)")
+            }
+        }
+    }
+
+    private func fetchServiceCategories() {
+        guard let serviceId = editingServiceId else { return }
+
+        Task {
+            do {
+                let response: [[String: String]] = try await SupabaseClientManager.shared.client
+                    .database
+                    .from("service_categories")
+                    .select("category")
+                    .eq("service_id", value: serviceId)
+                    .execute()
+                    .value
+
+                let categories = response.compactMap { $0["category"] }
+
+                await MainActor.run {
+                    self.selectedCategories = Set(categories)
+                    self.updateCategoryButtonTitle()
+                }
+            } catch {
+                print("Failed to fetch categories: \(error)")
+            }
+        }
     }
 
     private func setupPreviewImageViewConstraints() {
@@ -330,20 +456,80 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             return
         }
 
-        // Create service in database
+        // Create or update service in database
         Task {
-            await saveServiceToDatabase(
-                name: serviceName,
-                description: description,
-                price: price,
-                startDate: startDate,
-                endDate: endDate,
-                imageURL: uploadedImageURL,
-                categories: Array(selectedCategories)
-            )
+            if isEditMode {
+                await updateServiceInDatabase(
+                    name: serviceName,
+                    description: description,
+                    price: price,
+                    startDate: startDate,
+                    endDate: endDate,
+                    imageURL: uploadedImageURL,
+                    categories: Array(selectedCategories)
+                )
+            } else {
+                await saveServiceToDatabase(
+                    name: serviceName,
+                    description: description,
+                    price: price,
+                    startDate: startDate,
+                    endDate: endDate,
+                    imageURL: uploadedImageURL,
+                    categories: Array(selectedCategories)
+                )
+            }
         }
     }
-    
+
+    private func updateServiceInDatabase(
+        name: String,
+        description: String,
+        price: Decimal,
+        startDate: String,
+        endDate: String,
+        imageURL: String?,
+        categories: [String]
+    ) async {
+        guard let serviceId = editingServiceId else {
+            await MainActor.run {
+                showAlert(title: "Error", message: "Service ID not found")
+            }
+            return
+        }
+
+        do {
+            // Update service request
+            let updateRequest = UpdateServiceRequest(
+                name: name,
+                description: description,
+                price_per_hour: NSDecimalNumber(decimal: price).doubleValue,
+                start_date: startDate,
+                end_date: endDate,
+                image: imageURL,
+                categories: categories
+            )
+
+            try await SupabaseClientManager.shared.client.database
+                .from("services")
+                .update(updateRequest)
+                .eq("id", value: serviceId)
+                .execute()
+
+            await MainActor.run {
+                showAlert(title: "Success", message: "Service updated successfully") {
+                    self.navigationController?.popViewController(animated: true)
+                }
+            }
+
+        } catch {
+            print("Error updating service: \(error)")
+            await MainActor.run {
+                showAlert(title: "Error", message: "Failed to update service: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func saveServiceToDatabase(
         name: String,
         description: String,
@@ -369,7 +555,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 user_id: userId.uuidString,
                 categories: categories
             )
-            
+
             let response: [CreateServiceResponse] = try await SupabaseClientManager.shared.client.database
                 .from("services")
                 .insert(serviceRequest)
@@ -387,7 +573,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             await MainActor.run {
                 self.navigateToServiceDetails(serviceId: createdService.id.uuidString)
             }
-            
+
         } catch {
             print("Error creating service: \(error)")
             await MainActor.run {
