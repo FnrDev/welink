@@ -57,6 +57,8 @@ final class AdminProviderRequestViewController: UIViewController {
         view = UIView()
     }
 
+    @IBOutlet private weak var tableView: UITableView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

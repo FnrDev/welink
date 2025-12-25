@@ -14,6 +14,9 @@ class AdminCategoriesViewController: UIViewController, UICollectionViewDataSourc
     private var allCategories: [String] = []
     private var filteredCategories: [String] = []
 
+    private let showCategoryServicesSegueID = "ShowAdminCategoryServices"
+    private var selectedCategoryName: String?
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -55,6 +58,18 @@ class AdminCategoriesViewController: UIViewController, UICollectionViewDataSourc
         }
 
         return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard filteredCategories.indices.contains(indexPath.item) else { return }
+        selectedCategoryName = filteredCategories[indexPath.item]
+        performSegue(withIdentifier: showCategoryServicesSegueID, sender: self)
+    }
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        guard segue.identifier == showCategoryServicesSegueID else { return }
+        guard let vc = segue.destination as? AdminCategoryServicesViewController else { return }
+        vc.categoryName = selectedCategoryName ?? ""
     }
 
     private struct ServiceCategoriesRow: Decodable {
