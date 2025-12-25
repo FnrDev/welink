@@ -308,6 +308,7 @@ class ProviderDashboardViewController: UIViewController {
             return
         }
         searchVC.showAllOnLoad = true
+        searchVC.showOnlyUserServices = true
 
         if let navController = navigationController {
             navController.pushViewController(searchVC, animated: true)
