@@ -146,7 +146,7 @@ class ProfileController: UIViewController {
 
     private func openProviderDashboard() {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC")
+        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
 
         // Change the window's root view controller
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

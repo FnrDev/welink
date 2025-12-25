@@ -39,6 +39,7 @@ struct Rating: Decodable {
 
 class ProviderDashboardViewController: UIViewController {
     
+    @IBOutlet weak var backBTN: UIBarButtonItem!
     @IBOutlet weak var todayBookingsField: UILabel!
     @IBOutlet weak var todayReveune: UILabel!
     @IBOutlet weak var totalBookingField: UILabel!
@@ -86,33 +87,34 @@ class ProviderDashboardViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         todayBookingsField.text = "0"
         todayReveune.text = "0"
         totalBookingField.text = "0"
         totalReveune.text = "0"
-
+        
         setupTableView()
         setupLoadingView()
-
-        // Listen for refresh notification (e.g., after deleting a service)
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(refreshDashboard),
             name: NSNotification.Name("RefreshProviderDashboard"),
             object: nil
         )
-
+        
         Task {
             await loadDashboard()
             await loadMyServices()
         }
     }
-
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-
+    
+    // MARK: - Back Button Action
+    
     @objc private func refreshDashboard() {
         Task {
             await loadDashboard()
@@ -127,29 +129,29 @@ class ProviderDashboardViewController: UIViewController {
         servicesTableView.rowHeight = 80
         servicesTableView.separatorStyle = .none
     }
-
+    
     private func setupLoadingView() {
         view.addSubview(loadingContainer)
         loadingContainer.addSubview(activityIndicator)
         loadingContainer.addSubview(loadingLabel)
         view.addSubview(emptyStateLabel)
-
+        
         NSLayoutConstraint.activate([
             loadingContainer.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
             loadingContainer.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor),
-
+            
             activityIndicator.topAnchor.constraint(equalTo: loadingContainer.topAnchor),
             activityIndicator.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
-
+            
             loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 8),
             loadingLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
             loadingLabel.bottomAnchor.constraint(equalTo: loadingContainer.bottomAnchor),
-
+            
             emptyStateLabel.centerXAnchor.constraint(equalTo: servicesTableView.centerXAnchor),
             emptyStateLabel.centerYAnchor.constraint(equalTo: servicesTableView.centerYAnchor)
         ])
     }
-
+    
     private func showLoading() {
         loadingContainer.isHidden = false
         activityIndicator.startAnimating()
@@ -176,7 +178,6 @@ class ProviderDashboardViewController: UIViewController {
         }
         
         let client = SupabaseClientManager.shared.client
-
         guard let session = try? await client.auth.session else {
             print("No user logged in")
             await MainActor.run {
@@ -233,7 +234,6 @@ class ProviderDashboardViewController: UIViewController {
     
     private func loadDashboard() async {
         let client = SupabaseClientManager.shared.client
-
         guard let session = try? await client.auth.session else {
             print("No user logged in")
             return
@@ -300,7 +300,7 @@ class ProviderDashboardViewController: UIViewController {
         if value == 0 { return "0" }
         return String(format: "%.2f", value)
     }
-
+    
     @IBAction func seeAllButtonTapped(_ sender: UIButton) {
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         guard let searchVC = storyboard.instantiateViewController(withIdentifier: "SearchVC") as? SearchViewController else {
@@ -309,7 +309,6 @@ class ProviderDashboardViewController: UIViewController {
         }
         searchVC.showAllOnLoad = true
         searchVC.showOnlyUserServices = true
-
         if let navController = navigationController {
             navController.pushViewController(searchVC, animated: true)
         } else {
@@ -343,11 +342,9 @@ extension ProviderDashboardViewController: UITableViewDelegate, UITableViewDataS
             return
         }
         vc.serviceId = service.id.uuidString
-
         if let navController = navigationController {
             navController.pushViewController(vc, animated: true)
         } else {
-            // If no navigation controller, present modally with a nav controller
             let navVC = UINavigationController(rootViewController: vc)
             navVC.modalPresentationStyle = .fullScreen
             present(navVC, animated: true)
@@ -456,16 +453,16 @@ class ServiceTableViewCell: UITableViewCell {
             titleLabel.topAnchor.constraint(equalTo: containerView.topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: serviceImageView.trailingAnchor, constant: 12),
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: starImageView.leadingAnchor, constant: -16),
-
+            
             providerLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             providerLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             providerLabel.trailingAnchor.constraint(lessThanOrEqualTo: starImageView.leadingAnchor, constant: -16),
-
+            
             starImageView.trailingAnchor.constraint(equalTo: ratingLabel.leadingAnchor, constant: -4),
             starImageView.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             starImageView.widthAnchor.constraint(equalToConstant: 14),
             starImageView.heightAnchor.constraint(equalToConstant: 14),
-
+            
             ratingLabel.trailingAnchor.constraint(equalTo: containerView.trailingAnchor, constant: -16),
             ratingLabel.centerYAnchor.constraint(equalTo: containerView.centerYAnchor),
             ratingLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 30)
