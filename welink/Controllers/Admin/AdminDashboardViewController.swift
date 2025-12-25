@@ -17,6 +17,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
 
     private struct ProviderRequest {
         let id: Int
+        let userId: String
         let name: String
         let requestedAtText: String
         let phone: String
@@ -28,6 +29,8 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
     private var providerRequests: [ProviderRequest] = []
 
     private let providerRequestDetailsStoryboardID = "AdminProviderRequest"
+    private let notificationsStoryboardName = "Notifications"
+    private let notificationsStoryboardID = "notificationsVC"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -42,6 +45,12 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             await self?.loadPendingApplications()
             await self?.loadAnalytics()
         }
+    }
+
+    @IBAction private func didTapNotifications(_ sender: UIButton) {
+        let storyboard = UIStoryboard(name: notificationsStoryboardName, bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: notificationsStoryboardID)
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     private struct UserCountRow: Decodable {
@@ -125,6 +134,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                 }
                 return ProviderRequest(
                     id: row.id,
+                    userId: row.user_id,
                     name: row.full_name,
                     requestedAtText: "Requested at \(formatDate(row.created_at))",
                     phone: row.phone,
@@ -153,6 +163,15 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             .from("applications")
             .update(["status": status])
             .eq("id", value: id)
+            .execute()
+    }
+
+    private func updateUserRole(userId: String, role: String) async throws {
+        let client = SupabaseClientManager.shared.client
+        _ = try await client.database
+            .from("users")
+            .update(["role": role])
+            .eq("id", value: userId)
             .execute()
     }
 
@@ -262,6 +281,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             Task {
                 do {
                     try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    try await self.updateUserRole(userId: item.userId, role: "seeker")
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(selectedIndex) else { return }
                         self.providerRequests.remove(at: selectedIndex)
@@ -317,6 +337,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             Task {
                 do {
                     try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    try await self.updateUserRole(userId: item.userId, role: "seeker")
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(index) else { return }
                         self.providerRequests.remove(at: index)
