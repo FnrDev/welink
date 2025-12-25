@@ -308,7 +308,14 @@ class ProviderDashboardViewController: UIViewController {
             return
         }
         searchVC.showAllOnLoad = true
-        navigationController?.pushViewController(searchVC, animated: true)
+
+        if let navController = navigationController {
+            navController.pushViewController(searchVC, animated: true)
+        } else {
+            let navVC = UINavigationController(rootViewController: searchVC)
+            navVC.modalPresentationStyle = .fullScreen
+            present(navVC, animated: true)
+        }
     }
 }
 

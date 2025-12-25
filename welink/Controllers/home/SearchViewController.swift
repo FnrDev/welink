@@ -22,6 +22,41 @@ class SearchViewController: UIViewController {
     var isShowingResults = false  // false = recent searches, true = search results
     var showAllOnLoad = false  // When true, load all services immediately
 
+    // Loading UI
+    private let loadingContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+
+    private let loadingLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Loading services..."
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private let emptyStateLabel: UILabel = {
+        let label = UILabel()
+        label.text = "No services found."
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+        return label
+    }()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Remove search bar border
@@ -38,11 +73,56 @@ class SearchViewController: UIViewController {
 
         // Get saved searches from phone storage and update the screen
         loadRecentSearches()
+        setupLoadingView()
 
         if showAllOnLoad {
             loadAllServices()
         } else {
             updateUI()
+        }
+    }
+
+    private func setupLoadingView() {
+        view.addSubview(loadingContainer)
+        loadingContainer.addSubview(activityIndicator)
+        loadingContainer.addSubview(loadingLabel)
+        view.addSubview(emptyStateLabel)
+
+        NSLayoutConstraint.activate([
+            loadingContainer.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
+            loadingContainer.centerYAnchor.constraint(equalTo: tableView.centerYAnchor),
+
+            activityIndicator.topAnchor.constraint(equalTo: loadingContainer.topAnchor),
+            activityIndicator.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+
+            loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 8),
+            loadingLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            loadingLabel.bottomAnchor.constraint(equalTo: loadingContainer.bottomAnchor),
+
+            emptyStateLabel.centerXAnchor.constraint(equalTo: tableView.centerXAnchor),
+            emptyStateLabel.centerYAnchor.constraint(equalTo: tableView.centerYAnchor)
+        ])
+
+        loadingContainer.isHidden = true
+    }
+
+    private func showLoading() {
+        loadingContainer.isHidden = false
+        activityIndicator.startAnimating()
+        emptyStateLabel.isHidden = true
+        tableView.isHidden = true
+    }
+
+    private func hideLoading() {
+        loadingContainer.isHidden = true
+        activityIndicator.stopAnimating()
+
+        if searchResults.isEmpty && isShowingResults {
+            emptyStateLabel.isHidden = false
+            tableView.isHidden = true
+        } else {
+            emptyStateLabel.isHidden = true
+            tableView.isHidden = false
         }
     }
     
@@ -207,7 +287,7 @@ class SearchViewController: UIViewController {
         isShowingResults = true
         recentSearchesLabel.text = "All Services"
         clearAllButton.isHidden = true
-        tableView.isHidden = false
+        showLoading()
 
         Task {
             do {
@@ -258,6 +338,7 @@ class SearchViewController: UIViewController {
                 await MainActor.run {
                     self.searchResults = results
                     self.tableView.reloadData()
+                    self.hideLoading()
                     print("Loaded \(results.count) services")
                 }
 
@@ -266,6 +347,7 @@ class SearchViewController: UIViewController {
                 await MainActor.run {
                     self.searchResults = []
                     self.tableView.reloadData()
+                    self.hideLoading()
                 }
             }
         }
