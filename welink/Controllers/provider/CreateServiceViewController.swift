@@ -49,6 +49,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     
     @IBOutlet weak var serviceNameTextField: UITextField!
     @IBOutlet weak var priceTextField: UITextField!
+    @IBOutlet weak var createButton: UIButton!
     
     // const
     let placeholderText = "Describe your service in details"
@@ -98,6 +99,9 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
 
         // Update title
         self.title = "Edit Service"
+
+        // Update button title
+        createButton?.setTitle("Update Service", for: .normal)
 
         // Populate service name
         serviceNameTextField.text = service.name
