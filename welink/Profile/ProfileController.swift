@@ -114,45 +114,63 @@ class ProfileController: UIViewController {
     // MARK: - Setup Menu
 
     private func setupMenu() {
-        let providerDashboard = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "hammer.fill")) { _ in
-            self.openProviderDashboard()
+        menuButton.addTarget(self, action: #selector(menuButtonTapped), for: .touchUpInside)
+    }
+
+    @objc private func menuButtonTapped() {
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+
+        actionSheet.addAction(UIAlertAction(title: "Provider Dashboard", style: .default) { [weak self] _ in
+            self?.openProviderDashboard()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "Settings", style: .default) { [weak self] _ in
+            self?.openSettings()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "History", style: .default) { [weak self] _ in
+            self?.openHistory()
+        })
+
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        if let popover = actionSheet.popoverPresentationController {
+            popover.sourceView = menuButton
+            popover.sourceRect = menuButton.bounds
         }
 
-        let settings = UIAction(title: "Settings", image: UIImage(systemName: "gear")) { _ in
-            self.openSettings()
-        }
-
-        let history = UIAction(title: "History", image: UIImage(systemName: "clock.arrow.circlepath")) { _ in
-            self.openHistory()
-        }
-
-        let menu = UIMenu(title: "", children: [providerDashboard, settings, history])
-
-        menuButton.menu = menu
-        menuButton.showsMenuAsPrimaryAction = true
+        self.present(actionSheet, animated: true)
     }
 
     // MARK: - Menu Actions
 
     private func openProviderDashboard() {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC")
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
+
+        // Change the window's root view controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+
+        window.rootViewController = vc
+        window.makeKeyAndVisible()
+
+        // Add transition animation
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
     }
 
     private func openSettings() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-        settingsVC.modalPresentationStyle = .fullScreen
-        present(settingsVC, animated: true)
+        navigationController?.pushViewController(settingsVC, animated: true)
     }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
-        historyVC.modalPresentationStyle = .fullScreen
-        present(historyVC, animated: true)
+        navigationController?.pushViewController(historyVC, animated: true)
     }
 
     // MARK: - Setup Skills Collection View
@@ -181,6 +199,11 @@ class ProfileController: UIViewController {
         servicesCollectionView.dataSource = self
         servicesCollectionView.register(ServiceImageCell.self, forCellWithReuseIdentifier: "ServiceImageCell")
         servicesCollectionView.tag = 2
+
+        // Enable selection
+        servicesCollectionView.allowsSelection = true
+        servicesCollectionView.isUserInteractionEnabled = true
+        print("🔥 Collection view setup: allowsSelection=\(servicesCollectionView.allowsSelection), isUserInteractionEnabled=\(servicesCollectionView.isUserInteractionEnabled)")
 
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -312,6 +335,35 @@ class ProfileController: UIViewController {
         }
     }
 
+    // MARK: - Navigation
+
+    private func navigateToServiceDetails(serviceId: String) {
+        print("🔥 navigateToServiceDetails called with serviceId: \(serviceId)")
+
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let serviceDetailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            print("❌ Could not instantiate ServiceDetailsViewController")
+            return
+        }
+
+        print("🔥 ServiceDetailsViewController instantiated successfully")
+
+        // Pass the service ID
+        serviceDetailsVC.serviceId = serviceId
+
+        // Check if we have navigation controller
+        if let navController = navigationController {
+            print("🔥 Navigation controller found, pushing view controller")
+            navController.pushViewController(serviceDetailsVC, animated: true)
+        } else {
+            print("🔥 No navigation controller found, presenting modally")
+            // Wrap in navigation controller for modal presentation
+            let navController = UINavigationController(rootViewController: serviceDetailsVC)
+            navController.modalPresentationStyle = .fullScreen
+            present(navController, animated: true)
+        }
+    }
+
     // MARK: - Load Avatar
 
     private func loadAvatar(from path: String) {
@@ -379,6 +431,25 @@ extension ProfileController: UICollectionViewDelegate, UICollectionViewDataSourc
             let totalSpacing = spacing * 2
             let width = (collectionView.frame.width - totalSpacing) / 3
             return CGSize(width: width, height: width)
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print("🔥 Collection view tapped! Tag: \(collectionView.tag), IndexPath: \(indexPath)")
+
+        // Only handle selection for services collection view (tag 2)
+        if collectionView.tag == 2 {
+            print("🔥 Services collection view tapped!")
+            guard indexPath.item < userServices.count else {
+                print("❌ Index out of bounds: \(indexPath.item) >= \(userServices.count)")
+                return
+            }
+
+            let service = userServices[indexPath.item]
+            print("🔥 Navigating to service: \(service.name) with ID: \(service.id)")
+            navigateToServiceDetails(serviceId: service.id)
+        } else {
+            print("🔥 Skills collection view tapped (tag: \(collectionView.tag))")
         }
     }
 }
