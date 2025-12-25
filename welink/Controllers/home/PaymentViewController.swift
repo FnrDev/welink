@@ -7,6 +7,19 @@
 
 import UIKit
 
+struct NewNotification: Encodable {
+    let user_id: String
+    let type: String
+    let title: String
+    let content: String
+    let is_read: Bool
+    let created_at: String
+}
+
+struct User: Decodable {
+    let name: String
+}
+
 class PaymentViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet weak var creditCardButton: UIButton!
@@ -28,6 +41,7 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     var serviceId: String = ""
     var selectedDate: String = ""
     var selectedTime: String = ""
+    var serviceProviderId: String = ""
     
     private var selectedPaymentMethod: PaymentMethod = .creditCard
     
@@ -316,7 +330,7 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             let bookingRequest = CreateBookingRequest(
                 service_id: serviceId,
                 user_id: userId,
-                status: "confirmed",  // or "pending", "completed", etc.
+                status: "confirmed",
                 booked_date: bookedDate
             )
             
@@ -331,7 +345,8 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             print("   User ID: \(userId)")
             print("   Date: \(bookedDate)")
             
-            // Navigate to success screen
+            await createNotificationForProvider()
+            
             await MainActor.run {
                 navigateToSuccessScreen()
             }
@@ -344,6 +359,46 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
                 payButton.setTitle("Pay", for: .normal)
                 showAlert(message: "Failed to complete booking. Please try again.")
             }
+        }
+    }
+    
+    func createNotificationForProvider() async {
+        do {
+            let client = SupabaseClientManager.shared.client
+            
+            // Seeker info
+            let session = try await client.auth.session
+            let seekerId = session.user.id.uuidString
+            
+            // Get seeker name from users table
+            let userResponse: [User] = try await client.database
+                .from("users")
+                .select("name")
+                .eq("id", value: seekerId)
+                .execute()
+                .value
+            
+            let seekerName = userResponse.first?.name ?? "A user"
+            
+            // Create notification
+            let notification = NewNotification(
+                user_id: serviceProviderId,
+                type: "booking_request",
+                title: "New Booking",
+                content: "\(seekerName) booked your service '\(serviceName)' for \(selectedDate)",
+                is_read: false,
+                created_at: ISO8601DateFormatter().string(from: Date())
+            )
+            
+            try await client.database
+                .from("notifications")
+                .insert(notification)
+                .execute()
+            
+            print("Notification created for provider: \(serviceProviderId)")
+            
+        } catch {
+            print("Error creating notification: \(error)")
         }
     }
     
