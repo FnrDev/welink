@@ -1,5 +1,5 @@
 //
-//  HistoryViewController.swift
+//  History.swift
 //  welink
 //
 //  Created by BP-36-215-16 on 25/12/2025.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HistoryViewController: UIViewController {
+class History: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
