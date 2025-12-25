@@ -462,11 +462,10 @@
                                                 <rect key="frame" x="16" y="3" width="87" height="38.333333333333336"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="plain" title="Back"/>
                                             </button>
                                             <connections>
-                                                <action selector="backButtonTapped:" destination="qNG-JB-Q2x" id="cnC-kF-tcL"/>
-                                                <segue destination="nYU-fx-grJ" kind="presentation" modalPresentationStyle="fullScreen" id="LkU-kD-sxQ"/>
+                                                <action selector="backButtonTapped:" destination="qNG-JB-Q2x" id="17X-Dy-cS1"/>
                                             </connections>
                                         </barButtonItem>
                                         <barButtonItem key="rightBarButtonItem" style="plain" id="hFE-4L-Yzr">
@@ -503,14 +502,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dYI-h8-X0E" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1915.2671755725189" y="111.9718309859155"/>
-        </scene>
-        <!--ProfileVC-->
-        <scene sceneID="RlC-Sm-g5P">
-            <objects>
-                <viewControllerPlaceholder storyboardName="Profile" referencedIdentifier="ProfileVC" id="nYU-fx-grJ" sceneMemberID="viewController"/>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="JWf-ev-8Ye" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1929" y="-298"/>
         </scene>
         <!--notificationsVC-->
         <scene sceneID="li4-Ph-Lh8">

@@ -95,7 +95,12 @@ class ProviderDashboardViewController: UIViewController {
         
         setupTableView()
         setupLoadingView()
-        
+
+        // Connect the custom button inside barButtonItem to the action
+        if let customButton = backBTN.customView as? UIButton {
+            customButton.addTarget(self, action: #selector(backButtonAction), for: .touchUpInside)
+        }
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(refreshDashboard),
@@ -114,7 +119,36 @@ class ProviderDashboardViewController: UIViewController {
     }
     
     // MARK: - Back Button Action
-    
+
+    @IBAction func backButtonTapped(_ sender: UIBarButtonItem) {
+        navigateBack()
+    }
+
+    @objc private func backButtonAction() {
+        navigateBack()
+    }
+
+    private func navigateBack() {
+        // Restore the main tab bar controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let tabBarController = storyboard.instantiateViewController(withIdentifier: "SeekerTabController") as? UITabBarController else {
+            return
+        }
+
+        // Switch to Profile tab (usually the last tab)
+        tabBarController.selectedIndex = (tabBarController.viewControllers?.count ?? 1) - 1
+
+        window.rootViewController = tabBarController
+        window.makeKeyAndVisible()
+
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+    }
+
     @objc private func refreshDashboard() {
         Task {
             await loadDashboard()
