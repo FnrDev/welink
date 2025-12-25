@@ -53,17 +53,4 @@ class PaymentSuccessViewController: UIViewController {
         print("Amount: \(amountPaid) BD")
     }
     
-    // MARK: - Actions
-    @IBAction func backToHomeButtonTapped(_ sender: UIButton) {
-            // Get the tab bar controller
-            guard let tabBarController = self.tabBarController else {
-                print("❌ No tab bar controller found")
-                return
-            }
-            
-            // Switch to Home tab (index 0)
-            tabBarController.selectedIndex = 0
-            self.navigationController?.popToRootViewController(animated: false)
-    }
-    
 }

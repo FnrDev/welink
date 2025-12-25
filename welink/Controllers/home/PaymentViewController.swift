@@ -27,6 +27,7 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     var serviceName: String = ""
     var serviceId: String = ""
     var selectedDate: String = ""
+    var selectedTime: String = ""
     
     private var selectedPaymentMethod: PaymentMethod = .creditCard
     
@@ -220,7 +221,18 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     
     @IBAction func payButtonTapped(_ sender: UIButton) {
         print("Pay button tapped")
-        
+
+        // Validate date and time selection
+        if selectedDate.isEmpty || selectedDate == "Available" || selectedDate.contains(" - ") {
+            showAlert(message: "Please select a booking date")
+            return
+        }
+
+        if selectedTime.isEmpty || selectedTime == "Select time" {
+            showAlert(message: "Please select a booking time")
+            return
+        }
+
         if selectedPaymentMethod == .applePay {
             processPayment()
             return
@@ -282,10 +294,23 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
             // Get current user ID
             let session = try await SupabaseClientManager.shared.client.auth.session
             let userId = session.user.id.uuidString
-            
-            // Format the booked date (use the date selected in Service Details)
-            let formatter = ISO8601DateFormatter()
-            let bookedDate = selectedDate.isEmpty ? formatter.string(from: Date()) : selectedDate
+
+            // Parse the selected date or use current date
+            let iso8601Formatter = ISO8601DateFormatter()
+            var bookedDate: String
+
+            // Try to parse the selected date (format: "dd MMM yyyy")
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd MMM yyyy"
+
+            if !selectedDate.isEmpty,
+               selectedDate != "Available",
+               let parsedDate = dateFormatter.date(from: selectedDate) {
+                bookedDate = iso8601Formatter.string(from: parsedDate)
+            } else {
+                // Use current date if no valid date selected
+                bookedDate = iso8601Formatter.string(from: Date())
+            }
             
             // Create booking request
             let bookingRequest = CreateBookingRequest(

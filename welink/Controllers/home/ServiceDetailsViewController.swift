@@ -97,7 +97,7 @@ class ServiceDetailsViewController: UIViewController {
     }
 
     private func hideBookingButtonsForOwner() {
-        // Hide message and book now buttons for service owner
+        // Hide both buttons for service owner
         messageButton.isHidden = true
         bookNowButton.isHidden = true
 
@@ -106,6 +106,8 @@ class ServiceDetailsViewController: UIViewController {
     }
 
     private func setupDeleteButton() {
+        guard let buttonSuperview = bookNowButton.superview else { return }
+
         let button = UIButton(type: .system)
         button.setTitle("Delete Service", for: .normal)
         button.setTitleColor(.white, for: .normal)
@@ -115,15 +117,14 @@ class ServiceDetailsViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(deleteButtonTapped), for: .touchUpInside)
 
-        // Add to view
-        view.addSubview(button)
+        buttonSuperview.addSubview(button)
 
-        // Position at the bottom where the book now button was
+        // Position using the same constraints as the original buttons
         NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            button.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            button.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            button.heightAnchor.constraint(equalToConstant: 50)
+            button.leadingAnchor.constraint(equalTo: messageButton.leadingAnchor),
+            button.trailingAnchor.constraint(equalTo: bookNowButton.trailingAnchor),
+            button.topAnchor.constraint(equalTo: bookNowButton.topAnchor),
+            button.heightAnchor.constraint(equalTo: bookNowButton.heightAnchor)
         ])
 
         self.deleteButton = button
@@ -730,31 +731,47 @@ class ServiceDetailsViewController: UIViewController {
     
     @IBAction func bookNowButtonTapped(_ sender: UIButton) {
         print("Book Now button tapped")
-            
-            guard let service = service else {
-                print("❌ No service available")
-                return
-            }
-            
-            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-            
-            guard let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentVC") as? PaymentViewController else {
-                print("❌ Could not instantiate PaymentViewController")
-                return
-            }
-            
-            // Pass all required data
-            paymentVC.servicePrice = service.pricePerHour
-            paymentVC.serviceName = service.name
-            paymentVC.serviceId = service.id
-            paymentVC.selectedDate = dateLabel.text ?? ""
-            
-            print("Navigating to payment screen")
-            print("Service ID: \(service.id)")
-            print("Price: \(service.pricePerHour) BD")
-            print("Selected Date: \(dateLabel.text ?? "none")")
-            
-            navigationController?.pushViewController(paymentVC, animated: true)
+
+        guard let service = service else {
+            print("❌ No service available")
+            return
+        }
+
+        // Validate date selection
+        let dateText = dateLabel.text ?? ""
+        if dateText.isEmpty || dateText == "Available" || dateText.contains(" - ") {
+            showError(message: "Please select a booking date")
+            return
+        }
+
+        // Validate time selection
+        let timeText = timeLabel.text ?? ""
+        if timeText.isEmpty || timeText == "Select time" {
+            showError(message: "Please select a booking time")
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+
+        guard let paymentVC = storyboard.instantiateViewController(withIdentifier: "PaymentVC") as? PaymentViewController else {
+            print("❌ Could not instantiate PaymentViewController")
+            return
+        }
+
+        // Pass all required data
+        paymentVC.servicePrice = service.pricePerHour
+        paymentVC.serviceName = service.name
+        paymentVC.serviceId = service.id
+        paymentVC.selectedDate = dateText
+        paymentVC.selectedTime = timeText
+
+        print("Navigating to payment screen")
+        print("Service ID: \(service.id)")
+        print("Price: \(service.pricePerHour) BD")
+        print("Selected Date: \(dateText)")
+        print("Selected Time: \(timeText)")
+
+        navigationController?.pushViewController(paymentVC, animated: true)
     }
     
     @IBAction func seeAllReviewsTapped(_ sender: UIButton) {

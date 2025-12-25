@@ -23,7 +23,7 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <items>
                                     <navigationItem title="Title" id="sL4-fO-Klo">
-                                        <barButtonItem key="rightBarButtonItem" style="plain" id="Zhx-lF-DBT">
+                                        <barButtonItem key="rightBarButtonItem" title="Item" style="plain" id="Zhx-lF-DBT">
                                             <button key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" id="Ttd-LP-JVT">
                                                 <rect key="frame" x="278.33333333333331" y="3" width="98.666666666666686" height="38.333333333333336"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -155,7 +155,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="amy-cj-99C">
-                                <rect key="frame" x="16" y="348" width="361" height="128"/>
+                                <rect key="frame" x="16" y="348" width="361" height="387"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" automaticEstimatedItemSize="YES" minimumLineSpacing="10" minimumInteritemSpacing="10" id="Cl3-yc-Ccb">
