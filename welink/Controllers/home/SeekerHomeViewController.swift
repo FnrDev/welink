@@ -13,11 +13,30 @@ class SeekerHomeViewController: UIViewController {
     @IBOutlet weak var recommendedTableView: UITableView!
     @IBOutlet weak var popularTableView: UITableView!
     
+    @IBOutlet weak var bell: UINavigationItem!
+    
     var recommendedServices: [SeekerSearchResult] = []
     var popularServices: [SeekerSearchResult] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+            let bellButton = UIBarButtonItem(
+                image: UIImage(systemName: "bell"),
+                style: .plain,
+                target: self,
+                action: #selector(bellButtonTapped)
+            )
+            bellButton.tintColor = UIColor(hex: "2D493A")
+            
+            let negativeSpacer = UIBarButtonItem(
+                barButtonSystemItem: .fixedSpace,
+                target: nil,
+                action: nil
+            )
+            negativeSpacer.width = -8
+            
+            navigationItem.rightBarButtonItems = [negativeSpacer, bellButton]
         
         setupTableViews()
         fetchRecommendedServices()
@@ -290,6 +309,17 @@ extension SeekerHomeViewController: UITableViewDelegate, UITableViewDataSource {
 
     @IBAction func designCategoryTapped(_ sender: UIButton) {
         navigateToCategory("Design")
+    }
+    
+    @objc func bellButtonTapped() {
+        let storyboard = UIStoryboard(name: "Notifications", bundle: nil)
+        
+        guard let notificationsVC = storyboard.instantiateViewController(withIdentifier: "notificationsVC") as? NotificationsViewController else {
+            print("Could not instantiate NotificationsViewController")
+            return
+        }
+        
+        navigationController?.pushViewController(notificationsVC, animated: true)
     }
 
     func navigateToCategory(_ category: String) {
