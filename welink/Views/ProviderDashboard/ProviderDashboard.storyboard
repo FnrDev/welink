@@ -29,16 +29,6 @@
                                     <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="A5M-sW-xeS">
                                         <rect key="frame" x="0.0" y="0.0" width="385" height="1000"/>
                                         <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BUf-eR-ygo">
-                                                <rect key="frame" x="35" y="918" width="325" height="50"/>
-                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                <color key="tintColor" name="AccentColor"/>
-                                                <state key="normal" title="Button"/>
-                                                <buttonConfiguration key="configuration" style="filled" title="Create"/>
-                                                <connections>
-                                                    <action selector="createService:" destination="Y6W-OH-hqX" eventType="touchUpInside" id="l2P-1g-7Fu"/>
-                                                </connections>
-                                            </button>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Start Date" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5kG-lj-3MM">
                                                 <rect key="frame" x="8" y="635" width="96" height="24"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -71,6 +61,16 @@
                                                 <rect key="frame" x="10" y="771" width="222" height="54"/>
                                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                             </datePicker>
+                                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BUf-eR-ygo">
+                                                <rect key="frame" x="35" y="859" width="325" height="50"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <color key="tintColor" name="AccentColor"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="filled" title="Create"/>
+                                                <connections>
+                                                    <action selector="createService:" destination="Y6W-OH-hqX" eventType="touchUpInside" id="l2P-1g-7Fu"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                         <constraints>
@@ -555,7 +555,7 @@
             </objects>
             <point key="canvasLocation" x="-245" y="-975"/>
         </scene>
-        <!--Custom Tab Bar Controller-->
+        <!--Provider Tab Bar Controller-->
         <scene sceneID="kAA-rS-Ywg">
             <objects>
                 <tabBarController storyboardIdentifier="ProviderDashboardVC" id="sND-SP-g3H" customClass="ProviderTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
@@ -576,7 +576,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Agn-iz-DLo"/>
+        <segue reference="48g-3j-JwR"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>

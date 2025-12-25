@@ -182,6 +182,11 @@ class ProfileController: UIViewController {
         servicesCollectionView.register(ServiceImageCell.self, forCellWithReuseIdentifier: "ServiceImageCell")
         servicesCollectionView.tag = 2
 
+        // Enable selection
+        servicesCollectionView.allowsSelection = true
+        servicesCollectionView.isUserInteractionEnabled = true
+        print("🔥 Collection view setup: allowsSelection=\(servicesCollectionView.allowsSelection), isUserInteractionEnabled=\(servicesCollectionView.isUserInteractionEnabled)")
+
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumInteritemSpacing = 8
@@ -312,6 +317,35 @@ class ProfileController: UIViewController {
         }
     }
 
+    // MARK: - Navigation
+
+    private func navigateToServiceDetails(serviceId: String) {
+        print("🔥 navigateToServiceDetails called with serviceId: \(serviceId)")
+
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+        guard let serviceDetailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
+            print("❌ Could not instantiate ServiceDetailsViewController")
+            return
+        }
+
+        print("🔥 ServiceDetailsViewController instantiated successfully")
+
+        // Pass the service ID
+        serviceDetailsVC.serviceId = serviceId
+
+        // Check if we have navigation controller
+        if let navController = navigationController {
+            print("🔥 Navigation controller found, pushing view controller")
+            navController.pushViewController(serviceDetailsVC, animated: true)
+        } else {
+            print("🔥 No navigation controller found, presenting modally")
+            // Wrap in navigation controller for modal presentation
+            let navController = UINavigationController(rootViewController: serviceDetailsVC)
+            navController.modalPresentationStyle = .fullScreen
+            present(navController, animated: true)
+        }
+    }
+
     // MARK: - Load Avatar
 
     private func loadAvatar(from path: String) {
@@ -379,6 +413,25 @@ extension ProfileController: UICollectionViewDelegate, UICollectionViewDataSourc
             let totalSpacing = spacing * 2
             let width = (collectionView.frame.width - totalSpacing) / 3
             return CGSize(width: width, height: width)
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print("🔥 Collection view tapped! Tag: \(collectionView.tag), IndexPath: \(indexPath)")
+
+        // Only handle selection for services collection view (tag 2)
+        if collectionView.tag == 2 {
+            print("🔥 Services collection view tapped!")
+            guard indexPath.item < userServices.count else {
+                print("❌ Index out of bounds: \(indexPath.item) >= \(userServices.count)")
+                return
+            }
+
+            let service = userServices[indexPath.item]
+            print("🔥 Navigating to service: \(service.name) with ID: \(service.id)")
+            navigateToServiceDetails(serviceId: service.id)
+        } else {
+            print("🔥 Skills collection view tapped (tag: \(collectionView.tag))")
         }
     }
 }

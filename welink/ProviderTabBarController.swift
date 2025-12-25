@@ -29,7 +29,7 @@ class ProviderTabBarController: UITabBarController {
         var controllers: [UIViewController] = []
 
         // Tab 1: Dashboard (Home)
-        let dashboardVC = providerStoryboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
+        let dashboardVC = seekerStoryboard.instantiateViewController(withIdentifier: "HomeVC")
         let dashboardNavController = UINavigationController(rootViewController: dashboardVC)
         dashboardNavController.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), selectedImage: UIImage(systemName: "house.fill"))
         controllers.append(dashboardNavController)
