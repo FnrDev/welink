@@ -164,13 +164,15 @@ class ProfileController: UIViewController {
     private func openSettings() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-        navigationController?.pushViewController(settingsVC, animated: true)
+        settingsVC.modalPresentationStyle = .fullScreen
+        present(settingsVC, animated: true)
     }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
-        navigationController?.pushViewController(historyVC, animated: true)
+        historyVC.modalPresentationStyle = .fullScreen
+        present(historyVC, animated: true)
     }
 
     // MARK: - Setup Skills Collection View
