@@ -764,6 +764,7 @@ class ServiceDetailsViewController: UIViewController {
         paymentVC.serviceId = service.id
         paymentVC.selectedDate = dateText
         paymentVC.selectedTime = timeText
+        paymentVC.serviceProviderId = service.userId ?? ""
 
         print("Navigating to payment screen")
         print("Service ID: \(service.id)")
