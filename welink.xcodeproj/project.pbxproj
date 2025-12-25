@@ -315,7 +315,7 @@
 				CODE_SIGN_ENTITLEMENTS = welink/welink.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 92Z3ZK23GT;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = welink/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WeLink;
@@ -347,7 +347,7 @@
 				CODE_SIGN_ENTITLEMENTS = welink/welink.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 92Z3ZK23GT;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = welink/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WeLink;
