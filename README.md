@@ -29,7 +29,6 @@ The app is built using **Swift**, **Storyboard**, and integrates **Supabase** as
 
 - **iOS:** Swift, Storyboard-based UI
 - **Backend:** Supabase (Auth, Database, Storage)
-- **Location:** CoreLocation for nearby service discovery
 - **Networking:** URLSession / Supabase iOS SDK
 - **State Management:** UIKit patterns (MVC)
 
