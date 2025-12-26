@@ -343,13 +343,16 @@ class ProviderDashboardViewController: UIViewController {
         }
         searchVC.showAllOnLoad = true
         searchVC.showOnlyUserServices = true
-        if let navController = navigationController {
-            navController.pushViewController(searchVC, animated: true)
-        } else {
-            let navVC = UINavigationController(rootViewController: searchVC)
-            navVC.modalPresentationStyle = .fullScreen
-            present(navVC, animated: true)
+
+        let navVC = UINavigationController(rootViewController: searchVC)
+        navVC.modalPresentationStyle = .pageSheet
+
+        if let sheet = navVC.sheetPresentationController {
+            sheet.detents = [.large()]
+            sheet.prefersGrabberVisible = true
         }
+
+        present(navVC, animated: true)
     }
 }
 
