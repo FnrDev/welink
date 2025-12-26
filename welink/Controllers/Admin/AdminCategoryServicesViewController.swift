@@ -277,5 +277,23 @@ final class AdminCategoryServicesViewController: UIViewController, UITableViewDa
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        guard items.indices.contains(indexPath.row) else { return }
+
+        let item = items[indexPath.row]
+        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AdminServiceDetailsVC")
+        guard let detailsVC = vc as? AdminServiceDetailsViewController else {
+            let alert = UIAlertController(
+                title: "Setup Error",
+                message: "Admin serviceDetails scene is not using AdminServiceDetailsViewController. Please set the scene custom class and storyboard ID in AdminDashboard.storyboard.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        detailsVC.serviceId = item.id
+        navigationController?.pushViewController(detailsVC, animated: true)
     }
 }
