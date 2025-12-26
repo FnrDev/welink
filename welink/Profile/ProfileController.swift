@@ -95,20 +95,19 @@ class ProfileController: UIViewController {
     // MARK: - Setup Menu
 
     private func setupMenu() {
-        let providerDashboard = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "hammer.fill")) { _ in
-            self.openProviderDashboard()
+        let providerDashboardAction = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "square.grid.2x2")) { [weak self] _ in
+            self?.openProviderDashboard()
         }
 
-        let settings = UIAction(title: "Settings", image: UIImage(systemName: "gear")) { _ in
-            self.openSettings()
+        let settingsAction = UIAction(title: "Settings", image: UIImage(systemName: "gearshape")) { [weak self] _ in
+            self?.openSettings()
         }
 
-        let history = UIAction(title: "History", image: UIImage(systemName: "clock.arrow.circlepath")) { _ in
-            self.openHistory()
+        let historyAction = UIAction(title: "History", image: UIImage(systemName: "clock")) { [weak self] _ in
+            self?.openHistory()
         }
 
-        let menu = UIMenu(title: "", children: [providerDashboard, settings, history])
-
+        let menu = UIMenu(title: "", children: [providerDashboardAction, settingsAction, historyAction])
         menuButton.menu = menu
         menuButton.showsMenuAsPrimaryAction = true
     }
@@ -117,17 +116,27 @@ class ProfileController: UIViewController {
 
     private func openProviderDashboard() {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardVC")
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
-    }
+        let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
 
-    private func openSettings() {
-        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
-        let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-        settingsVC.modalPresentationStyle = .fullScreen
-        present(settingsVC, animated: true)
-    }
+        // Change the window's root view controller
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else {
+            return
+        }
+
+        window.rootViewController = vc
+        window.makeKeyAndVisible()
+
+        // Add transition animation
+        UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
+        }
+
+        private func openSettings() {
+            let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+            let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
+            settingsVC.modalPresentationStyle = .fullScreen
+            present(settingsVC, animated: true)
+        }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
@@ -135,7 +144,6 @@ class ProfileController: UIViewController {
         historyVC.modalPresentationStyle = .fullScreen
         present(historyVC, animated: true)
     }
-
     // MARK: - Setup Skills Collection View
 
     private func setupSkillsCollectionView() {
