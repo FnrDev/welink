@@ -445,7 +445,6 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="See All">
                                     <fontDescription key="titleFontDescription" type="system" weight="light" pointSize="15"/>
-                                    <color key="baseForegroundColor" systemColor="labelColor"/>
                                 </buttonConfiguration>
                                 <connections>
                                     <action selector="seeAllButtonTapped:" destination="qNG-JB-Q2x" eventType="touchUpInside" id="cJq-om-67n"/>
@@ -537,7 +536,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="ZAZ-Ip-Ryt"/>
+        <segue reference="srV-85-xhw"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>
