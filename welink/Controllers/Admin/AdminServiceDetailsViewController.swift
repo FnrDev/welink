@@ -10,6 +10,20 @@ import Supabase
 
 class AdminServiceDetailsViewController: UIViewController {
 
+    private struct AdminServiceDetailsModel {
+        let id: String
+        let name: String
+        let description: String
+        let pricePerHour: Double
+        let image: String?
+        let userId: String?
+        let providerName: String?
+        let providerImage: String?
+        let startDate: String?
+        let endDate: String?
+        let categories: [String]?
+    }
+
     @IBOutlet private weak var serviceImageView: UIImageView?
     @IBOutlet private weak var profileImageView: UIImageView?
     @IBOutlet private weak var providerNameLabel: UILabel?
@@ -24,7 +38,7 @@ class AdminServiceDetailsViewController: UIViewController {
 
     var serviceId: String?
 
-    private var service: SeekerSearchResult?
+    private var service: AdminServiceDetailsModel?
     private var ratings: [ServiceRating] = []
     private var didBindAfterLayout = false
     private var resolvedReviewsTableHeightConstraint: NSLayoutConstraint?
@@ -130,7 +144,7 @@ class AdminServiceDetailsViewController: UIViewController {
                     .execute()
                     .value
 
-                let mapped = SeekerSearchResult(
+                let mapped = AdminServiceDetailsModel(
                     id: response.id,
                     name: response.name,
                     description: response.description,
@@ -138,7 +152,10 @@ class AdminServiceDetailsViewController: UIViewController {
                     image: response.image,
                     userId: response.user_id,
                     providerName: response.users?.name,
-                    providerImage: response.users?.image
+                    providerImage: response.users?.image,
+                    startDate: response.start_date,
+                    endDate: response.end_date,
+                    categories: response.categories
                 )
 
                 self.service = mapped
@@ -188,7 +205,7 @@ class AdminServiceDetailsViewController: UIViewController {
         }
     }
 
-    private func displayServiceData(_ service: SeekerSearchResult) {
+    private func displayServiceData(_ service: AdminServiceDetailsModel) {
         title = service.name
 
         providerNameLabel?.text = service.providerName ?? "Unknown Provider"
@@ -338,9 +355,16 @@ class AdminServiceDetailsViewController: UIViewController {
             return
         }
 
-        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-        guard let allReviewsVC = storyboard.instantiateViewController(withIdentifier: "AllReviewsVC") as? AllReviewsViewController else {
-            print("❌ Could not instantiate AllReviewsViewController")
+        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AdminAllReviewsVC")
+        guard let allReviewsVC = vc as? AllReviewsViewController else {
+            let alert = UIAlertController(
+                title: "Setup Error",
+                message: "To view all reviews from Admin, add a scene to AdminDashboard.storyboard with class AllReviewsViewController and Storyboard ID AdminAllReviewsVC.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
             return
         }
 
