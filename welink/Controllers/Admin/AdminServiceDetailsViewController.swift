@@ -138,7 +138,10 @@ class AdminServiceDetailsViewController: UIViewController {
                     image: response.image,
                     userId: response.user_id,
                     providerName: response.users?.name,
-                    providerImage: response.users?.image
+                    providerImage: response.users?.image,
+                    startDate: response.start_date,
+                    endDate: response.end_date,
+                    categories: response.categories
                 )
 
                 self.service = mapped
