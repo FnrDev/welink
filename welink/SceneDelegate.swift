@@ -1,14 +1,13 @@
 import UIKit
-import Supabase
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
     
     // MARK: - Change this to test different storyboards
-    let testMode = false  // Set to true to test a specific storyboard
-    let testStoryboard = "Main"  // Change this to your storyboard name
-    let testViewControllerID = "ViewController"  // Change this to your VC identifier
+    let testMode = true  // Set to true to test a specific storyboard
+    let testStoryboard = "AdminDashboard"  // Change this to your storyboard name
+    let testViewControllerID = "AdminProvidersListVC"  // Change this to your VC identifier
     
     // admin dashboard
     // - ProviderDashboard,ProviderDashboardVC
@@ -25,7 +24,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if testMode {
             let storyboard = UIStoryboard(name: testStoryboard, bundle: nil)
             let vc = storyboard.instantiateViewController(withIdentifier: testViewControllerID)
-            window?.rootViewController = vc
+            window?.rootViewController = UINavigationController(rootViewController: vc)
             window?.makeKeyAndVisible()
             return
         }
