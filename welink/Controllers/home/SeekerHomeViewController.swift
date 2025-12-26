@@ -8,6 +8,17 @@
 import UIKit
 import Supabase
 
+// Simple struct just for fetching service IDs from bookings
+struct BookingSimple: Codable {
+    let service_id: String
+}
+
+// Simple struct just for fetching categories
+struct ServiceCategories: Codable {
+    let id: String
+    let categories: [String]?
+}
+
 class SeekerHomeViewController: UIViewController {
     
     @IBOutlet weak var recommendedTableView: UITableView!
@@ -72,8 +83,75 @@ class SeekerHomeViewController: UIViewController {
             do {
                 let client = SupabaseClientManager.shared.client
                 
-                // Get 2 random services
-                let response: [ServiceWithUser] = try await client.database
+                // Try to get current user
+                let session = try? await client.auth.session
+                
+                if let userId = session?.user.id.uuidString {
+                    // User is logged in - get personalized recommendations
+                    print("📊 Fetching personalized recommendations for user: \(userId)")
+                    
+                    // Get user's bookings
+                    let bookings: [BookingSimple] = try await client.database
+                        .from("bookings")
+                        .select("service_id")
+                        .eq("user_id", value: userId)
+                        .execute()
+                        .value
+                    
+                    if !bookings.isEmpty {
+                        // Get the services they booked to find categories
+                        let bookedServiceIds = bookings.map { $0.service_id }
+                        
+                        let bookedServices: [ServiceCategories] = try await client.database
+                            .from("services")
+                            .select("id, categories")
+                            .in("id", value: bookedServiceIds)
+                            .execute()
+                            .value
+                        
+                        // Extract all categories from booked services
+                        let allCategories = bookedServices
+                            .compactMap { $0.categories }
+                            .flatMap { $0 }
+                        
+                        // Get unique categories
+                        let preferredCategories = Array(Set(allCategories))
+                        
+                        print("✅ User's preferred categories: \(preferredCategories)")
+                        
+                        if !preferredCategories.isEmpty {
+                            // Find services in same categories (but not already booked)
+                            let recommendations: [ServiceWithUser] = try await client.database
+                                .from("services")
+                                .select("""
+                                    id,
+                                    name,
+                                    description,
+                                    price_per_hour,
+                                    image,
+                                    user_id,
+                                    start_date,
+                                    end_date,
+                                    categories,
+                                    users!inner(name, image)
+                                """)
+                                .overlaps("categories", value: preferredCategories)
+                                .not("id", operator: .in, value: bookedServiceIds)
+                                .limit(2)
+                                .execute()
+                                .value
+                            
+                            if !recommendations.isEmpty {
+                                await displayRecommendations(recommendations)
+                                return
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: Show recent services for new users or users without bookings
+                print("📌 Showing recent services (fallback)")
+                let recentServices: [ServiceWithUser] = try await client.database
                     .from("services")
                     .select("""
                         id,
@@ -87,44 +165,49 @@ class SeekerHomeViewController: UIViewController {
                         categories,
                         users!inner(name, image)
                     """)
-                    .limit(2)  // Only 2 services
+                    .order("created_at", ascending: false)
+                    .limit(2)
                     .execute()
                     .value
                 
-                // Convert to SeekerSearchResult
-                var results = response.map { serviceWithUser in
-                    SeekerSearchResult(
-                        id: serviceWithUser.id,
-                        name: serviceWithUser.name,
-                        description: serviceWithUser.description,
-                        pricePerHour: serviceWithUser.price_per_hour,
-                        image: serviceWithUser.image,
-                        userId: serviceWithUser.user_id,
-                        providerName: serviceWithUser.users?.name,
-                        providerImage: serviceWithUser.users?.image,
-                        startDate: serviceWithUser.start_date,
-                        endDate: serviceWithUser.end_date,
-                        categories: serviceWithUser.categories,
-                        averageRating: nil
-                    )
-                }
-                
-                // Fetch ratings for each
-                for index in results.indices {
-                    if let rating = try? await fetchServiceRating(serviceId: results[index].id) {
-                        results[index].averageRating = rating
-                    }
-                }
-                
-                await MainActor.run {
-                    self.recommendedServices = results
-                    self.recommendedTableView.reloadData()
-                    print("✅ Loaded \(results.count) recommended services")
-                }
+                await displayRecommendations(recentServices)
                 
             } catch {
-                print("❌ Error fetching recommended services: \(error)")
+                print("❌ Error fetching recommendations: \(error)")
             }
+        }
+    }
+
+    // Helper function to display recommendations
+    func displayRecommendations(_ services: [ServiceWithUser]) async {
+        var results = services.map { serviceWithUser in
+            SeekerSearchResult(
+                id: serviceWithUser.id,
+                name: serviceWithUser.name,
+                description: serviceWithUser.description,
+                pricePerHour: serviceWithUser.price_per_hour,
+                image: serviceWithUser.image,
+                userId: serviceWithUser.user_id,
+                providerName: serviceWithUser.users?.name,
+                providerImage: serviceWithUser.users?.image,
+                startDate: serviceWithUser.start_date,
+                endDate: serviceWithUser.end_date,
+                categories: serviceWithUser.categories,
+                averageRating: nil
+            )
+        }
+        
+        // Fetch ratings for each
+        for index in results.indices {
+            if let rating = try? await fetchServiceRating(serviceId: results[index].id) {
+                results[index].averageRating = rating
+            }
+        }
+        
+        await MainActor.run {
+            self.recommendedServices = results
+            self.recommendedTableView.reloadData()
+            print("✅ Loaded \(results.count) recommended services")
         }
     }
     
