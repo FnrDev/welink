@@ -249,9 +249,9 @@ final class AdminProviderDetailsViewController: UIViewController, UITableViewDat
                 .eq("id", value: providerId)
                 .execute()
 
-            if let newPassword, !newPassword.isEmpty {
-                try await setPasswordAsAdmin(userId: providerId, newPassword: newPassword)
-            }
+//            if let newPassword, !newPassword.isEmpty {
+//                try await setPasswordAsAdmin(userId: providerId, newPassword: newPassword)
+//            }
 
             await MainActor.run {
                 self.passwordTextField?.text = ""
@@ -361,11 +361,11 @@ final class AdminProviderDetailsViewController: UIViewController, UITableViewDat
         return publicURL.absoluteString
     }
 
-    private func setPasswordAsAdmin(userId: String, newPassword: String) async throws {
-        let payload = AdminSetPasswordPayload(userId: userId, newPassword: newPassword)
-        _ = try await SupabaseClientManager.shared.client.functions
-            .invoke("admin-set-password", body: payload)
-    }
+//    private func setPasswordAsAdmin(userId: String, newPassword: String) async throws {
+//        let payload = AdminSetPasswordPayload(userId: userId, newPassword: newPassword)
+//        _ = try await SupabaseClientManager.shared.client.functions
+//            .invoke("admin-set-password", body: payload)
+//    }
 
     @objc private func addItemTapped() {
         let sheet = UIAlertController(title: "Add", message: nil, preferredStyle: .actionSheet)
