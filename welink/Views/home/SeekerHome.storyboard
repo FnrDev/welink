@@ -1158,10 +1158,10 @@
             </objects>
             <point key="canvasLocation" x="2672.5190839694656" y="34.507042253521128"/>
         </scene>
-        <!--Tab Bar Controller-->
+        <!--Custom Tab Bar Controller-->
         <scene sceneID="JgK-1U-flb">
             <objects>
-                <tabBarController storyboardIdentifier="SeekerTabController" extendedLayoutIncludesOpaqueBars="YES" id="0eW-Ub-9FS" sceneMemberID="viewController">
+                <tabBarController storyboardIdentifier="SeekerTabController" extendedLayoutIncludesOpaqueBars="YES" id="0eW-Ub-9FS" customClass="CustomTabBarController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" backgroundImage="house" catalog="system" id="wk6-5B-VHl">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
