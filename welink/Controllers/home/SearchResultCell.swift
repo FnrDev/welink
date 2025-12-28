@@ -9,6 +9,7 @@ import UIKit
 
 class SearchResultCell: UITableViewCell {
     
+    @IBOutlet weak var cellView: UIView!
     @IBOutlet weak var profileImageView: UIImageView!
     @IBOutlet weak var serviceNameLabel: UILabel!
     @IBOutlet weak var providerNameLabel: UILabel!
@@ -24,7 +25,19 @@ class SearchResultCell: UITableViewCell {
         profileImageView.contentMode = .scaleAspectFill
         
         // Align price to right
-        priceLabel.textAlignment = .center
+        priceLabel.textAlignment = .right
+        
+        // Cell view styling - all corners
+        cellView.layer.cornerRadius = 12
+        cellView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        cellView.clipsToBounds = true
+        
+        // Clear cell background
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        
+        // Remove selection highlight
+        selectionStyle = .none
     }
     
     override func prepareForReuse() {
