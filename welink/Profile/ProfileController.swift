@@ -18,6 +18,19 @@ struct ProfileUserData: Decodable {
     let skills: [String]?
 }
 
+// Struct to decode application data
+struct ApplicationData: Decodable {
+    let id: Int64
+    let user_id: String
+    let full_name: String
+    let email: String
+    let phone: String
+    let image_path: String
+    let services: [String]?
+    let skills: [String]?
+    let status: String?
+}
+
 // Struct to decode service data
 struct ServiceData: Decodable {
     let id: String
@@ -214,20 +227,98 @@ class ProfileController: UIViewController {
         present(settingsVC, animated: true)
     }
 
+    
+    @IBAction func providerBTNApply(_ sender: Any) {
+        Task {
+            await checkPendingRequest()
+        }
+    }
+
+    // MARK: - Check Pending Request
+
+    // MARK: - Check Pending Request
+
+    // MARK: - Check Pending Request
+
+    private func checkPendingRequest() async {
+        do {
+            let session = try await SupabaseClientManager.shared.client.auth.session
+            let userId = session.user.id.uuidString
+            print("🔍 Checking pending request for user: \(userId)")
+            
+            // Check if user has a pending application
+            let response: [ApplicationData] = try await SupabaseClientManager.shared.client.database
+                .from("applications")
+                .select()
+                .eq("user_id", value: userId)
+                .execute()
+                .value
+            
+            print("📋 Applications found: \(response.count)")
+            
+            await MainActor.run {
+                if response.isEmpty {
+                    print("✅ No pending request - navigating to apply page")
+                    // No pending request - navigate to apply page
+                    performSegue(withIdentifier: "showProviderApply", sender: nil)
+                } else if let application = response.first {
+                    // Check application status
+                    if application.status == "rejected" {
+                        print("❌ Application rejected - showing rejected alert")
+                        showRejectedAlert()
+                    } else if application.status == "pending" {
+                        print("⏳ Application pending - showing pending alert")
+                        showPendingAlert()
+                    } else {
+                        // Status is "accepted" - should not happen for seekers, but handle it
+                        print("✅ Application accepted")
+                        performSegue(withIdentifier: "showProviderApply", sender: nil)
+                    }
+                }
+            }
+            
+        } catch {
+            print("❌ Error checking pending request: \(error)")
+            await MainActor.run {
+                // If error, still allow navigation
+                performSegue(withIdentifier: "showProviderApply", sender: nil)
+            }
+        }
+    }
+
+    // MARK: - Show Pending Alert
+
+    private func showPendingAlert() {
+        let alert = UIAlertController(
+            title: "Pending Request",
+            message: "You already have a pending application. Please wait for it to be reviewed.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    // MARK: - Show Rejected Alert
+
+    private func showRejectedAlert() {
+        let alert = UIAlertController(
+            title: "Application Rejected",
+            message: "Your application has been rejected. Please contact support for more information.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
         historyVC.modalPresentationStyle = .fullScreen
         present(historyVC, animated: true)
     }
-    
-    // MARK: - Apply To Provider Button Action
-    
-    @IBAction func applyToProviderTapped(_ sender: UIButton) {
-        // TODO: Navigate to apply as provider page
-        print("Apply to provider tapped")
-    }
-
+        
     // MARK: - Setup Skills Collection View
 
     private func setupSkillsCollectionView() {
