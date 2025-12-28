@@ -30,8 +30,23 @@ struct ServiceData: Decodable {
     let rating: Double?
 }
 
+// Struct to decode booking data
+struct BookingData: Decodable {
+    let id: String
+    let service_id: String?
+    let user_id: String?
+    let created_at: String?
+}
+
 class ProfileController: UIViewController {
 
+    // Seeker View Outlets
+    @IBOutlet weak var bookingDataNumber: UILabel!
+    @IBOutlet weak var bookingsViewContainer: UIView!
+    @IBOutlet weak var applyToProviderBTN: UIButton!
+    @IBOutlet weak var seekerView: UIView!
+    
+    // Provider View Outlets
     @IBOutlet weak var header: UINavigationItem!
     @IBOutlet weak var avatar: UIImageView!
     @IBOutlet weak var servicesIconContainer: UIView!
@@ -50,6 +65,7 @@ class ProfileController: UIViewController {
     private var userServices: [ServiceData] = []
     private var currentUserId: String = ""
     private var currentUserName: String = ""
+    private var currentUserRole: String = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,7 +73,6 @@ class ProfileController: UIViewController {
         setupUI()
         setupSkillsCollectionView()
         setupServicesTableView()
-        setupMenu()
         fetchUserProfile()
     }
     
@@ -84,17 +99,66 @@ class ProfileController: UIViewController {
 
         raitings.layer.cornerRadius = 12
         raitings.clipsToBounds = true
+        
+        bookingsViewContainer.layer.cornerRadius = 12
+        bookingsViewContainer.clipsToBounds = true
+        
+        applyToProviderBTN.layer.cornerRadius = 12
+        applyToProviderBTN.clipsToBounds = true
 
         noSkillsLabel.isHidden = true
         noServicesLabel.isHidden = true
 
         totalServicesLabel?.text = "0"
         ratingLabel?.text = "0.0"
+        bookingDataNumber?.text = "0"
+        
+        // Hide both views initially
+        seekerView.isHidden = true
+        raitings.isHidden = true
+        servicesContainer.isHidden = true
+    }
+    
+    // MARK: - Setup UI Based on Role
+    
+    // MARK: - Setup UI Based on Role
+
+    private func setupUIForRole(_ role: String) {
+        if role == "seeker" {
+            // Show Seeker View
+            seekerView.isHidden = false
+            bookingsViewContainer.isHidden = false
+            applyToProviderBTN.isHidden = false
+            
+            // Hide Provider Views
+            raitings.isHidden = true
+            servicesContainer.isHidden = true
+            skillsCollectionView.isHidden = true
+            noSkillsLabel.isHidden = true
+            servicesTableView.isHidden = true
+            noServicesLabel.isHidden = true
+            
+            // Setup Seeker Menu (no Provider Dashboard)
+            setupSeekerMenu()
+            
+        } else {
+            // Show Provider View
+            raitings.isHidden = false
+            servicesContainer.isHidden = false
+            
+            // Hide Seeker Views
+            seekerView.isHidden = true
+            bookingsViewContainer.isHidden = true
+            applyToProviderBTN.isHidden = true
+            
+            // Setup Provider Menu (with Provider Dashboard)
+            setupProviderMenu()
+        }
     }
 
-    // MARK: - Setup Menu
+    // MARK: - Setup Menus
 
-    private func setupMenu() {
+    private func setupProviderMenu() {
         let providerDashboardAction = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "square.grid.2x2")) { [weak self] _ in
             self?.openProviderDashboard()
         }
@@ -111,6 +175,20 @@ class ProfileController: UIViewController {
         menuButton.menu = menu
         menuButton.showsMenuAsPrimaryAction = true
     }
+    
+    private func setupSeekerMenu() {
+        let settingsAction = UIAction(title: "Settings", image: UIImage(systemName: "gearshape")) { [weak self] _ in
+            self?.openSettings()
+        }
+
+        let historyAction = UIAction(title: "History", image: UIImage(systemName: "clock")) { [weak self] _ in
+            self?.openHistory()
+        }
+
+        let menu = UIMenu(title: "", children: [settingsAction, historyAction])
+        menuButton.menu = menu
+        menuButton.showsMenuAsPrimaryAction = true
+    }
 
     // MARK: - Menu Actions
 
@@ -118,7 +196,6 @@ class ProfileController: UIViewController {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
 
-        // Change the window's root view controller
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else {
             return
@@ -127,16 +204,15 @@ class ProfileController: UIViewController {
         window.rootViewController = vc
         window.makeKeyAndVisible()
 
-        // Add transition animation
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
-        }
+    }
 
-        private func openSettings() {
-            let storyboard = UIStoryboard(name: "Profile", bundle: nil)
-            let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-            settingsVC.modalPresentationStyle = .fullScreen
-            present(settingsVC, animated: true)
-        }
+    private func openSettings() {
+        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
+        settingsVC.modalPresentationStyle = .fullScreen
+        present(settingsVC, animated: true)
+    }
 
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
@@ -144,6 +220,14 @@ class ProfileController: UIViewController {
         historyVC.modalPresentationStyle = .fullScreen
         present(historyVC, animated: true)
     }
+    
+    // MARK: - Apply To Provider Button Action
+    
+    @IBAction func applyToProviderTapped(_ sender: UIButton) {
+        // TODO: Navigate to apply as provider page
+        print("Apply to provider tapped")
+    }
+
     // MARK: - Setup Skills Collection View
 
     private func setupSkillsCollectionView() {
@@ -198,33 +282,68 @@ class ProfileController: UIViewController {
                     await MainActor.run {
                         header.title = user.name
                         currentUserName = user.name
+                        currentUserRole = user.role
 
                         if let imagePath = user.image, !imagePath.isEmpty {
                             loadAvatar(from: imagePath)
                         }
+                        
+                        // Setup UI based on role
+                        setupUIForRole(user.role)
 
-                        if let skills = user.skills, !skills.isEmpty {
-                            userSkills = skills
-                            skillsCollectionView.isHidden = false
-                            noSkillsLabel.isHidden = true
-                            skillsCollectionView.reloadData()
-                        } else {
-                            skillsCollectionView.isHidden = true
-                            noSkillsLabel.isHidden = false
-                            noSkillsLabel.text = "The user has not listed any skills."
+                        // Only show skills for providers
+                        if user.role == "provider" {
+                            if let skills = user.skills, !skills.isEmpty {
+                                userSkills = skills
+                                skillsCollectionView.isHidden = false
+                                noSkillsLabel.isHidden = true
+                                skillsCollectionView.reloadData()
+                            } else {
+                                skillsCollectionView.isHidden = true
+                                noSkillsLabel.isHidden = false
+                                noSkillsLabel.text = "The user has not listed any skills."
+                            }
                         }
                     }
                 }
 
-                await fetchUserServices(userId: userId)
+                // Fetch data based on role
+                if currentUserRole == "seeker" {
+                    await fetchUserBookings(userId: userId)
+                } else {
+                    await fetchUserServices(userId: userId)
+                }
 
             } catch {
                 print("Error fetching user: \(error)")
             }
         }
     }
+    
+    // MARK: - Fetch User Bookings (for Seekers)
+    
+    private func fetchUserBookings(userId: String) async {
+        do {
+            let response: [BookingData] = try await SupabaseClientManager.shared.client.database
+                .from("bookings")
+                .select()
+                .eq("user_id", value: userId)
+                .execute()
+                .value
 
-    // MARK: - Fetch User Services
+            await MainActor.run {
+                bookingDataNumber?.text = "\(response.count)"
+            }
+
+        } catch {
+            print("Error fetching bookings: \(error)")
+            await MainActor.run {
+                bookingDataNumber?.text = "0"
+            }
+        }
+    }
+
+    // MARK: - Fetch User Services (for Providers)
 
     private func fetchUserServices(userId: String) async {
         do {
