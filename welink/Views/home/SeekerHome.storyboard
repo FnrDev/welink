@@ -1228,11 +1228,11 @@
             </objects>
             <point key="canvasLocation" x="1881.679389312977" y="34.507042253521128"/>
         </scene>
-        <!--Messages-->
+        <!--MessagesVC-->
         <scene sceneID="bDZ-Bc-M6e">
             <objects>
-                <viewControllerPlaceholder storyboardName="Messages" id="D2O-tg-1cd" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" enabled="NO" title="Messages" image="message.fill" catalog="system" id="pQW-Wo-QEW"/>
+                <viewControllerPlaceholder storyboardName="Messages" referencedIdentifier="MessagesNavController" id="D2O-tg-1cd" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Messages" image="message.fill" catalog="system" id="pQW-Wo-QEW"/>
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="7QU-ap-W3E" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
