@@ -475,11 +475,11 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="UfG-VE-Sgl"/>
-        <segue reference="KCY-TT-r74"/>
+        <segue reference="P8r-Uh-2iX"/>
+        <segue reference="4v2-9W-QXz"/>
     </inferredMetricsTieBreakers>
     <resources>
-        <image name="character" width="240" height="201"/>
+        <image name="character" width="313" height="313"/>
         <image name="logo-login" width="98" height="97"/>
         <namedColor name="AccentColor">
             <color red="0.17647058823529413" green="0.28627450980392155" blue="0.22745098039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
