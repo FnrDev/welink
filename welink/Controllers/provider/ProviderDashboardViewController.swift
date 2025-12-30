@@ -14,45 +14,7 @@ struct Service: Decodable {
 struct Booking: Decodable {
     let id: UUID
     let service_id: UUID?
-    let created_at: String?
-    let booked_date: String?
-    let status: String?
-
-    var createdAtDate: Date? {
-        guard let dateString = created_at else { return nil }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-            return date
-        }
-        // Try without fractional seconds
-        formatter.formatOptions = [.withInternetDateTime]
-        if let date = formatter.date(from: dateString) {
-            return date
-        }
-        // Try simple format for timestamp without time zone
-        let simpleFormatter = DateFormatter()
-        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        simpleFormatter.timeZone = TimeZone(identifier: "UTC")
-        return simpleFormatter.date(from: dateString)
-    }
-
-    var bookedDateValue: Date? {
-        guard let dateString = booked_date else { return nil }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-            return date
-        }
-        formatter.formatOptions = [.withInternetDateTime]
-        if let date = formatter.date(from: dateString) {
-            return date
-        }
-        let simpleFormatter = DateFormatter()
-        simpleFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
-        simpleFormatter.timeZone = TimeZone(identifier: "UTC")
-        return simpleFormatter.date(from: dateString)
-    }
+    let created_at: Date?
 }
 
 struct UserProfile: Decodable {
@@ -326,7 +288,7 @@ class ProviderDashboardViewController: UIViewController {
             if !serviceIds.isEmpty {
                 bookings = try await client.database
                     .from("bookings")
-                    .select("id, service_id, created_at, booked_date, status")
+                    .select("id, service_id, created_at")
                     .in("service_id", value: serviceIds)
                     .execute()
                     .value
@@ -344,7 +306,7 @@ class ProviderDashboardViewController: UIViewController {
             
             let today = Calendar.current.startOfDay(for: Date())
             let todaysBookings = bookings.filter {
-                guard let created = $0.createdAtDate else { return false }
+                guard let created = $0.created_at else { return false }
                 return created >= today
             }
             
@@ -370,7 +332,7 @@ class ProviderDashboardViewController: UIViewController {
     
     private func formatCurrency(_ value: Double) -> String {
         if value == 0 { return "0" }
-        return "BD " + String(format: "%.2f", value)
+        return String(format: "%.2f", value)
     }
     
     @IBAction func seeAllButtonTapped(_ sender: UIButton) {

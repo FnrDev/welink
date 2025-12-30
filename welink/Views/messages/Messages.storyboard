@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="MessagesNavController">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="6om-ra-beN">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
@@ -58,24 +58,6 @@
             <point key="canvasLocation" x="379" y="-21"/>
         </scene>
         <!--Messages-->
-        <scene sceneID="MessagesNavScene">
-            <objects>
-                <navigationController storyboardIdentifier="MessagesNavController" id="MessagesNavController" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Messages" image="message.fill" catalog="system" id="NavTabBarItem"/>
-                    <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="MessagesNavBar">
-                        <rect key="frame" x="0.0" y="118" width="393" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <connections>
-                        <segue destination="6om-ra-beN" kind="relationship" relationship="rootViewController" id="MessagesRootSegue"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="NavFirstResponder" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1492" y="-21"/>
-        </scene>
-        <!--Messages-->
         <scene sceneID="0pO-jf-RML">
             <objects>
                 <viewController storyboardIdentifier="MessagesVC" id="6om-ra-beN" customClass="MessagesViewController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
@@ -92,7 +74,7 @@
                         <viewLayoutGuide key="safeArea" id="a28-fE-keD"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Messages" id="MessagesNavItem"/>
+                    <tabBarItem key="tabBarItem" title="Messages" image="message.fill" catalog="system" id="Xfg-RC-W8T"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="tableView" destination="jRJ-T1-pgp" id="nc5-tH-7kz"/>

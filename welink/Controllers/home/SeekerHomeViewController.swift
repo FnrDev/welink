@@ -120,8 +120,8 @@ class SeekerHomeViewController: UIViewController {
                         print("✅ User's preferred categories: \(preferredCategories)")
                         
                         if !preferredCategories.isEmpty {
-                            // Find services in same categories
-                            let allRecommendations: [ServiceWithUser] = try await client.database
+                            // Find services in same categories (but not already booked)
+                            let recommendations: [ServiceWithUser] = try await client.database
                                 .from("services")
                                 .select("""
                                     id,
@@ -136,17 +136,10 @@ class SeekerHomeViewController: UIViewController {
                                     users!inner(name, image)
                                 """)
                                 .overlaps("categories", value: preferredCategories)
-                                .limit(10)
+                                .not("id", operator: .in, value: bookedServiceIds)
+                                .limit(2)
                                 .execute()
                                 .value
-                            
-                            // Filter out already booked services
-                            let filteredRecommendations = allRecommendations.filter { service in
-                                !bookedServiceIds.contains(service.id)
-                            }
-                            
-                            // Take first 2
-                            let recommendations = Array(filteredRecommendations.prefix(2))
                             
                             if !recommendations.isEmpty {
                                 await displayRecommendations(recommendations)
