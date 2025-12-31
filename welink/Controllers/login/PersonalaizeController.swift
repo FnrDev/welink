@@ -170,7 +170,7 @@ class PersonalaizeController: UIViewController {
                 name: name,
                 phone: phone,
                 image: imagePath.isEmpty ? nil : imagePath,
-                role: "provider",
+                role: "seeker",
                 services: Array(selectedServices),
                 skills: Array(selectedSkills)
             )
@@ -230,8 +230,13 @@ class PersonalaizeController: UIViewController {
                     options: .init(contentType: "image/jpeg")
                 )
             
-            print("Image uploaded successfully: \(filePath)")
-            return filePath
+            // Get the public URL
+            let publicURL = try SupabaseClientManager.shared.client.storage
+                .from("images")
+                .getPublicURL(path: filePath)
+            
+            print("Image uploaded successfully: \(publicURL.absoluteString)")
+            return publicURL.absoluteString
             
         } catch {
             print("Upload error: \(error)")

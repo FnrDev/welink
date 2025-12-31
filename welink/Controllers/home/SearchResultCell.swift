@@ -15,6 +15,13 @@ class SearchResultCell: UITableViewCell {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var starsLabel: UILabel!
     
+    // Flag to determine if cell should have background
+    var showCellBackground: Bool = false {
+        didSet {
+            updateCellBackground()
+        }
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         
@@ -25,11 +32,39 @@ class SearchResultCell: UITableViewCell {
         
         // Align price to right
         priceLabel.textAlignment = .center
+        
+        // Default: no background
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        selectionStyle = .none
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         profileImageView.image = nil
+        showCellBackground = false
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        if showCellBackground {
+            // Add vertical spacing between cells
+            contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0))
+        }
+    }
+    
+    // MARK: - Update Cell Background
+    
+    private func updateCellBackground() {
+        if showCellBackground {
+            contentView.backgroundColor = .systemGray6
+            contentView.layer.cornerRadius = 12
+            contentView.clipsToBounds = true
+        } else {
+            contentView.backgroundColor = .clear
+            contentView.layer.cornerRadius = 0
+        }
     }
     
     // MARK: - Configure with SeekerSearchResult

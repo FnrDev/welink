@@ -74,6 +74,10 @@ class ProfileController: UIViewController {
     @IBOutlet weak var totalServicesLabel: UILabel!
     @IBOutlet weak var ratingLabel: UILabel!
 
+    // Initial Avatar Outlets
+    @IBOutlet weak var initialLetter: UILabel!
+    @IBOutlet weak var intialAvatar: UIView!
+    
     private var userSkills: [String] = []
     private var userServices: [ServiceData] = []
     private var currentUserId: String = ""
@@ -100,6 +104,12 @@ class ProfileController: UIViewController {
         avatar.layer.cornerRadius = 12
         avatar.clipsToBounds = true
         avatar.contentMode = .scaleAspectFill
+        
+        // Hide both avatar views initially
+        avatar.isHidden = true
+        intialAvatar.isHidden = true
+        intialAvatar.layer.cornerRadius = 12
+        intialAvatar.clipsToBounds = true
 
         servicesIconContainer.layer.cornerRadius = 12
         servicesIconContainer.clipsToBounds = true
@@ -132,7 +142,25 @@ class ProfileController: UIViewController {
         servicesContainer.isHidden = true
     }
     
-    // MARK: - Setup UI Based on Role
+    // MARK: - Setup Avatar
+    
+    private func setupAvatar(imagePath: String?, userName: String) {
+        if let imagePath = imagePath, !imagePath.isEmpty {
+            // User has avatar - show image, hide initial
+            avatar.isHidden = false
+            intialAvatar.isHidden = true
+            loadAvatar(from: imagePath)
+        } else {
+            // No avatar - show initials
+            avatar.isHidden = true
+            intialAvatar.isHidden = false
+            
+            // Get first 2 letters of name in uppercase
+            let initials = String(userName.prefix(2)).uppercased()
+            initialLetter.text = initials
+            initialLetter.textAlignment = .center
+        }
+    }
     
     // MARK: - Setup UI Based on Role
 
@@ -227,16 +255,11 @@ class ProfileController: UIViewController {
         present(settingsVC, animated: true)
     }
 
-    
     @IBAction func providerBTNApply(_ sender: Any) {
         Task {
             await checkPendingRequest()
         }
     }
-
-    // MARK: - Check Pending Request
-
-    // MARK: - Check Pending Request
 
     // MARK: - Check Pending Request
 
@@ -375,9 +398,8 @@ class ProfileController: UIViewController {
                         currentUserName = user.name
                         currentUserRole = user.role
 
-                        if let imagePath = user.image, !imagePath.isEmpty {
-                            loadAvatar(from: imagePath)
-                        }
+                        // Setup avatar (image or initials)
+                        setupAvatar(imagePath: user.image, userName: user.name)
                         
                         // Setup UI based on role
                         setupUIForRole(user.role)
@@ -553,8 +575,24 @@ extension ProfileController: UICollectionViewDelegate, UICollectionViewDataSourc
 
 extension ProfileController: UITableViewDelegate, UITableViewDataSource {
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    // Each service is its own section
+    func numberOfSections(in tableView: UITableView) -> Int {
         return userServices.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+    
+    // Add spacing between sections (cells)
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 8
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let footerView = UIView()
+        footerView.backgroundColor = .clear
+        return footerView
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -562,14 +600,16 @@ extension ProfileController: UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         
-        let service = userServices[indexPath.row]
+        let service = userServices[indexPath.section]
         cell.configure(with: service, providerName: currentUserName)
+        cell.showCellBackground = true
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let service = userServices[indexPath.row]
+        let service = userServices[indexPath.section]
         navigateToServiceDetails(serviceId: service.id)
     }
 }
