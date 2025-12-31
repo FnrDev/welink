@@ -31,7 +31,13 @@ class ProfileSettingsController: UIViewController {
     @IBOutlet weak var logoutBTN: UIButton!
     @IBOutlet weak var darkThemeContainer: UIView!
     
+    @IBOutlet weak var darkThemeToogle: UISwitch!
+    @IBOutlet weak var intialAvatar: UIView!
+    @IBOutlet weak var intialLetter: UILabel!
+    
+    @IBOutlet weak var pincleEdit: UIView!
     private var currentUserId: String = ""
+    private var currentUserName: String = ""
     private var currentImagePath: String?
     private var selectedImage: UIImage?
     private var isLoading = false
@@ -44,6 +50,7 @@ class ProfileSettingsController: UIViewController {
         setupSegmentedControl()
         setupChangePassword()
         setupLogout()
+        setupDarkThemeToggle()
         fetchUserProfile()
         
         saveChangesBTN.addTarget(self, action: #selector(saveChangesTapped(_:)), for: .touchUpInside)
@@ -56,6 +63,11 @@ class ProfileSettingsController: UIViewController {
         let size = min(userAvatar.frame.width, userAvatar.frame.height)
         userAvatar.layer.cornerRadius = size / 2
         
+        // Initial avatar circular (same size as userAvatar)
+        let initialSize = min(intialAvatar.frame.width, intialAvatar.frame.height)
+        intialAvatar.layer.cornerRadius = initialSize / 2
+        
+        pincleEdit.layer.cornerRadius = pincleView.frame.height / 2
         // Pincle view full rounded (pill shape)
         pincleView.layer.cornerRadius = pincleView.frame.height / 2
     }
@@ -85,6 +97,19 @@ class ProfileSettingsController: UIViewController {
         alert.addAction(cancelAction)
         
         present(alert, animated: true)
+    }
+    
+    private func setupDarkThemeToggle() {
+        // Load saved preference
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        darkThemeToogle.isOn = isDarkMode
+        
+        // Add action for toggle change
+        darkThemeToogle.addTarget(self, action: #selector(darkThemeChanged(_:)), for: .valueChanged)
+    }
+
+    @objc private func darkThemeChanged(_ sender: UISwitch) {
+        AppDelegate.setDarkMode(sender.isOn)
     }
     
     private func performLogout() async {
@@ -159,8 +184,19 @@ class ProfileSettingsController: UIViewController {
         userAvatar.contentMode = .scaleAspectFill
         userAvatar.isUserInteractionEnabled = true
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
-        userAvatar.addGestureRecognizer(tapGesture)
+        let avatarTapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        userAvatar.addGestureRecognizer(avatarTapGesture)
+        
+        // Initial avatar styling
+        intialAvatar.clipsToBounds = true
+        intialAvatar.isUserInteractionEnabled = true
+        
+        let initialAvatarTapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarTapped))
+        intialAvatar.addGestureRecognizer(initialAvatarTapGesture)
+        
+        // Hide both avatar views initially
+        userAvatar.isHidden = true
+        intialAvatar.isHidden = true
         
         // Save button styling
         saveChangesBTN.layer.cornerRadius = 12
@@ -204,6 +240,26 @@ class ProfileSettingsController: UIViewController {
         navigationBar.topItem?.title = "Settings"
     }
     
+    // MARK: - Setup Avatar
+    
+    private func setupAvatar(imagePath: String?, userName: String) {
+        if let imagePath = imagePath, !imagePath.isEmpty {
+            // User has avatar - show image, hide initial
+            userAvatar.isHidden = false
+            intialAvatar.isHidden = true
+            loadAvatar(from: imagePath)
+        } else {
+            // No avatar - show initials
+            userAvatar.isHidden = true
+            intialAvatar.isHidden = false
+            
+            // Get first 2 letters of name in uppercase
+            let initials = String(userName.prefix(2)).uppercased()
+            intialLetter.text = initials
+            intialLetter.textAlignment = .center
+        }
+    }
+    
     // MARK: - Fetch User Profile
     
     private func fetchUserProfile() {
@@ -228,10 +284,10 @@ class ProfileSettingsController: UIViewController {
                         fullName.text = user.name
                         phoneNumber.text = user.phone
                         currentImagePath = user.image
+                        currentUserName = user.name
                         
-                        if let imagePath = user.image, !imagePath.isEmpty {
-                            loadAvatar(from: imagePath)
-                        }
+                        // Setup avatar (image or initials)
+                        setupAvatar(imagePath: user.image, userName: user.name)
                     }
                 }
                 
@@ -414,6 +470,10 @@ extension ProfileSettingsController: PHPickerViewControllerDelegate {
                 DispatchQueue.main.async {
                     self?.selectedImage = image
                     self?.userAvatar.image = image
+                    
+                    // Show userAvatar, hide initialAvatar since user selected an image
+                    self?.userAvatar.isHidden = false
+                    self?.intialAvatar.isHidden = true
                 }
             }
         }
