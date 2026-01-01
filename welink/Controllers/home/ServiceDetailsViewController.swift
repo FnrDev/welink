@@ -278,7 +278,7 @@ class ServiceDetailsViewController: UIViewController {
                 let response: ServiceWithUser = try await SupabaseClientManager.shared.client
                     .database
                     .from("services")
-                    .select("id, name, description, price_per_hour, image, user_id, start_date, end_date, users(name, image)")
+                    .select("id, name, description, price_per_hour, image, user_id, start_date, end_date, categories, users(name, image)")
                     .eq("id", value: serviceId)
                     .single()
                     .execute()
