@@ -9,8 +9,8 @@ import Foundation
 struct SeekerSearchResult: Codable, Identifiable {
     let id: String
     let name: String
-    let description: String
-    let pricePerHour: Double
+    let description: String?
+    let pricePerHour: Double?
     let image: String?
     let userId: String?
     let providerName: String?
@@ -40,8 +40,8 @@ struct SeekerSearchResult: Codable, Identifiable {
 struct ServiceWithUser: Codable {
     let id: String
     let name: String
-    let description: String
-    let price_per_hour: Double
+    let description: String?
+    let price_per_hour: Double?
     let image: String?
     let user_id: String?
     let start_date: String?    

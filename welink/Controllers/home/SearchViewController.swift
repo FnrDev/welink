@@ -251,9 +251,9 @@ class SearchViewController: UIViewController {
                 switch activeFilters.sortBy {
                 case .price:
                     results.sort {
-                        activeFilters.sortAscending ?
-                        $0.pricePerHour < $1.pricePerHour :
-                        $0.pricePerHour > $1.pricePerHour
+                        let price1 = $0.pricePerHour ?? 0
+                        let price2 = $1.pricePerHour ?? 0
+                        return activeFilters.sortAscending ? price1 < price2 : price1 > price2
                     }
                     print("Sorted by price (\(activeFilters.sortAscending ? "↑" : "↓"))")
                 case .rating:
