@@ -16,6 +16,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     // MARK: - Properties
     private var conversations: [ConversationItem] = []
     private var currentUserId: String?
+    private var emptyStateLabel: UILabel?
 
     // MARK: - Models
     struct ConversationItem {
@@ -77,6 +78,28 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.register(ConversationCell.self, forCellReuseIdentifier: "ConversationCell")
         tableView.rowHeight = 80
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 80, bottom: 0, right: 0)
+
+        setupEmptyState()
+    }
+
+    private func setupEmptyState() {
+        let label = UILabel()
+        label.text = "No messages yet\nStart a conversation by contacting a service provider"
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 16)
+        label.numberOfLines = 0
+        emptyStateLabel = label
+    }
+
+    private func updateEmptyState() {
+        if conversations.isEmpty {
+            tableView.backgroundView = emptyStateLabel
+            tableView.separatorStyle = .none
+        } else {
+            tableView.backgroundView = nil
+            tableView.separatorStyle = .singleLine
+        }
     }
 
     // MARK: - Load Conversations
@@ -86,7 +109,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             return
         }
 
-        currentUserId = session.user.id.uuidString
+        currentUserId = session.user.id.uuidString.lowercased()
         guard let currentUserId = currentUserId else { return }
 
         let client = SupabaseClientManager.shared.client
@@ -147,6 +170,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             await MainActor.run {
                 self.conversations = items
                 self.tableView.reloadData()
+                self.updateEmptyState()
             }
 
         } catch {
