@@ -86,7 +86,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
             return
         }
 
-        currentUserId = session.user.id.uuidString
+        currentUserId = session.user.id.uuidString.lowercased()
         guard let currentUserId = currentUserId else { return }
 
         let client = SupabaseClientManager.shared.client

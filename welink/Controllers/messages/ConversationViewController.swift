@@ -210,10 +210,11 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
             return
         }
 
-        currentUserId = session.user.id.uuidString
+        currentUserId = session.user.id.uuidString.lowercased()
 
         if conversationId == nil, let otherUserId = otherUserId, let currentUserId = currentUserId {
-            await findOrCreateConversation(currentUserId: currentUserId, otherUserId: otherUserId)
+            // Normalize otherUserId to lowercase for consistent comparison
+            await findOrCreateConversation(currentUserId: currentUserId, otherUserId: otherUserId.lowercased())
         }
 
         if conversationId != nil {
