@@ -13,6 +13,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         let image: String?
         let created_at: String?
         let role: String?
+        let status: String?
         let services: [String]?
         let skills: [String]?
     }
@@ -25,6 +26,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         let imageURLString: String?
         let skills: [String]
         let services: [String]
+        let status: String
     }
 
     private static let imageCache = NSCache<NSString, UIImage>()
@@ -55,13 +57,20 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        Task { [weak self] in
+            await self?.loadProviders()
+        }
+    }
+
     private func loadProviders() async {
         let client = SupabaseClientManager.shared.client
 
         do {
             let rows: [ProviderRow] = try await client.database
                 .from("users")
-                .select("id, name, phone, image, created_at, role, services, skills")
+                .select("id, name, phone, image, created_at, role, status, services, skills")
                 .eq("role", value: "provider")
                 .order("created_at", ascending: false)
                 .execute()
@@ -104,7 +113,8 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
                     createdAtText: createdAtText,
                     imageURLString: row.image,
                     skills: row.skills ?? [],
-                    services: row.services ?? []
+                    services: row.services ?? [],
+                    status: (row.status?.isEmpty == false) ? (row.status ?? "active") : "active"
                 )
             }
 
@@ -160,10 +170,15 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
 
         if let nameLabel = cell.contentView.viewWithTag(1) as? UILabel {
             nameLabel.text = item.name
+            nameLabel.textColor = (item.status.lowercased() == "suspended") ? .systemRed : .label
         }
 
         if let subtitleLabel = cell.contentView.viewWithTag(2) as? UILabel {
-            subtitleLabel.text = item.createdAtText
+            if item.status.lowercased() == "suspended" {
+                subtitleLabel.text = item.createdAtText.isEmpty ? "Suspended" : "Suspended • \(item.createdAtText)"
+            } else {
+                subtitleLabel.text = item.createdAtText
+            }
             subtitleLabel.textColor = .secondaryLabel
         }
 
