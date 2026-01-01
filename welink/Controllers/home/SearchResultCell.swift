@@ -37,7 +37,7 @@ class SearchResultCell: UITableViewCell {
     func configure(with service: SeekerSearchResult) {
         serviceNameLabel.text = service.name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
-        priceLabel.text = "BD \(Int(service.pricePerHour))/hr"
+        priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour ?? 0)
         
         let rating = service.averageRating ?? 0
         starsLabel.text = rating > 0 ? String(format: "%.1f", rating) : "0.0"

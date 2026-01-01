@@ -107,10 +107,10 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         serviceNameTextField.text = service.name
 
         // Populate price
-        priceTextField.text = String(format: "%.0f", service.pricePerHour)
+        priceTextField.text = String(format: "%.0f", service.pricePerHour ?? 0)
 
         // Populate description
-        descriptionTextView.text = service.description
+        descriptionTextView.text = service.description ?? ""
         descriptionTextView.textColor = textColor
 
         // Populate dates

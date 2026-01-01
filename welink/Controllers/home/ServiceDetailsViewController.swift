@@ -379,7 +379,7 @@ class ServiceDetailsViewController: UIViewController {
         self.title = service.name
         providerNameLabel.text = service.providerName ?? "Unknown Provider"
         descriptionLabel.text = service.description
-        priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour)
+        priceLabel.text = String(format: "%.0f BD/hr", service.pricePerHour ?? 0)
         
         // Load service image
         if let imageUrl = service.image {
@@ -772,7 +772,7 @@ class ServiceDetailsViewController: UIViewController {
         }
 
         // Pass all required data
-        paymentVC.servicePrice = service.pricePerHour
+        paymentVC.servicePrice = service.pricePerHour ?? 0
         paymentVC.serviceName = service.name
         paymentVC.serviceId = service.id
         paymentVC.selectedDate = dateText
