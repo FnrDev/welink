@@ -725,8 +725,21 @@ class ServiceDetailsViewController: UIViewController {
     // MARK: - Actions
     @IBAction func messageButtonTapped(_ sender: UIButton) {
         print("Message button tapped")
-        guard let userId = service?.userId else { return }
-        // TODO: Navigate to messaging screen with provider
+        guard let providerId = service?.userId else {
+            print("No provider ID available")
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "Messages", bundle: nil)
+        guard let conversationVC = storyboard.instantiateViewController(withIdentifier: "conversationVC") as? ConversationViewController else {
+            print("Could not instantiate ConversationViewController")
+            return
+        }
+
+        conversationVC.otherUserId = providerId
+        conversationVC.otherUserName = service?.providerName ?? "Provider"
+
+        navigationController?.pushViewController(conversationVC, animated: true)
     }
     
     @IBAction func bookNowButtonTapped(_ sender: UIButton) {
@@ -764,6 +777,7 @@ class ServiceDetailsViewController: UIViewController {
         paymentVC.serviceId = service.id
         paymentVC.selectedDate = dateText
         paymentVC.selectedTime = timeText
+        paymentVC.serviceProviderId = service.userId ?? ""
 
         print("Navigating to payment screen")
         print("Service ID: \(service.id)")

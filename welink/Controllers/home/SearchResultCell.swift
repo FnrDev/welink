@@ -15,6 +15,13 @@ class SearchResultCell: UITableViewCell {
     @IBOutlet weak var priceLabel: UILabel!
     @IBOutlet weak var starsLabel: UILabel!
     
+    // Flag to determine if cell should have background
+    var showCellBackground: Bool = false {
+        didSet {
+            updateCellBackground()
+        }
+    }
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         
@@ -22,40 +29,86 @@ class SearchResultCell: UITableViewCell {
         profileImageView.layer.cornerRadius = 25
         profileImageView.clipsToBounds = true
         profileImageView.contentMode = .scaleAspectFill
+        
+        // Align price to right
+        priceLabel.textAlignment = .center
+        
+        // Default: no background
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        selectionStyle = .none
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
         profileImageView.image = nil
+        showCellBackground = false
     }
     
-    func configure(with service: SeekerSearchResult) {
-        // Service name
-        serviceNameLabel.text = service.name
+    override func layoutSubviews() {
+        super.layoutSubviews()
         
-        // Provider name
-        providerNameLabel.text = service.providerName ?? "Unknown Provider"
-        
-        // Price
-        priceLabel.text = "BD \(service.pricePerHour)/hr"
-        
-        // Stars 
-        let rating = service.averageRating ?? 0
-        if rating > 0 {
-            starsLabel.text = String(format: "%.1f", rating)
-        } else {
-            starsLabel.text = "0.0"
+        if showCellBackground {
+            // Add vertical spacing between cells
+            contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0))
         }
+    }
+    
+    // MARK: - Update Cell Background
+    
+    private func updateCellBackground() {
+        if showCellBackground {
+            contentView.backgroundColor = .systemGray6
+            contentView.layer.cornerRadius = 12
+            contentView.clipsToBounds = true
+        } else {
+            contentView.backgroundColor = .clear
+            contentView.layer.cornerRadius = 0
+        }
+    }
+    
+    // MARK: - Configure with SeekerSearchResult
+    
+    func configure(with service: SeekerSearchResult) {
+        serviceNameLabel.text = service.name
+        providerNameLabel.text = service.providerName ?? "Unknown Provider"
+        priceLabel.text = "BD \(Int(service.pricePerHour))/hr"
+        
+        let rating = service.averageRating ?? 0
+        starsLabel.text = rating > 0 ? String(format: "%.1f", rating) : "0.0"
         starsLabel.textColor = UIColor(hex: "2D493A")
         
-        // Load image
-        if let imageURL = service.image,
+        loadImage(from: service.image, fallbackName: service.providerName)
+    }
+    
+    // MARK: - Configure with ServiceData
+    
+    func configure(with service: ServiceData, providerName: String? = nil) {
+        serviceNameLabel.text = service.name
+        providerNameLabel.text = providerName ?? "Your Service"
+        
+        if let price = service.price_per_hour {
+            priceLabel.text = "BD \(Int(price))/hr"
+        } else {
+            priceLabel.text = "BD 0/hr"
+        }
+        
+        let rating = service.rating ?? 0
+        starsLabel.text = rating > 0 ? String(format: "%.1f", rating) : "0.0"
+        starsLabel.textColor = UIColor(hex: "2D493A")
+        
+        loadImage(from: service.image, fallbackName: providerName)
+    }
+    
+    // MARK: - Image Loading
+    
+    private func loadImage(from imageURL: String?, fallbackName: String?) {
+        if let imageURL = imageURL,
            let url = URL(string: imageURL),
            !imageURL.isEmpty {
-            loadImageAsync(from: url, fallbackName: service.providerName)
+            loadImageAsync(from: url, fallbackName: fallbackName)
         } else {
-            // Show initial as fallback
-            if let name = service.providerName, !name.isEmpty {
+            if let name = fallbackName, !name.isEmpty {
                 let initial = String(name.prefix(1)).uppercased()
                 profileImageView.image = createInitialImage(text: initial)
             } else {

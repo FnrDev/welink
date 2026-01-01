@@ -26,6 +26,7 @@ class CustomTabBarController: UITabBarController {
     private func setupViewControllers() {
         let seekerStoryboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         let profileStoryboard = UIStoryboard(name: "Profile", bundle: nil)
+        let messagesStoryboard = UIStoryboard(name: "Messages", bundle: nil)
 
         var controllers: [UIViewController] = []
 
@@ -41,7 +42,13 @@ class CustomTabBarController: UITabBarController {
         searchNavController.tabBarItem = UITabBarItem(title: "Search", image: UIImage(systemName: "magnifyingglass"), selectedImage: UIImage(systemName: "magnifyingglass"))
         controllers.append(searchNavController)
 
-        // Tab 3: Profile
+        // Tab 3: Messages
+        let messagesVC = messagesStoryboard.instantiateViewController(withIdentifier: "MessagesVC")
+        let messagesNavController = UINavigationController(rootViewController: messagesVC)
+        messagesNavController.tabBarItem = UITabBarItem(title: "Messages", image: UIImage(systemName: "message"), selectedImage: UIImage(systemName: "message.fill"))
+        controllers.append(messagesNavController)
+
+        // Tab 4: Profile
         let profileVC = profileStoryboard.instantiateViewController(withIdentifier: "ProfileVC")
         let profileNavController = UINavigationController(rootViewController: profileVC)
         profileNavController.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person"), selectedImage: UIImage(systemName: "person.fill"))
