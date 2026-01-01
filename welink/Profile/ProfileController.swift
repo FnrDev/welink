@@ -335,11 +335,18 @@ class ProfileController: UIViewController {
         present(alert, animated: true)
     }
     
+    // MARK: - Open History
+    
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
-        let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
-        historyVC.modalPresentationStyle = .fullScreen
-        present(historyVC, animated: true)
+        guard let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController") as? HistoryController else {
+            return
+        }
+        
+        // Wrap in Navigation Controller for feedback push to work
+        let navController = UINavigationController(rootViewController: historyVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true)
     }
         
     // MARK: - Setup Skills Collection View
