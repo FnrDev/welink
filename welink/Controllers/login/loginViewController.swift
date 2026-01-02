@@ -239,7 +239,7 @@ class ViewController: UIViewController {
 
     private func redirectToAdminDashboard() {
         let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "AdminDashboard")
+        let vc = storyboard.instantiateViewController(withIdentifier: "AdminTabBarController")
 
         guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         window.windows.first?.rootViewController = vc
