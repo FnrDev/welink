@@ -37,13 +37,14 @@ final class AdminSettingsViewController: UIViewController {
     }
 
     @IBAction private func adminLogTapped(_ sender: Any) {
-        let alert = UIAlertController(
-            title: "Admin Log",
-            message: "Not implemented yet. If you want, we can add a Supabase table (admin_logs) and record actions like suspend/unsuspend, edits, approvals.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+        guard let vc = storyboard?.instantiateViewController(withIdentifier: "AdminLogsVC") as? AdminLogsViewController else {
+            let alert = UIAlertController(title: "Error", message: "AdminLogs screen not found in storyboard", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        navigationController?.pushViewController(vc, animated: true)
     }
 
     @IBAction private func logoutTapped(_ sender: Any) {
@@ -84,15 +85,13 @@ final class AdminSettingsViewController: UIViewController {
 
     private func resetToLoginRoot() {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController")
+        let loginVC = storyboard.instantiateViewController(withIdentifier: "ViewController")
 
-        let scenes = UIApplication.shared.connectedScenes
-        for scene in scenes {
-            guard let windowScene = scene as? UIWindowScene else { continue }
-            for window in windowScene.windows {
-                window.rootViewController = loginVC
-                window.makeKeyAndVisible()
-            }
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController = loginVC
+            window.makeKeyAndVisible()
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
         }
     }
 

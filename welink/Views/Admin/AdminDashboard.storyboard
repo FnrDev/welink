@@ -851,7 +851,7 @@
                                                     <rect key="frame" x="0.0" y="0.0" width="402" height="105"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <subviews>
-                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="lMu-Rt-mue">
+                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMu-Rt-mue">
                                                             <rect key="frame" x="20.000000000000004" y="12" width="33.333333333333343" height="81"/>
                                                             <userDefinedRuntimeAttributes>
                                                                 <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
@@ -860,7 +860,7 @@
                                                                 <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBoundss" value="YES"/>
                                                             </userDefinedRuntimeAttributes>
                                                         </imageView>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UyK-yj-ZbU">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UyK-yj-ZbU">
                                                             <rect key="frame" x="61.333333333333336" y="12" width="83.666666666666657" height="16"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                             <nil key="textColor"/>
@@ -874,7 +874,7 @@
                                                             <color key="textColor" systemColor="opaqueSeparatorColor"/>
                                                             <color key="highlightedColor" systemColor="systemGrayColor"/>
                                                         </label>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RwN-Kt-bIj">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" ambiguous="YES" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RwN-Kt-bIj">
                                                             <rect key="frame" x="60.333333333333343" y="33" width="329.66666666666663" height="39"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                             <color key="textColor" systemColor="systemGrayColor"/>
@@ -1737,8 +1737,8 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IUC-18-PNN">
-                                <rect key="frame" x="22" y="124" width="364" height="57"/>
+                            <view clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IUC-18-PNN">
+                                <rect key="frame" x="22" y="168" width="364" height="57"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="sz1-aZ-gcd">
@@ -1758,8 +1758,8 @@
                                 </subviews>
                                 <color key="backgroundColor" systemColor="separatorColor"/>
                             </view>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ih4-We-kpH">
-                                <rect key="frame" x="22" y="189" width="364" height="57"/>
+                            <view clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ih4-We-kpH">
+                                <rect key="frame" x="22" y="233" width="364" height="57"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="H8o-Nd-hns">
@@ -1775,8 +1775,8 @@
                                 <color key="backgroundColor" systemColor="separatorColor"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5AE-hY-4hR">
-                                <rect key="frame" x="22" y="254" width="364" height="57"/>
+                            <view clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="5AE-hY-4hR">
+                                <rect key="frame" x="22" y="298" width="364" height="57"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hLE-CY-gPX">
@@ -1807,6 +1807,37 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BJG-BI-idf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="10217.910447761193" y="1041.4187643020593"/>
+        </scene>
+        <!--Admin Logs View Controller-->
+        <scene sceneID="bYw-Sf-1pL">
+            <objects>
+                <viewController storyboardIdentifier="AdminLogsVC" useStoryboardIdentifierAsRestorationIdentifier="YES" id="Eo0-wS-xvH" customClass="AdminLogsViewController" customModule="welink" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="p5T-wX-v8m">
+                        <rect key="frame" x="0.0" y="0.0" width="402" height="874"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="v7v-yF-0b5">
+                                <rect key="frame" x="0.0" y="0.0" width="402" height="806"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="rFh-1K-1ar"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="v7v-yF-0b5" firstAttribute="top" secondItem="p5T-wX-v8m" secondAttribute="top" id="jK2-Mw-6tX"/>
+                            <constraint firstItem="v7v-yF-0b5" firstAttribute="leading" secondItem="p5T-wX-v8m" secondAttribute="leading" id="m3m-e6-6b0"/>
+                            <constraint firstAttribute="trailing" secondItem="v7v-yF-0b5" secondAttribute="trailing" id="uWw-pd-0tR"/>
+                            <constraint firstAttribute="bottom" secondItem="v7v-yF-0b5" secondAttribute="bottom" constant="68" id="xjF-yR-3oQ"/>
+                        </constraints>
+                    </view>
+                    <navigationItem key="navigationItem" id="1f4-fc-g5J"/>
+                    <connections>
+                        <outlet property="tableView" destination="v7v-yF-0b5" id="y5k-4T-bKx"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="jvY-JY-1HP" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="11129.850746268656" y="1040.7322654462241"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="5R3-mb-ug4">
