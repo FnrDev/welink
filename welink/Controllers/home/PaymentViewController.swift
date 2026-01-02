@@ -69,12 +69,20 @@ class PaymentViewController: UIViewController, UITextFieldDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        // Hide tab bar
         self.tabBarController?.tabBar.isHidden = true
+        self.tabBarController?.tabBar.frame = CGRect(x: 0, y: 2000, width: 0, height: 0)
+        
+        //Hide the toolbar
+        self.navigationController?.toolbar.isHidden = true
+        self.navigationController?.setToolbarHidden(true, animated: false)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+        self.tabBarController?.tabBar.frame = CGRect(x: 0, y: 791, width: 402, height: 83)
     }
     
     func setupUI() {

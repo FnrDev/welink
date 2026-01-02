@@ -68,8 +68,23 @@ class ServiceDetailsViewController: UIViewController {
             showError(message: "No service data available")
         }
         
-        scrollView.bounces = false
-        scrollView.showsVerticalScrollIndicator = false
+        scrollView.isScrollEnabled = true  // FORCE it to be scrollable
+        scrollView.bounces = true  // Allow bouncing so you know it's scrolling
+        scrollView.showsVerticalScrollIndicator = true  // Show the indicator
+        
+        // Adjust scroll view content
+            DispatchQueue.main.async {
+                if let contentView = self.scrollView.subviews.first {
+                    // Make content view tall enough
+                    for constraint in contentView.constraints {
+                        if constraint.firstAttribute == .height {
+                            constraint.constant = 800  // Make it taller
+                            break
+                        }
+                    }
+                    self.view.layoutIfNeeded()
+                }
+            }
     }
 
     private func checkIfServiceOwner(serviceUserId: String) {
@@ -267,27 +282,25 @@ class ServiceDetailsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = true
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         
-        print("🔍 ALL SUBVIEWS IN VIEW:")
-        printViewHierarchy(view: view, indent: 0)
-    }
-
-    func printViewHierarchy(view: UIView, indent: Int) {
-        let indentString = String(repeating: "  ", count: indent)
-        print("\(indentString)- \(type(of: view)): \(view.frame)")
-        
-        for subview in view.subviews {
-            printViewHierarchy(view: subview, indent: indent + 1)
-        }
+        // Restore frame and interaction
+        self.view.isUserInteractionEnabled = true
+        self.scrollView?.isUserInteractionEnabled = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+        
+        //Move this view completely off screen
+        if isMovingFromParent {
+            // Move WAY off screen (out of touch range)
+            self.view.frame = CGRect(x: -10000, y: -10000, width: 1, height: 1)
+            
+            // Disable ALL interaction
+            self.view.isUserInteractionEnabled = false
+            self.scrollView?.isUserInteractionEnabled = false
+        }
     }
     
     // MARK: - Setup Reviews Table View
