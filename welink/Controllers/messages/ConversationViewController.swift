@@ -77,6 +77,12 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        
+        // Restore toolbar
+        self.navigationController?.setToolbarHidden(false, animated: false)
+        
+        // Restore tab bar
+        self.tabBarController?.tabBar.isHidden = false
 
         Task { [weak self] in
             await self?.unsubscribeFromRealtime()
@@ -85,6 +91,17 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
 
     deinit {
         NotificationCenter.default.removeObserver(self)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Hide the toolbar that blocks the input!
+        self.navigationController?.toolbar.isHidden = true
+        self.navigationController?.setToolbarHidden(true, animated: false)
+        
+        // Hide tab bar
+        self.tabBarController?.tabBar.isHidden = true
     }
 
     // MARK: - Setup
