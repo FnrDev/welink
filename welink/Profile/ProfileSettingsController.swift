@@ -17,7 +17,6 @@ struct UpdateUserRequest: Encodable {
 
 class ProfileSettingsController: UIViewController {
 
-    @IBOutlet weak var navigationBar: UINavigationBar!
     @IBOutlet weak var segmentedControl: UISegmentedControl!
     @IBOutlet weak var saveChangesBTN: UIButton!
     @IBOutlet weak var phoneNumber: UITextField!
@@ -45,7 +44,6 @@ class ProfileSettingsController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setupNavigationBar()
         setupUI()
         setupSegmentedControl()
         setupChangePassword()
@@ -167,12 +165,10 @@ class ProfileSettingsController: UIViewController {
             // Profile selected
             profileView.isHidden = false
             preferencesView.isHidden = true
-            navigationBar.topItem?.title = "Settings"
         } else {
             // Preferences selected
             profileView.isHidden = true
             preferencesView.isHidden = false
-            navigationBar.topItem?.title = "Preferences"
         }
     }
     
@@ -222,22 +218,6 @@ class ProfileSettingsController: UIViewController {
         
         // Logout button styling
         logoutBTN.layer.cornerRadius = 12
-    }
-    
-    private func setupNavigationBar() {
-        let config = UIImage.SymbolConfiguration(weight: .semibold)
-        let chevronImage = UIImage(systemName: "chevron.left", withConfiguration: config)
-        
-        let backButton = UIButton(type: .system)
-        backButton.setImage(chevronImage, for: .normal)
-        backButton.setTitle(" Back", for: .normal)
-        backButton.tintColor = .systemBlue
-        backButton.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        
-        let barButton = UIBarButtonItem(customView: backButton)
-        
-        navigationBar.topItem?.leftBarButtonItem = barButton
-        navigationBar.topItem?.title = "Settings"
     }
     
     // MARK: - Setup Avatar
@@ -452,7 +432,9 @@ class ProfileSettingsController: UIViewController {
         present(alert, animated: true)
     }
     
-    @objc private func backButtonTapped() {
+    // MARK: - Back Button Action (Connect in Storyboard)
+    
+    @IBAction func backButtonTapped(_ sender: Any) {
         dismiss(animated: true)
     }
 }
