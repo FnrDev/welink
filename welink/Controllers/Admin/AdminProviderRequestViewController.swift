@@ -391,7 +391,8 @@ private final class ServiceCardView: UIView {
 
         let iconLabel = UILabel()
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
-        iconLabel.text = "W"
+        let firstChar = service.title.trimmingCharacters(in: .whitespacesAndNewlines).first
+        iconLabel.text = firstChar.map { String($0).uppercased() } ?? "?"
         iconLabel.textColor = .white
         iconLabel.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         iconLabel.textAlignment = .center
