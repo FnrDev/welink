@@ -31,6 +31,12 @@ class FeedbackViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Navigation bar
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        self.title = "Feedback"
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.tintColor = UIColor(hex: "2D493A")
+          
         createStarButtons()
         setupUI()
         setupTextView()
