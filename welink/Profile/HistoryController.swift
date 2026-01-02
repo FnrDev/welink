@@ -180,9 +180,9 @@ class HistoryController: UIViewController {
     // MARK: - Navigate to Feedback Controller
     
     private func navigateToFeedback(serviceId: String, serviceName: String) {
-        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         
-        guard let feedbackVC = storyboard.instantiateViewController(withIdentifier: "hitsoryFeedBack") as? HistoryFeedBackController else {
+        guard let feedbackVC = storyboard.instantiateViewController(withIdentifier: "FeedbackVC") as? FeedbackViewController else {
             print("DEBUG: Failed to instantiate HistoryFeedBackController")
             return
         }
