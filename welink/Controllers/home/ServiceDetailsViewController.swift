@@ -67,6 +67,9 @@ class ServiceDetailsViewController: UIViewController {
             // No data provided - show error
             showError(message: "No service data available")
         }
+        
+        scrollView.bounces = false
+        scrollView.showsVerticalScrollIndicator = false
     }
 
     private func checkIfServiceOwner(serviceUserId: String) {
@@ -291,7 +294,7 @@ class ServiceDetailsViewController: UIViewController {
     func setupReviewsTableView() {
         reviewsTableView.delegate = self
         reviewsTableView.dataSource = self
-        reviewsTableView.rowHeight = UITableView.automaticDimension
+        reviewsTableView.rowHeight = 100
         reviewsTableView.estimatedRowHeight = 100
 
         reviewsTableView.isScrollEnabled = false
