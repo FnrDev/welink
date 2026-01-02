@@ -61,6 +61,13 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
         let user2_id: String
     }
 
+    struct CreateNotificationRequest: Encodable {
+        let user_id: String
+        let type: String
+        let title: String
+        let content: String
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -389,6 +396,11 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
                 .from("messages")
                 .insert(request)
                 .execute()
+
+            // Insert notification for the recipient
+            if let recipientId = otherUserId {
+                await insertNotificationForRecipient(recipientId: recipientId, messageContent: text)
+            }
         } catch {
             print("Error sending message:", error.localizedDescription)
 
@@ -407,6 +419,46 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(alert, animated: true)
             }
+        }
+    }
+
+    private func insertNotificationForRecipient(recipientId: String, messageContent: String) async {
+        let client = SupabaseClientManager.shared.client
+
+        // Fetch current user's name for the notification
+        var senderName = "Someone"
+        if let currentUserId = currentUserId {
+            do {
+                struct UserName: Decodable {
+                    let name: String
+                }
+                let user: UserName = try await client.database
+                    .from("users")
+                    .select("name")
+                    .eq("id", value: currentUserId)
+                    .single()
+                    .execute()
+                    .value
+                senderName = user.name
+            } catch {
+                print("Error fetching sender name:", error.localizedDescription)
+            }
+        }
+
+        let notification = CreateNotificationRequest(
+            user_id: recipientId,
+            type: "system",
+            title: "New Message",
+            content: "You received a new message from \(senderName)"
+        )
+
+        do {
+            _ = try await client.database
+                .from("notifications")
+                .insert(notification)
+                .execute()
+        } catch {
+            print("Error inserting notification:", error.localizedDescription)
         }
     }
 
