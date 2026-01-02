@@ -29,7 +29,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
 
+        // Show launch screen first
+        let launchStoryboard = UIStoryboard(name: "LaunchScreen", bundle: nil)
+        let launchVC = launchStoryboard.instantiateInitialViewController()
+        window?.rootViewController = launchVC
+        window?.makeKeyAndVisible()
+
         Task { @MainActor in
+            // Keep launch screen for 2 seconds
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
             await checkSessionAndRedirect()
         }
     }
