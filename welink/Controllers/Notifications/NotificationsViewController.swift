@@ -24,6 +24,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
 
     private struct NotificationItem {
         let id: String
+        let notificationId: String?
         let type: String
         let title: String
         let content: String
@@ -151,15 +152,27 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         guard items.indices.contains(indexPath.row) else { return }
         let item = items[indexPath.row]
 
-        // Mark notification as read
+        // Mark notification as read (only for notifications table rows)
+        guard let notificationId = item.notificationId else { return }
         if !item.isRead {
             Task { [weak self] in
-                await self?.markNotificationAsRead(id: item.id)
+                await self?.markNotificationAsRead(id: notificationId)
             }
         }
     }
 
     // MARK: - Data Loading
+
+    private struct UserRoleRow: Decodable {
+        let role: String?
+    }
+
+    private struct PendingProviderRow: Decodable {
+        let id: String
+        let name: String
+        let status: String?
+        let created_at: String?
+    }
 
     private func loadNotifications() async {
         guard let session = try? await SupabaseClientManager.shared.client.auth.session else {
@@ -171,7 +184,34 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         }
 
         let currentUserId = session.user.id.uuidString.lowercased()
-        print("[Notifications] Loading for user: \(currentUserId)")
+
+        let role = await fetchUserRole(userId: currentUserId)
+        if role.lowercased() == "admin" {
+            await loadPendingProviders()
+        } else {
+            await loadNotificationRows(for: currentUserId)
+        }
+    }
+
+    private func fetchUserRole(userId: String) async -> String {
+        let client = SupabaseClientManager.shared.client
+        do {
+            let rows: [UserRoleRow] = try await client.database
+                .from("users")
+                .select("role")
+                .eq("id", value: userId)
+                .limit(1)
+                .execute()
+                .value
+            return rows.first?.role ?? "seeker"
+        } catch {
+            print("[Notifications] Error fetching user role:", error.localizedDescription)
+            return "seeker"
+        }
+    }
+
+    private func loadNotificationRows(for userId: String) async {
+        print("[Notifications] Loading notification rows for user: \(userId)")
 
         let client = SupabaseClientManager.shared.client
 
@@ -179,7 +219,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
             let rows: [NotificationRow] = try await client.database
                 .from("notifications")
                 .select("*")
-                .eq("user_id", value: currentUserId)
+                .eq("user_id", value: userId)
                 .order("created_at", ascending: false)
                 .limit(50)
                 .execute()
@@ -190,6 +230,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
             let mapped: [NotificationItem] = rows.map { row in
                 NotificationItem(
                     id: row.id,
+                    notificationId: row.id,
                     type: row.type,
                     title: row.title,
                     content: row.content,
@@ -213,6 +254,49 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         }
     }
 
+    private func loadPendingProviders() async {
+        print("[Notifications] Loading pending providers (admin)")
+
+        let client = SupabaseClientManager.shared.client
+
+        do {
+            let rows: [PendingProviderRow] = try await client.database
+                .from("users")
+                .select("id, name, status, created_at")
+                .eq("role", value: "provider")
+                .eq("status", value: "pending")
+                .order("created_at", ascending: false)
+                .limit(50)
+                .execute()
+                .value
+
+            let mapped: [NotificationItem] = rows.map { row in
+                NotificationItem(
+                    id: row.id,
+                    notificationId: nil,
+                    type: "provider_pending",
+                    title: row.name,
+                    content: "Pending provider account",
+                    isRead: false,
+                    createdAt: row.created_at ?? ""
+                )
+            }
+
+            await MainActor.run {
+                self.items = mapped
+                self.tableView.reloadData()
+                self.updateEmptyState()
+            }
+        } catch {
+            print("[Notifications] Error loading pending providers:", error.localizedDescription)
+            await MainActor.run {
+                self.items = []
+                self.tableView.reloadData()
+                self.updateEmptyState()
+            }
+        }
+    }
+
     private func markNotificationAsRead(id: String) async {
         let client = SupabaseClientManager.shared.client
 
@@ -225,10 +309,11 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
 
             // Update local state
             await MainActor.run {
-                if let index = self.items.firstIndex(where: { $0.id == id }) {
+                if let index = self.items.firstIndex(where: { $0.notificationId == id }) {
                     let item = self.items[index]
                     self.items[index] = NotificationItem(
                         id: item.id,
+                        notificationId: item.notificationId,
                         type: item.type,
                         title: item.title,
                         content: item.content,
@@ -247,6 +332,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
 
     private func iconText(for type: String) -> String {
         switch type {
+        case "provider_pending": return "P"
         case "booking_request": return "B"
         case "booking_accepted": return "✓"
         case "booking_rejected": return "✗"
@@ -261,6 +347,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
 
     private func iconBackgroundColor(for type: String) -> UIColor {
         switch type {
+        case "provider_pending": return .systemOrange
         case "booking_request": return .systemBlue
         case "booking_accepted", "application_accepted": return .systemGreen
         case "booking_rejected", "application_rejected": return .systemRed

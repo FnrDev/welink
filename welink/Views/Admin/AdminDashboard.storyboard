@@ -767,7 +767,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JOu-Qv-gsv">
-                                <rect key="frame" x="0.0" y="105" width="413" height="263"/>
+                                <rect key="frame" x="0.0" y="124" width="413" height="244"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.94117647059999998" green="0.60392156860000001" blue="0.602715373" alpha="1" colorSpace="calibratedRGB"/>
                             </imageView>
@@ -854,8 +854,8 @@
                                                     <rect key="frame" x="0.0" y="0.0" width="402" height="105"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <subviews>
-                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMu-Rt-mue">
-                                                            <rect key="frame" x="20.000000000000004" y="12" width="33.333333333333343" height="81"/>
+                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lMu-Rt-mue">
+                                                            <rect key="frame" x="20" y="33" width="33" height="60"/>
                                                             <userDefinedRuntimeAttributes>
                                                                 <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
                                                                     <integer key="value" value="20"/>
@@ -863,7 +863,7 @@
                                                                 <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBoundss" value="YES"/>
                                                             </userDefinedRuntimeAttributes>
                                                         </imageView>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UyK-yj-ZbU">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fahead Naser" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="UyK-yj-ZbU">
                                                             <rect key="frame" x="61.333333333333336" y="12" width="83.666666666666657" height="16"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                             <nil key="textColor"/>
@@ -877,7 +877,7 @@
                                                             <color key="textColor" systemColor="opaqueSeparatorColor"/>
                                                             <color key="highlightedColor" systemColor="systemGrayColor"/>
                                                         </label>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" ambiguous="YES" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RwN-Kt-bIj">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Specialized in fixing leaks, bathroom installations, and water heaters. 5+ years of experience." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="RwN-Kt-bIj">
                                                             <rect key="frame" x="60.333333333333343" y="33" width="329.66666666666663" height="39"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                                             <color key="textColor" systemColor="systemGrayColor"/>
@@ -887,13 +887,13 @@
                                                     <constraints>
                                                         <constraint firstItem="UyK-yj-ZbU" firstAttribute="top" secondItem="xba-WN-Lm4" secondAttribute="topMargin" id="4Y7-C8-Ofi"/>
                                                         <constraint firstAttribute="trailing" secondItem="RwN-Kt-bIj" secondAttribute="trailing" constant="12" id="Asq-GM-aYC"/>
-                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="centerY" secondItem="xba-WN-Lm4" secondAttribute="centerY" id="B7W-r5-rRL"/>
+                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="centerY" secondItem="xba-WN-Lm4" secondAttribute="centerY" constant="10.5" id="B7W-r5-rRL"/>
                                                         <constraint firstItem="UyK-yj-ZbU" firstAttribute="leading" secondItem="lMu-Rt-mue" secondAttribute="trailing" constant="8" symbolic="YES" id="Dsx-81-GML"/>
                                                         <constraint firstAttribute="bottom" secondItem="RwN-Kt-bIj" secondAttribute="bottom" constant="33" id="FAf-jH-EzX"/>
-                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="leading" secondItem="xba-WN-Lm4" secondAttribute="leadingMargin" id="H5N-jp-PaW"/>
+                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="leading" secondItem="xba-WN-Lm4" secondAttribute="leadingMargin" constant="12" id="H5N-jp-PaW"/>
                                                         <constraint firstItem="RwN-Kt-bIj" firstAttribute="leading" secondItem="lMu-Rt-mue" secondAttribute="trailing" constant="7" id="MS5-QZ-Hab"/>
                                                         <constraint firstItem="RwN-Kt-bIj" firstAttribute="top" secondItem="UyK-yj-ZbU" secondAttribute="bottom" constant="5" id="uVY-h6-MvS"/>
-                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="top" secondItem="xba-WN-Lm4" secondAttribute="topMargin" id="wmk-G6-lFZ"/>
+                                                        <constraint firstItem="lMu-Rt-mue" firstAttribute="top" secondItem="xba-WN-Lm4" secondAttribute="topMargin" constant="25" id="wmk-G6-lFZ"/>
                                                     </constraints>
                                                 </tableViewCellContentView>
                                                 <constraints>
@@ -1092,7 +1092,7 @@
                                                             </subviews>
                                                         </stackView>
                                                     </subviews>
-                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <constraints>
                                                         <constraint firstItem="P2x-lj-CdD" firstAttribute="leading" secondItem="pGR-fV-0hP" secondAttribute="leading" constant="9" id="2Uj-Gf-gSt"/>
                                                         <constraint firstAttribute="bottom" secondItem="P2x-lj-CdD" secondAttribute="bottom" constant="21" id="4sw-zg-5ih"/>
@@ -1461,7 +1461,7 @@
                                                             </subviews>
                                                         </stackView>
                                                     </subviews>
-                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                    <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <constraints>
                                                         <constraint firstItem="8Vf-Ha-mMp" firstAttribute="top" secondItem="yfm-9a-VS0" secondAttribute="top" constant="16" id="59d-Cg-Zkj"/>
                                                         <constraint firstItem="8Vf-Ha-mMp" firstAttribute="leading" secondItem="YJF-8p-p3V" secondAttribute="trailing" constant="17" id="M0v-eB-B9B"/>
