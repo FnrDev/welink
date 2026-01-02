@@ -54,6 +54,42 @@ class SeekerHomeViewController: UIViewController {
         fetchPopularServices()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Restore view position and size
+        self.view.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        self.view.isUserInteractionEnabled = true
+        
+        recommendedTableView.isHidden = false
+        popularTableView.isHidden = false
+        
+        // Re-enable table interactions
+        recommendedTableView.isUserInteractionEnabled = true
+        popularTableView.isUserInteractionEnabled = true
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        if let selectedRow = recommendedTableView.indexPathForSelectedRow {
+            recommendedTableView.deselectRow(at: selectedRow, animated: false)
+        }
+        if let selectedRow = popularTableView.indexPathForSelectedRow {
+            popularTableView.deselectRow(at: selectedRow, animated: false)
+        }
+        
+        // Hide and disable tables when leaving Home
+        recommendedTableView.isHidden = true
+        popularTableView.isHidden = true
+        recommendedTableView.isUserInteractionEnabled = false
+        popularTableView.isUserInteractionEnabled = false
+        
+        // Move the entire view WAY off screen
+        self.view.frame = CGRect(x: -10000, y: -10000, width: 1, height: 1)
+        self.view.isUserInteractionEnabled = false
+    }
+    
     func setupTableViews() {
         // Setup Recommended table
         recommendedTableView.delegate = self
@@ -61,7 +97,9 @@ class SeekerHomeViewController: UIViewController {
         recommendedTableView.isScrollEnabled = false
         recommendedTableView.rowHeight = 80
         recommendedTableView.backgroundColor = .clear
-        recommendedTableView.separatorStyle = .none
+        recommendedTableView.separatorStyle = .singleLine
+        recommendedTableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.3)
+        recommendedTableView.separatorInset = UIEdgeInsets(top: 0, left: 70, bottom: 0, right: 16)
         
         // Setup Popular table
         popularTableView.delegate = self
@@ -69,7 +107,9 @@ class SeekerHomeViewController: UIViewController {
         popularTableView.isScrollEnabled = false
         popularTableView.rowHeight = 80
         popularTableView.backgroundColor = .clear
-        popularTableView.separatorStyle = .none
+        popularTableView.separatorStyle = .singleLine
+        popularTableView.separatorColor = UIColor.lightGray.withAlphaComponent(0.3)
+        popularTableView.separatorInset = UIEdgeInsets(top: 0, left: 70, bottom: 0, right: 16)
         
         let nib = UINib(nibName: "SearchResultCell", bundle: nil)
         recommendedTableView.register(nib, forCellReuseIdentifier: "SearchResultCell")
@@ -333,38 +373,6 @@ extension SeekerHomeViewController: UITableViewDelegate, UITableViewDataSource {
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
         
-        
-        cell.contentView.subviews.forEach { subview in
-            if subview.tag == 999 {
-                subview.removeFromSuperview()
-            }
-        }
-        
-        // Check if this is NOT the last cell
-        let numberOfRows = tableView == recommendedTableView ?
-            recommendedServices.count :
-            popularServices.count
-        
-        let isLastCell = indexPath.row == numberOfRows - 1
-        
-        if !isLastCell {
-            // Add separator line
-            let separator = UIView()
-            separator.tag = 999  // Tag to identify it later
-            separator.backgroundColor = UIColor.lightGray.withAlphaComponent(0.3)
-            separator.translatesAutoresizingMaskIntoConstraints = false
-            
-            cell.contentView.addSubview(separator)
-            
-            // Position separator at the bottom with margins
-            NSLayoutConstraint.activate([
-                separator.heightAnchor.constraint(equalToConstant: 1),
-                separator.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 70),
-                separator.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -16),
-                separator.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor)
-            ])
-        }
-        
         return cell
     }
     
@@ -375,18 +383,25 @@ extension SeekerHomeViewController: UITableViewDelegate, UITableViewDataSource {
         
         print("Selected: \(service.name)")
         
+        tableView.deselectRow(at: indexPath, animated: false)
+        
+        // Disable table interactions BEFORE navigating
+        recommendedTableView.isUserInteractionEnabled = false
+        popularTableView.isUserInteractionEnabled = false
+        
         // Navigate to ServiceDetailsViewController
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         
         guard let detailsVC = storyboard.instantiateViewController(withIdentifier: "ServiceDetailsVC") as? ServiceDetailsViewController else {
             print("Could not instantiate ServiceDetailsViewController!")
+            // Re-enable if navigation fails
+            recommendedTableView.isUserInteractionEnabled = true
+            popularTableView.isUserInteractionEnabled = true
             return
         }
         
         detailsVC.service = service
         navigationController?.pushViewController(detailsVC, animated: true)
-        
-        tableView.deselectRow(at: indexPath, animated: true)
     }
     
     @IBAction func homeCategoryTapped(_ sender: UIButton) {

@@ -22,8 +22,9 @@ class ServiceDetailsViewController: UIViewController {
     @IBOutlet weak var reviewsTableView: UITableView!
     @IBOutlet weak var messageButton: UIButton!
     @IBOutlet weak var bookNowButton: UIButton!
-    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
+//    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
     @IBOutlet weak var seeAllButton: UIButton!
+    @IBOutlet weak var scrollView: UIScrollView!
     
     // MARK: - Properties
     var service: SeekerSearchResult? // Holds the service data passed from Search/Home/Category
@@ -36,8 +37,17 @@ class ServiceDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        serviceImageView.isUserInteractionEnabled = false
+
+        
+        scrollView.delaysContentTouches = false
+        scrollView.canCancelContentTouches = true
+        
         messageButton.applyAppStyle()
         bookNowButton.applyAppStyle()
+        
+        messageButton.isExclusiveTouch = true
+        bookNowButton.isExclusiveTouch = true
 
         setupDateTimeTapGestures()
         setupReviewsTableView()
@@ -57,6 +67,24 @@ class ServiceDetailsViewController: UIViewController {
             // No data provided - show error
             showError(message: "No service data available")
         }
+        
+        scrollView.isScrollEnabled = true  // FORCE it to be scrollable
+        scrollView.bounces = true  // Allow bouncing so you know it's scrolling
+        scrollView.showsVerticalScrollIndicator = true  // Show the indicator
+        
+        // Adjust scroll view content
+            DispatchQueue.main.async {
+                if let contentView = self.scrollView.subviews.first {
+                    // Make content view tall enough
+                    for constraint in contentView.constraints {
+                        if constraint.firstAttribute == .height {
+                            constraint.constant = 800  // Make it taller
+                            break
+                        }
+                    }
+                    self.view.layoutIfNeeded()
+                }
+            }
     }
 
     private func checkIfServiceOwner(serviceUserId: String) {
@@ -254,21 +282,39 @@ class ServiceDetailsViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.tabBarController?.tabBar.isHidden = true
+        
+        // Restore frame and interaction
+        self.view.isUserInteractionEnabled = true
+        self.scrollView?.isUserInteractionEnabled = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
+        
+        //Move this view completely off screen
+        if isMovingFromParent {
+            // Move WAY off screen (out of touch range)
+            self.view.frame = CGRect(x: -10000, y: -10000, width: 1, height: 1)
+            
+            // Disable ALL interaction
+            self.view.isUserInteractionEnabled = false
+            self.scrollView?.isUserInteractionEnabled = false
+        }
     }
     
     // MARK: - Setup Reviews Table View
     func setupReviewsTableView() {
         reviewsTableView.delegate = self
         reviewsTableView.dataSource = self
-        reviewsTableView.rowHeight = UITableView.automaticDimension
+        reviewsTableView.rowHeight = 100
         reviewsTableView.estimatedRowHeight = 100
-        reviewsTableView.isScrollEnabled = false  // Fixed height, no scroll
+
+        reviewsTableView.isScrollEnabled = false
+        reviewsTableView.delaysContentTouches = false
+        reviewsTableView.canCancelContentTouches = true
     }
+
     
     // MARK: - Database Functions
     func fetchServiceDetails(serviceId: String) {
@@ -327,15 +373,15 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-    func updateReviewsTableHeight() {
-        reviewsTableView.layoutIfNeeded()
-        
-        DispatchQueue.main.async {
-            self.reviewsTableViewHeight.constant =
-                self.reviewsTableView.contentSize.height
-            self.view.layoutIfNeeded()
-        }
-    }
+//    func updateReviewsTableHeight() {
+//        reviewsTableView.layoutIfNeeded()
+//        
+//        DispatchQueue.main.async {
+//            self.reviewsTableViewHeight.constant =
+//                self.reviewsTableView.contentSize.height
+//            self.view.layoutIfNeeded()
+//        }
+//    }
     
     func fetchRatings(serviceId: String) {
         Task {
@@ -516,7 +562,7 @@ class ServiceDetailsViewController: UIViewController {
 
             reviewsTableView.backgroundView = emptyLabel
             reviewsTableView.separatorStyle = .none
-            reviewsTableViewHeight.constant = 80
+//            reviewsTableViewHeight.constant = 80
             
             seeAllButton.isHidden = true
             
@@ -529,9 +575,9 @@ class ServiceDetailsViewController: UIViewController {
             
             reviewsTableView.reloadData()
             // Update table height based on content
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.updateReviewsTableHeight()
-            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+//                self.updateReviewsTableHeight()
+//            }
         }
     }
     
