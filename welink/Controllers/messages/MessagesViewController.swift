@@ -17,6 +17,30 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
     private var conversations: [ConversationItem] = []
     private var currentUserId: String?
     private var emptyStateLabel: UILabel?
+    private var isLoading = false
+
+    // Loading UI
+    private let loadingContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    private let activityIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .medium)
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        indicator.hidesWhenStopped = true
+        return indicator
+    }()
+
+    private let loadingLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Loading messages..."
+        label.font = .systemFont(ofSize: 14)
+        label.textColor = .secondaryLabel
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 
     // MARK: - Models
     struct ConversationItem {
@@ -26,6 +50,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         let otherUserImage: String?
         let lastMessage: String
         let lastMessageTime: String
+        let lastMessageRawTime: String?  // For sorting
     }
 
     struct ConversationRow: Decodable {
@@ -80,6 +105,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 80, bottom: 0, right: 0)
 
         setupEmptyState()
+        setupLoadingView()
     }
 
     private func setupEmptyState() {
@@ -92,8 +118,42 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         emptyStateLabel = label
     }
 
+    private func setupLoadingView() {
+        view.addSubview(loadingContainer)
+        loadingContainer.addSubview(activityIndicator)
+        loadingContainer.addSubview(loadingLabel)
+
+        NSLayoutConstraint.activate([
+            loadingContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+
+            activityIndicator.topAnchor.constraint(equalTo: loadingContainer.topAnchor),
+            activityIndicator.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+
+            loadingLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 8),
+            loadingLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            loadingLabel.bottomAnchor.constraint(equalTo: loadingContainer.bottomAnchor)
+        ])
+
+        loadingContainer.isHidden = true
+    }
+
+    private func showLoading() {
+        isLoading = true
+        loadingContainer.isHidden = false
+        activityIndicator.startAnimating()
+        tableView.isHidden = true
+    }
+
+    private func hideLoading() {
+        isLoading = false
+        loadingContainer.isHidden = true
+        activityIndicator.stopAnimating()
+        tableView.isHidden = false
+    }
+
     private func updateEmptyState() {
-        if conversations.isEmpty {
+        if conversations.isEmpty && !isLoading {
             tableView.backgroundView = emptyStateLabel
             tableView.separatorStyle = .none
         } else {
@@ -104,13 +164,27 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
 
     // MARK: - Load Conversations
     private func loadConversations() async {
+        await MainActor.run {
+            showLoading()
+        }
+
         guard let session = try? await SupabaseClientManager.shared.client.auth.session else {
             print("No active session")
+            await MainActor.run {
+                hideLoading()
+                updateEmptyState()
+            }
             return
         }
 
         currentUserId = session.user.id.uuidString.lowercased()
-        guard let currentUserId = currentUserId else { return }
+        guard let currentUserId = currentUserId else {
+            await MainActor.run {
+                hideLoading()
+                updateEmptyState()
+            }
+            return
+        }
 
         let client = SupabaseClientManager.shared.client
 
@@ -158,23 +232,33 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
                     otherUserName: otherUser?.name ?? "Unknown",
                     otherUserImage: otherUser?.image,
                     lastMessage: lastMessage?.content ?? "No messages yet",
-                    lastMessageTime: formatTime(lastMessage?.created_at)
+                    lastMessageTime: formatTime(lastMessage?.created_at),
+                    lastMessageRawTime: lastMessage?.created_at
                 )
 
                 items.append(item)
             }
 
-            // Sort by most recent message
-            items.sort { $0.lastMessageTime > $1.lastMessageTime }
+            // Sort by most recent message (newest first)
+            items.sort { (a, b) in
+                guard let timeA = a.lastMessageRawTime else { return false }
+                guard let timeB = b.lastMessageRawTime else { return true }
+                return timeA > timeB
+            }
 
             await MainActor.run {
                 self.conversations = items
                 self.tableView.reloadData()
+                self.hideLoading()
                 self.updateEmptyState()
             }
 
         } catch {
             print("Error loading conversations:", error.localizedDescription)
+            await MainActor.run {
+                self.hideLoading()
+                self.updateEmptyState()
+            }
         }
     }
 

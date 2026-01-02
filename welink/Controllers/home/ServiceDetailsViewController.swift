@@ -736,7 +736,8 @@ class ServiceDetailsViewController: UIViewController {
             return
         }
 
-        conversationVC.otherUserId = providerId
+        // Lowercase the provider ID to ensure consistent conversation matching
+        conversationVC.otherUserId = providerId.lowercased()
         conversationVC.otherUserName = service?.providerName ?? "Provider"
 
         navigationController?.pushViewController(conversationVC, animated: true)
