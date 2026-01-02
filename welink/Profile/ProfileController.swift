@@ -18,6 +18,19 @@ struct ProfileUserData: Decodable {
     let skills: [String]?
 }
 
+// Struct to decode application data
+struct ApplicationData: Decodable {
+    let id: Int64
+    let user_id: String
+    let full_name: String
+    let email: String
+    let phone: String
+    let image_path: String
+    let services: [String]?
+    let skills: [String]?
+    let status: String?
+}
+
 // Struct to decode service data
 struct ServiceData: Decodable {
     let id: String
@@ -30,8 +43,23 @@ struct ServiceData: Decodable {
     let rating: Double?
 }
 
+// Struct to decode booking data
+struct BookingData: Decodable {
+    let id: String
+    let service_id: String?
+    let user_id: String?
+    let created_at: String?
+}
+
 class ProfileController: UIViewController {
 
+    // Seeker View Outlets
+    @IBOutlet weak var bookingDataNumber: UILabel!
+    @IBOutlet weak var bookingsViewContainer: UIView!
+    @IBOutlet weak var applyToProviderBTN: UIButton!
+    @IBOutlet weak var seekerView: UIView!
+    
+    // Provider View Outlets
     @IBOutlet weak var header: UINavigationItem!
     @IBOutlet weak var avatar: UIImageView!
     @IBOutlet weak var servicesIconContainer: UIView!
@@ -46,10 +74,15 @@ class ProfileController: UIViewController {
     @IBOutlet weak var totalServicesLabel: UILabel!
     @IBOutlet weak var ratingLabel: UILabel!
 
+    // Initial Avatar Outlets
+    @IBOutlet weak var initialLetter: UILabel!
+    @IBOutlet weak var intialAvatar: UIView!
+    
     private var userSkills: [String] = []
     private var userServices: [ServiceData] = []
     private var currentUserId: String = ""
     private var currentUserName: String = ""
+    private var currentUserRole: String = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,7 +90,6 @@ class ProfileController: UIViewController {
         setupUI()
         setupSkillsCollectionView()
         setupServicesTableView()
-        setupMenu()
         fetchUserProfile()
     }
     
@@ -72,6 +104,12 @@ class ProfileController: UIViewController {
         avatar.layer.cornerRadius = 12
         avatar.clipsToBounds = true
         avatar.contentMode = .scaleAspectFill
+        
+        // Hide both avatar views initially
+        avatar.isHidden = true
+        intialAvatar.isHidden = true
+        intialAvatar.layer.cornerRadius = 12
+        intialAvatar.clipsToBounds = true
 
         servicesIconContainer.layer.cornerRadius = 12
         servicesIconContainer.clipsToBounds = true
@@ -84,17 +122,84 @@ class ProfileController: UIViewController {
 
         raitings.layer.cornerRadius = 12
         raitings.clipsToBounds = true
+        
+        bookingsViewContainer.layer.cornerRadius = 12
+        bookingsViewContainer.clipsToBounds = true
+        
+        applyToProviderBTN.layer.cornerRadius = 12
+        applyToProviderBTN.clipsToBounds = true
 
         noSkillsLabel.isHidden = true
         noServicesLabel.isHidden = true
 
         totalServicesLabel?.text = "0"
         ratingLabel?.text = "0.0"
+        bookingDataNumber?.text = "0"
+        
+        // Hide both views initially
+        seekerView.isHidden = true
+        raitings.isHidden = true
+        servicesContainer.isHidden = true
+    }
+    
+    // MARK: - Setup Avatar
+    
+    private func setupAvatar(imagePath: String?, userName: String) {
+        if let imagePath = imagePath, !imagePath.isEmpty {
+            // User has avatar - show image, hide initial
+            avatar.isHidden = false
+            intialAvatar.isHidden = true
+            loadAvatar(from: imagePath)
+        } else {
+            // No avatar - show initials
+            avatar.isHidden = true
+            intialAvatar.isHidden = false
+            
+            // Get first 2 letters of name in uppercase
+            let initials = String(userName.prefix(2)).uppercased()
+            initialLetter.text = initials
+            initialLetter.textAlignment = .center
+        }
+    }
+    
+    // MARK: - Setup UI Based on Role
+
+    private func setupUIForRole(_ role: String) {
+        if role == "seeker" {
+            // Show Seeker View
+            seekerView.isHidden = false
+            bookingsViewContainer.isHidden = false
+            applyToProviderBTN.isHidden = false
+            
+            // Hide Provider Views
+            raitings.isHidden = true
+            servicesContainer.isHidden = true
+            skillsCollectionView.isHidden = true
+            noSkillsLabel.isHidden = true
+            servicesTableView.isHidden = true
+            noServicesLabel.isHidden = true
+            
+            // Setup Seeker Menu (no Provider Dashboard)
+            setupSeekerMenu()
+            
+        } else {
+            // Show Provider View
+            raitings.isHidden = false
+            servicesContainer.isHidden = false
+            
+            // Hide Seeker Views
+            seekerView.isHidden = true
+            bookingsViewContainer.isHidden = true
+            applyToProviderBTN.isHidden = true
+            
+            // Setup Provider Menu (with Provider Dashboard)
+            setupProviderMenu()
+        }
     }
 
-    // MARK: - Setup Menu
+    // MARK: - Setup Menus
 
-    private func setupMenu() {
+    private func setupProviderMenu() {
         let providerDashboardAction = UIAction(title: "Provider Dashboard", image: UIImage(systemName: "square.grid.2x2")) { [weak self] _ in
             self?.openProviderDashboard()
         }
@@ -111,6 +216,20 @@ class ProfileController: UIViewController {
         menuButton.menu = menu
         menuButton.showsMenuAsPrimaryAction = true
     }
+    
+    private func setupSeekerMenu() {
+        let settingsAction = UIAction(title: "Settings", image: UIImage(systemName: "gearshape")) { [weak self] _ in
+            self?.openSettings()
+        }
+
+        let historyAction = UIAction(title: "History", image: UIImage(systemName: "clock")) { [weak self] _ in
+            self?.openHistory()
+        }
+
+        let menu = UIMenu(title: "", children: [settingsAction, historyAction])
+        menuButton.menu = menu
+        menuButton.showsMenuAsPrimaryAction = true
+    }
 
     // MARK: - Menu Actions
 
@@ -118,7 +237,6 @@ class ProfileController: UIViewController {
         let storyboard = UIStoryboard(name: "ProviderDashboard", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "ProviderDashboardOnly")
 
-        // Change the window's root view controller
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
               let window = windowScene.windows.first else {
             return
@@ -127,23 +245,103 @@ class ProfileController: UIViewController {
         window.rootViewController = vc
         window.makeKeyAndVisible()
 
-        // Add transition animation
         UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
-        }
+    }
 
-        private func openSettings() {
-            let storyboard = UIStoryboard(name: "Profile", bundle: nil)
-            let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
-            settingsVC.modalPresentationStyle = .fullScreen
-            present(settingsVC, animated: true)
-        }
+    private func openSettings() {
+        let storyboard = UIStoryboard(name: "Profile", bundle: nil)
+        let settingsVC = storyboard.instantiateViewController(withIdentifier: "ProfileSettingsController")
+        settingsVC.modalPresentationStyle = .fullScreen
+        present(settingsVC, animated: true)
+    }
 
+    @IBAction func providerBTNApply(_ sender: Any) {
+        Task {
+            await checkPendingRequest()
+        }
+    }
+
+    // MARK: - Check Pending Request
+
+    private func checkPendingRequest() async {
+        do {
+            let session = try await SupabaseClientManager.shared.client.auth.session
+            let userId = session.user.id.uuidString
+            print("🔍 Checking pending request for user: \(userId)")
+            
+            // Check if user has a pending application
+            let response: [ApplicationData] = try await SupabaseClientManager.shared.client.database
+                .from("applications")
+                .select()
+                .eq("user_id", value: userId)
+                .execute()
+                .value
+            
+            print("📋 Applications found: \(response.count)")
+            
+            await MainActor.run {
+                if response.isEmpty {
+                    print("✅ No pending request - navigating to apply page")
+                    // No pending request - navigate to apply page
+                    performSegue(withIdentifier: "showProviderApply", sender: nil)
+                } else if let application = response.first {
+                    // Check application status
+                    if application.status == "rejected" {
+                        print("❌ Application rejected - showing rejected alert")
+                        showRejectedAlert()
+                    } else if application.status == "pending" {
+                        print("⏳ Application pending - showing pending alert")
+                        showPendingAlert()
+                    } else {
+                        // Status is "accepted" - should not happen for seekers, but handle it
+                        print("✅ Application accepted")
+                        performSegue(withIdentifier: "showProviderApply", sender: nil)
+                    }
+                }
+            }
+            
+        } catch {
+            print("❌ Error checking pending request: \(error)")
+            await MainActor.run {
+                // If error, still allow navigation
+                performSegue(withIdentifier: "showProviderApply", sender: nil)
+            }
+        }
+    }
+
+    // MARK: - Show Pending Alert
+
+    private func showPendingAlert() {
+        let alert = UIAlertController(
+            title: "Pending Request",
+            message: "You already have a pending application. Please wait for it to be reviewed.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    // MARK: - Show Rejected Alert
+
+    private func showRejectedAlert() {
+        let alert = UIAlertController(
+            title: "Application Rejected",
+            message: "Your application has been rejected. Please contact support for more information.",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
     private func openHistory() {
         let storyboard = UIStoryboard(name: "Profile", bundle: nil)
         let historyVC = storyboard.instantiateViewController(withIdentifier: "HistoryController")
         historyVC.modalPresentationStyle = .fullScreen
         present(historyVC, animated: true)
     }
+        
     // MARK: - Setup Skills Collection View
 
     private func setupSkillsCollectionView() {
@@ -198,33 +396,67 @@ class ProfileController: UIViewController {
                     await MainActor.run {
                         header.title = user.name
                         currentUserName = user.name
+                        currentUserRole = user.role
 
-                        if let imagePath = user.image, !imagePath.isEmpty {
-                            loadAvatar(from: imagePath)
-                        }
+                        // Setup avatar (image or initials)
+                        setupAvatar(imagePath: user.image, userName: user.name)
+                        
+                        // Setup UI based on role
+                        setupUIForRole(user.role)
 
-                        if let skills = user.skills, !skills.isEmpty {
-                            userSkills = skills
-                            skillsCollectionView.isHidden = false
-                            noSkillsLabel.isHidden = true
-                            skillsCollectionView.reloadData()
-                        } else {
-                            skillsCollectionView.isHidden = true
-                            noSkillsLabel.isHidden = false
-                            noSkillsLabel.text = "The user has not listed any skills."
+                        // Only show skills for providers
+                        if user.role == "provider" {
+                            if let skills = user.skills, !skills.isEmpty {
+                                userSkills = skills
+                                skillsCollectionView.isHidden = false
+                                noSkillsLabel.isHidden = true
+                                skillsCollectionView.reloadData()
+                            } else {
+                                skillsCollectionView.isHidden = true
+                                noSkillsLabel.isHidden = false
+                                noSkillsLabel.text = "The user has not listed any skills."
+                            }
                         }
                     }
                 }
 
-                await fetchUserServices(userId: userId)
+                // Fetch data based on role
+                if currentUserRole == "seeker" {
+                    await fetchUserBookings(userId: userId)
+                } else {
+                    await fetchUserServices(userId: userId)
+                }
 
             } catch {
                 print("Error fetching user: \(error)")
             }
         }
     }
+    
+    // MARK: - Fetch User Bookings (for Seekers)
+    
+    private func fetchUserBookings(userId: String) async {
+        do {
+            let response: [BookingData] = try await SupabaseClientManager.shared.client.database
+                .from("bookings")
+                .select()
+                .eq("user_id", value: userId)
+                .execute()
+                .value
 
-    // MARK: - Fetch User Services
+            await MainActor.run {
+                bookingDataNumber?.text = "\(response.count)"
+            }
+
+        } catch {
+            print("Error fetching bookings: \(error)")
+            await MainActor.run {
+                bookingDataNumber?.text = "0"
+            }
+        }
+    }
+
+    // MARK: - Fetch User Services (for Providers)
 
     private func fetchUserServices(userId: String) async {
         do {
@@ -343,8 +575,24 @@ extension ProfileController: UICollectionViewDelegate, UICollectionViewDataSourc
 
 extension ProfileController: UITableViewDelegate, UITableViewDataSource {
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    // Each service is its own section
+    func numberOfSections(in tableView: UITableView) -> Int {
         return userServices.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+    
+    // Add spacing between sections (cells)
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 8
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let footerView = UIView()
+        footerView.backgroundColor = .clear
+        return footerView
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -352,14 +600,16 @@ extension ProfileController: UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         
-        let service = userServices[indexPath.row]
+        let service = userServices[indexPath.section]
         cell.configure(with: service, providerName: currentUserName)
+        cell.showCellBackground = true
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let service = userServices[indexPath.row]
+        let service = userServices[indexPath.section]
         navigateToServiceDetails(serviceId: service.id)
     }
 }

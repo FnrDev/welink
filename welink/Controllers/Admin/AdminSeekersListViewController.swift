@@ -1,12 +1,18 @@
+//
+//  AdminSeekersListViewController.swift
+//  welink
+//
+//  Created by rawan on 01/01/2026.
+//
 import UIKit
 import Supabase
 
-final class AdminProvidersListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+final class AdminSeekersListViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
 
     @IBOutlet private weak var searchBar: UISearchBar!
     @IBOutlet private weak var tableView: UITableView!
 
-    private struct ProviderRow: Decodable {
+    private struct SeekerRow: Decodable {
         let id: String
         let name: String
         let phone: String
@@ -14,18 +20,14 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         let created_at: String?
         let role: String?
         let status: String?
-        let services: [String]?
-        let skills: [String]?
     }
 
-    private struct ProviderItem {
+    private struct SeekerItem {
         let id: String
         let name: String
         let phone: String
         let createdAtText: String
         let imageURLString: String?
-        let skills: [String]
-        let services: [String]
         let status: String
     }
 
@@ -33,13 +35,13 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
 
     private let rowHeight: CGFloat = 112
 
-    private var allItems: [ProviderItem] = []
-    private var filteredItems: [ProviderItem] = []
+    private var allItems: [SeekerItem] = []
+    private var filteredItems: [SeekerItem] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "Providers"
+        navigationItem.title = "Seekers"
 
         searchBar.delegate = self
         tableView.dataSource = self
@@ -53,25 +55,25 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         tableView.estimatedRowHeight = rowHeight
 
         Task { [weak self] in
-            await self?.loadProviders()
+            await self?.loadSeekers()
         }
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         Task { [weak self] in
-            await self?.loadProviders()
+            await self?.loadSeekers()
         }
     }
 
-    private func loadProviders() async {
+    private func loadSeekers() async {
         let client = SupabaseClientManager.shared.client
 
         do {
-            let rows: [ProviderRow] = try await client.database
+            let rows: [SeekerRow] = try await client.database
                 .from("users")
-                .select("id, name, phone, image, created_at, role, status, services, skills")
-                .eq("role", value: "provider")
+                .select("id, name, phone, image, created_at, role, status")
+                .eq("role", value: "seeker")
                 .order("created_at", ascending: false)
                 .execute()
                 .value
@@ -91,7 +93,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
             postgresFormatterNoFrac.locale = Locale(identifier: "en_US_POSIX")
             postgresFormatterNoFrac.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
 
-            let mapped: [ProviderItem] = rows.map { row in
+            let mapped: [SeekerItem] = rows.map { row in
                 let createdAtText: String
                 if let createdAt = row.created_at,
                    let date = isoFormatter.date(from: createdAt)
@@ -106,14 +108,12 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
                     }
                 }
 
-                return ProviderItem(
+                return SeekerItem(
                     id: row.id,
                     name: row.name,
                     phone: row.phone,
                     createdAtText: createdAtText,
                     imageURLString: row.image,
-                    skills: row.skills ?? [],
-                    services: row.services ?? [],
                     status: (row.status?.isEmpty == false) ? (row.status ?? "active") : "active"
                 )
             }
@@ -123,7 +123,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
                 self.applyFilter(text: self.searchBar.text)
             }
         } catch {
-            print("Error loading providers:", error.localizedDescription)
+            print("Error loading seekers:", error.localizedDescription)
             await MainActor.run {
                 self.allItems = []
                 self.applyFilter(text: self.searchBar.text)
@@ -201,8 +201,6 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
             }
         }
 
-        // ProviderCardCell styles the card view (tag 100) itself.
-
         return cell
     }
 
@@ -212,11 +210,11 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
 
         let item = filteredItems[indexPath.row]
         let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "AdminProviderDetailsVC")
-        guard let detailsVC = vc as? AdminProviderDetailsViewController else {
+        let vc = storyboard.instantiateViewController(withIdentifier: "AdminSeekerDetailsVC")
+        guard let detailsVC = vc as? AdminSeekerDetailsViewController else {
             let alert = UIAlertController(
                 title: "Setup Error",
-                message: "Provider details scene is not using AdminProviderDetailsViewController. Please set the scene custom class and storyboard ID in AdminDashboard.storyboard.",
+                message: "Seeker details scene is not using AdminSeekerDetailsViewController. Please set the scene custom class and storyboard ID in AdminDashboard.storyboard.",
                 preferredStyle: .alert
             )
             alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -224,7 +222,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
             return
         }
 
-        detailsVC.providerId = item.id
+        detailsVC.seekerId = item.id
         navigationController?.pushViewController(detailsVC, animated: true)
     }
 

@@ -1,35 +1,17 @@
 //
-//  PersonalaizeController.swift
+//  ProfileProviderApply.swift
 //  welink
 //
-//  Created by Ali Matar on 11/12/2025.
+//  Created by Ali Matar on 28/12/2025.
 //
 
 import UIKit
 
-// Struct for applications table
-struct CreateApplicationRequest: Encodable {
-    let user_id: String
-    let full_name: String
-    let email: String
-    let phone: String
-    let image_path: String
-    let services: [String]
-    let skills: [String]
-}
+class ProfileProviderApply: UIViewController {
 
-class PersonalaizeController: UIViewController {
-
-    @IBOutlet weak var createAccount: UIButton!
+    @IBOutlet weak var applyToProviderBTN: UIButton!
     @IBOutlet weak var selectSkills: UIButton!
     @IBOutlet weak var selectService: UIButton!
-    
-    // Data passed from CreateAccountController
-    var userName: String?
-    var userEmail: String?
-    var userPhone: String?
-    var userPassword: String?
-    var userImage: UIImage?
     
     // Multi-select options
     let serviceOptions = ["Home", "Tutoring", "Design"]
@@ -39,14 +21,22 @@ class PersonalaizeController: UIViewController {
     var selectedServices: Set<String> = []
     var selectedSkills: Set<String> = []
     
-    // For image upload
+    // Loading state
     private var isLoading = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupUI()
         setupServiceMenu()
         setupSkillsMenu()
+    }
+    
+    // MARK: - Setup UI
+    
+    private func setupUI() {
+        applyToProviderBTN.layer.cornerRadius = 12
+        applyToProviderBTN.clipsToBounds = true
     }
     
     // MARK: - Setup Multi-Select Menus
@@ -119,9 +109,9 @@ class PersonalaizeController: UIViewController {
         updateSkillsMenu()
     }
     
-    // MARK: - Create Account
+    // MARK: - Apply Button Action
     
-    @IBAction func createAccountTapped(_ sender: UIButton) {
+    @IBAction func applyButtonTapped(_ sender: UIButton) {
         // Validate selections
         guard !selectedServices.isEmpty else {
             showAlert(title: "Missing Information", message: "Please select at least one service")
@@ -133,64 +123,58 @@ class PersonalaizeController: UIViewController {
             return
         }
         
-        guard let name = userName,
-              let email = userEmail,
-              let phone = userPhone,
-              let password = userPassword else {
-            showAlert(title: "Error", message: "Missing account information")
-            return
-        }
-        
         setLoading(true)
         
         Task {
-            await submitApplication(name: name, email: email, phone: phone, password: password)
+            await submitApplication()
         }
     }
     
-    private func submitApplication(name: String, email: String, phone: String, password: String) async {
+    // MARK: - Submit Application
+    
+    private func submitApplication() async {
         do {
-            // Step 1: Sign up with Supabase Auth
-            let authResponse = try await SupabaseClientManager.shared.client.auth.signUp(
-                email: email,
-                password: password
-            )
+            let session = try await SupabaseClientManager.shared.client.auth.session
+            let userId = session.user.id.uuidString
             
-            let userId = authResponse.user.id.uuidString
+            // Fetch current user data
+            let userResponse: [ProfileUserData] = try await SupabaseClientManager.shared.client.database
+                .from("users")
+                .select()
+                .eq("id", value: userId)
+                .execute()
+                .value
             
-            // Step 2: Upload image if selected
-            var imagePath = ""
-            if let image = userImage {
-                imagePath = await uploadImageToSupabase(image: image, userId: userId) ?? ""
+            guard let user = userResponse.first else {
+                await MainActor.run {
+                    setLoading(false)
+                    showAlert(title: "Error", message: "Could not fetch user data")
+                }
+                return
             }
             
-            // Step 3: Create user in users table with services and skills
-            let userRequest = CreateUserRequest(
-                id: userId,
-                name: name,
-                phone: phone,
-                image: imagePath.isEmpty ? nil : imagePath,
-                role: "seeker",
-                services: Array(selectedServices),
-                skills: Array(selectedSkills)
-            )
-            
+            // Update user with services and skills (keep role as seeker until approved)
             try await SupabaseClientManager.shared.client.database
                 .from("users")
-                .insert(userRequest)
+                .update([
+                    "services": Array(selectedServices),
+                    "skills": Array(selectedSkills)
+                ])
+                .eq("id", value: userId)
                 .execute()
             
-            // Step 4: Insert application into applications table (pending review)
+            // Create application request
             let applicationRequest = CreateApplicationRequest(
                 user_id: userId,
-                full_name: name,
-                email: email,
-                phone: phone,
-                image_path: imagePath,
+                full_name: user.name,
+                email: session.user.email ?? "",
+                phone: user.phone,
+                image_path: user.image ?? "",
                 services: Array(selectedServices),
                 skills: Array(selectedSkills)
             )
             
+            // Insert into applications table
             try await SupabaseClientManager.shared.client.database
                 .from("applications")
                 .insert(applicationRequest)
@@ -198,9 +182,7 @@ class PersonalaizeController: UIViewController {
             
             await MainActor.run {
                 setLoading(false)
-                showAlert(title: "Application Submitted", message: "Your application has been submitted for review. We'll notify you once it's approved.") { [weak self] in
-                    self?.navigateToPendingRequest()
-                }
+                navigateToSuccess()
             }
             
         } catch {
@@ -212,56 +194,25 @@ class PersonalaizeController: UIViewController {
         }
     }
     
-    private func uploadImageToSupabase(image: UIImage, userId: String) async -> String? {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("Failed to process image")
-            return nil
-        }
-        
-        let fileName = "\(userId).jpg"
-        let filePath = "applications/\(fileName)"
-        
-        do {
-            try await SupabaseClientManager.shared.client.storage
-                .from("images")
-                .upload(
-                    path: filePath,
-                    file: imageData,
-                    options: .init(contentType: "image/jpeg")
-                )
-            
-            // Get the public URL
-            let publicURL = try SupabaseClientManager.shared.client.storage
-                .from("images")
-                .getPublicURL(path: filePath)
-            
-            print("Image uploaded successfully: \(publicURL.absoluteString)")
-            return publicURL.absoluteString
-            
-        } catch {
-            print("Upload error: \(error)")
-            return nil
+    // MARK: - Navigate to Success
+    
+    private func navigateToSuccess() {
+        // Navigate using storyboard segue or programmatically
+        if let successVC = storyboard?.instantiateViewController(withIdentifier: "ProviderApplySuccess") {
+            successVC.modalPresentationStyle = .fullScreen
+            present(successVC, animated: true)
         }
     }
     
-    private func navigateToPendingRequest() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let pendingVC = storyboard.instantiateViewController(withIdentifier: "PendingRequest")
-        
-        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let window = windowScene.windows.first {
-            window.rootViewController = pendingVC
-            window.makeKeyAndVisible()
-            
-            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
-        }
-    }
+    // MARK: - Loading State
     
     private func setLoading(_ loading: Bool) {
         isLoading = loading
-        createAccount.isEnabled = !loading
-        createAccount.setTitle(loading ? "Submitting..." : "Create Account", for: .normal)
+        applyToProviderBTN.isEnabled = !loading
+        applyToProviderBTN.setTitle(loading ? "Submitting..." : "Apply To Be Provider", for: .normal)
     }
+    
+    // MARK: - Show Alert
     
     private func showAlert(title: String, message: String, completion: (() -> Void)? = nil) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)

@@ -12,36 +12,46 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
 
     @IBOutlet private weak var tableView: UITableView!
 
-    private struct ProviderApplicationRow: Decodable {
-        let id: Int
+    private struct NotificationRow: Decodable {
+        let id: String
         let user_id: String
-        let full_name: String
-        let email: String
-        let phone: String
-        let status: String
-        let created_at: Date
-        let services: [String]?
-        let skills: [String]?
+        let type: String
+        let title: String
+        let content: String
+        let is_read: Bool
+        let created_at: String
     }
 
     private struct NotificationItem {
-        let id: Int
-        let name: String
-        let subtitle: String
-        let requestedAtText: String
-        let phone: String
-        let email: String
-        let skills: [String]
-        let services: [AdminProviderRequestViewController.Service]
+        let id: String
+        let type: String
+        let title: String
+        let content: String
+        let isRead: Bool
+        let createdAt: String
     }
 
     private var items: [NotificationItem] = []
-    private let providerRequestDetailsStoryboardID = "AdminProviderRequest"
+
+    private lazy var emptyStateLabel: UILabel = {
+        let label = UILabel()
+        label.text = "No notifications yet"
+        label.textAlignment = .center
+        label.textColor = .secondaryLabel
+        label.font = .systemFont(ofSize: 17)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        navigationItem.title = "Notification"
+        navigationItem.title = "Notifications"
+
+        guard tableView != nil else {
+            print("[Notifications] ERROR: tableView outlet is not connected!")
+            return
+        }
 
         tableView.dataSource = self
         tableView.delegate = self
@@ -50,8 +60,31 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.estimatedRowHeight = 100
         tableView.tableFooterView = UIView()
 
+        setupEmptyState()
+
         Task { [weak self] in
-            await self?.loadPendingProviderRequests()
+            await self?.loadNotifications()
+        }
+    }
+
+    private func setupEmptyState() {
+        view.addSubview(emptyStateLabel)
+        NSLayoutConstraint.activate([
+            emptyStateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyStateLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+        emptyStateLabel.isHidden = true
+    }
+
+    private func updateEmptyState() {
+        emptyStateLabel.isHidden = !items.isEmpty
+        tableView.isHidden = items.isEmpty
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        Task { [weak self] in
+            await self?.loadNotifications()
         }
     }
 
@@ -64,13 +97,13 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         let item = items[indexPath.row]
 
         if let cardView = cell.viewWithTag(5) as? UIView {
-            cardView.backgroundColor = UIColor.systemGray6
+            cardView.backgroundColor = item.isRead ? UIColor.systemGray6 : UIColor.systemBlue.withAlphaComponent(0.1)
             cardView.layer.cornerRadius = 14
             cardView.clipsToBounds = true
         }
 
         if let avatarContainer = cell.viewWithTag(1) as? UIView {
-            avatarContainer.backgroundColor = UIColor.systemGray5
+            avatarContainer.backgroundColor = iconBackgroundColor(for: item.type)
             avatarContainer.clipsToBounds = true
 
             let size: CGFloat = 52
@@ -94,8 +127,7 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
             avatarContainer.layer.cornerRadius = size / 2
 
             if let avatarLabel = avatarContainer.viewWithTag(2) as? UILabel {
-                let firstChar = item.name.trimmingCharacters(in: .whitespacesAndNewlines).first
-                avatarLabel.text = firstChar.map { String($0).uppercased() } ?? ""
+                avatarLabel.text = iconText(for: item.type)
                 avatarLabel.textAlignment = .center
                 avatarLabel.frame = avatarContainer.bounds
                 avatarLabel.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -103,11 +135,12 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         }
 
         if let nameLabel = cell.viewWithTag(3) as? UILabel {
-            nameLabel.text = item.name
+            nameLabel.text = item.title
+            nameLabel.font = item.isRead ? .systemFont(ofSize: 16) : .boldSystemFont(ofSize: 16)
         }
 
         if let subtitleLabel = cell.viewWithTag(4) as? UILabel {
-            subtitleLabel.text = item.subtitle
+            subtitleLabel.text = item.content
         }
 
         return cell
@@ -117,137 +150,124 @@ class NotificationsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.deselectRow(at: indexPath, animated: true)
         guard items.indices.contains(indexPath.row) else { return }
         let item = items[indexPath.row]
-        let selectedIndex = indexPath.row
 
-        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
-        let detailsVC = storyboard.instantiateViewController(withIdentifier: providerRequestDetailsStoryboardID)
-        guard let providerRequestVC = detailsVC as? AdminProviderRequestViewController else {
-            let alert = UIAlertController(
-                title: "Setup Error",
-                message: "AdminProviderRequest scene is not using AdminProviderRequestViewController. Please set the scene custom class in AdminDashboard.storyboard.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+        // Mark notification as read
+        if !item.isRead {
+            Task { [weak self] in
+                await self?.markNotificationAsRead(id: item.id)
+            }
+        }
+    }
+
+    // MARK: - Data Loading
+
+    private func loadNotifications() async {
+        guard let session = try? await SupabaseClientManager.shared.client.auth.session else {
+            print("[Notifications] No active session")
+            await MainActor.run {
+                self.updateEmptyState()
+            }
             return
         }
 
-        providerRequestVC.request = AdminProviderRequestViewController.ProviderRequestDetails(
-            id: item.id,
-            name: item.name,
-            requestedAtText: item.requestedAtText,
-            phone: item.phone,
-            email: item.email,
-            skills: item.skills,
-            services: item.services
-        )
+        let currentUserId = session.user.id.uuidString.lowercased()
+        print("[Notifications] Loading for user: \(currentUserId)")
 
-        providerRequestVC.onApprove = { [weak self] in
-            guard let self else { return }
-            Task {
-                do {
-                    try await self.updateApplicationStatus(id: item.id, status: "accepted")
-                    await MainActor.run {
-                        guard self.items.indices.contains(selectedIndex) else { return }
-                        self.items.remove(at: selectedIndex)
-                        self.tableView.reloadData()
-                    }
-                } catch {
-                    print("Approve error:", error.localizedDescription)
-                }
-            }
-        }
-
-        providerRequestVC.onReject = { [weak self] in
-            guard let self else { return }
-            Task {
-                do {
-                    try await self.updateApplicationStatus(id: item.id, status: "rejected")
-                    await MainActor.run {
-                        guard self.items.indices.contains(selectedIndex) else { return }
-                        self.items.remove(at: selectedIndex)
-                        self.tableView.reloadData()
-                    }
-                } catch {
-                    print("Reject error:", error.localizedDescription)
-                }
-            }
-        }
-
-        navigationController?.pushViewController(providerRequestVC, animated: true)
-    }
-
-    private func loadPendingProviderRequests() async {
         let client = SupabaseClientManager.shared.client
 
         do {
-            let rows: [ProviderApplicationRow] = try await client.database
-                .from("applications")
-                .select("id, user_id, full_name, email, phone, status, created_at, services, skills")
-                .eq("status", value: "pending")
+            let rows: [NotificationRow] = try await client.database
+                .from("notifications")
+                .select("*")
+                .eq("user_id", value: currentUserId)
                 .order("created_at", ascending: false)
+                .limit(50)
                 .execute()
                 .value
 
-            let mapped: [NotificationItem] = rows.map { row in
-                let services: [AdminProviderRequestViewController.Service] = (row.services ?? []).map {
-                    AdminProviderRequestViewController.Service(
-                        title: $0,
-                        subtitle: "",
-                        priceText: "",
-                        ratingText: ""
-                    )
-                }
+            print("[Notifications] Fetched \(rows.count) notifications")
 
-                return NotificationItem(
+            let mapped: [NotificationItem] = rows.map { row in
+                NotificationItem(
                     id: row.id,
-                    name: row.full_name,
-                    subtitle: "New Provider Request",
-                    requestedAtText: "Requested at \(formatDate(row.created_at))",
-                    phone: row.phone,
-                    email: row.email,
-                    skills: row.skills ?? [],
-                    services: services
+                    type: row.type,
+                    title: row.title,
+                    content: row.content,
+                    isRead: row.is_read,
+                    createdAt: row.created_at
                 )
             }
 
             await MainActor.run {
                 self.items = mapped
                 self.tableView.reloadData()
+                self.updateEmptyState()
             }
         } catch {
-            print("Error loading notifications:", error.localizedDescription)
+            print("[Notifications] Error loading: \(error)")
             await MainActor.run {
                 self.items = []
                 self.tableView.reloadData()
+                self.updateEmptyState()
             }
         }
     }
 
-    private func updateApplicationStatus(id: Int, status: String) async throws {
+    private func markNotificationAsRead(id: String) async {
         let client = SupabaseClientManager.shared.client
-        _ = try await client.database
-            .from("applications")
-            .update(["status": status])
-            .eq("id", value: id)
-            .execute()
+
+        do {
+            _ = try await client.database
+                .from("notifications")
+                .update(["is_read": true])
+                .eq("id", value: id)
+                .execute()
+
+            // Update local state
+            await MainActor.run {
+                if let index = self.items.firstIndex(where: { $0.id == id }) {
+                    let item = self.items[index]
+                    self.items[index] = NotificationItem(
+                        id: item.id,
+                        type: item.type,
+                        title: item.title,
+                        content: item.content,
+                        isRead: true,
+                        createdAt: item.createdAt
+                    )
+                    self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+                }
+            }
+        } catch {
+            print("Error marking notification as read:", error.localizedDescription)
+        }
     }
 
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
+    // MARK: - Helpers
+
+    private func iconText(for type: String) -> String {
+        switch type {
+        case "booking_request": return "B"
+        case "booking_accepted": return "✓"
+        case "booking_rejected": return "✗"
+        case "booking_cancelled": return "C"
+        case "new_rating": return "★"
+        case "application_accepted": return "✓"
+        case "application_rejected": return "✗"
+        case "system": return "!"
+        default: return "N"
+        }
     }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    private func iconBackgroundColor(for type: String) -> UIColor {
+        switch type {
+        case "booking_request": return .systemBlue
+        case "booking_accepted", "application_accepted": return .systemGreen
+        case "booking_rejected", "application_rejected": return .systemRed
+        case "booking_cancelled": return .systemOrange
+        case "new_rating": return .systemYellow
+        case "system": return .systemGray
+        default: return .systemGray5
+        }
     }
-    */
-
 }

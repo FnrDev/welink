@@ -187,20 +187,34 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Login
-    
+
     func login() async {
         guard let email = emailField.text, !email.isEmpty,
               let password = passwordField.text, !password.isEmpty else {
             showAlert("Username & password required")
             return
         }
-        
+
         do {
             let session = try await SupabaseClientManager.shared.client.auth.signIn(email: email, password: password)
-           
-            
+            let userId = session.user.id.uuidString
+
+            // Fetch user role from database
+            let response: [[String: String]] = try await SupabaseClientManager.shared.client.database
+                .from("users")
+                .select("role")
+                .eq("id", value: userId)
+                .execute()
+                .value
+
+            let userRole = response.first?["role"] ?? "seeker"
+
             await MainActor.run {
-                redirectToHome()
+                if userRole == "admin" {
+                    redirectToAdminDashboard()
+                } else {
+                    redirectToHome()
+                }
             }
         } catch {
             showAlert("Login failed: \(error.localizedDescription)")
@@ -218,7 +232,15 @@ class ViewController: UIViewController {
     private func redirectToHome() {
         let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
         let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
-        
+
+        guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        window.windows.first?.rootViewController = vc
+    }
+
+    private func redirectToAdminDashboard() {
+        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+        let vc = storyboard.instantiateViewController(withIdentifier: "AdminTabBarController")
+
         guard let window = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
         window.windows.first?.rootViewController = vc
     }

@@ -324,7 +324,7 @@ class ServiceDetailsViewController: UIViewController {
                 let response: ServiceWithUser = try await SupabaseClientManager.shared.client
                     .database
                     .from("services")
-                    .select("id, name, description, price_per_hour, image, user_id, start_date, end_date, users(name, image)")
+                    .select("id, name, description, price_per_hour, image, user_id, start_date, end_date, categories, users(name, image)")
                     .eq("id", value: serviceId)
                     .single()
                     .execute()
@@ -782,7 +782,8 @@ class ServiceDetailsViewController: UIViewController {
             return
         }
 
-        conversationVC.otherUserId = providerId
+        // Lowercase the provider ID to ensure consistent conversation matching
+        conversationVC.otherUserId = providerId.lowercased()
         conversationVC.otherUserName = service?.providerName ?? "Provider"
 
         navigationController?.pushViewController(conversationVC, animated: true)
