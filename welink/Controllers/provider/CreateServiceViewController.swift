@@ -87,11 +87,32 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
 
         setupDottedBorder()
         setupPreviewImageViewConstraints()
+        setupImageTapGesture()
 
         // If in edit mode, populate fields with existing data
         if isEditMode {
             populateFieldsForEditing()
         }
+    }
+
+    private func setupImageTapGesture() {
+        previewImageView.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(previewImageTapped))
+        previewImageView.addGestureRecognizer(tapGesture)
+    }
+
+    @objc private func previewImageTapped() {
+        // Only respond if there's already an image displayed
+        guard !previewImageView.isHidden else { return }
+        openImagePicker()
+    }
+
+    private func openImagePicker() {
+        let picker = UIImagePickerController()
+        picker.delegate = self
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = true
+        present(picker, animated: true)
     }
 
     private func populateFieldsForEditing() {
@@ -107,10 +128,10 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
         serviceNameTextField.text = service.name
 
         // Populate price
-        priceTextField.text = String(format: "%.0f", service.pricePerHour)
+        priceTextField.text = String(format: "%.0f", service.pricePerHour ?? 0)
 
         // Populate description
-        descriptionTextView.text = service.description
+        descriptionTextView.text = service.description ?? ""
         descriptionTextView.textColor = textColor
 
         // Populate dates
@@ -145,8 +166,11 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
             loadExistingImage(from: imageUrl)
         }
 
-        // Fetch and populate categories
-        fetchServiceCategories()
+        // Populate categories from existing service
+        if let categories = service.categories, !categories.isEmpty {
+            self.selectedCategories = Set(categories)
+            self.updateCategoryButtonTitle()
+        }
     }
 
     private func loadExistingImage(from urlString: String) {
@@ -169,31 +193,6 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
                 }
             } catch {
                 print("Failed to load existing image: \(error)")
-            }
-        }
-    }
-
-    private func fetchServiceCategories() {
-        guard let serviceId = editingServiceId else { return }
-
-        Task {
-            do {
-                let response: [[String: String]] = try await SupabaseClientManager.shared.client
-                    .database
-                    .from("service_categories")
-                    .select("category")
-                    .eq("service_id", value: serviceId)
-                    .execute()
-                    .value
-
-                let categories = response.compactMap { $0["category"] }
-
-                await MainActor.run {
-                    self.selectedCategories = Set(categories)
-                    self.updateCategoryButtonTitle()
-                }
-            } catch {
-                print("Failed to fetch categories: \(error)")
             }
         }
     }
@@ -316,11 +315,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     }
 
     @IBAction func uploadButtonTapped(_ sender: Any) {
-        let picker = UIImagePickerController()
-        picker.delegate = self
-        picker.sourceType = .photoLibrary
-        picker.allowsEditing = true
-        present(picker, animated: true)
+        openImagePicker()
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {

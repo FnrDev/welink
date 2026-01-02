@@ -61,6 +61,13 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
         let user2_id: String
     }
 
+    struct CreateNotificationRequest: Encodable {
+        let user_id: String
+        let type: String
+        let title: String
+        let content: String
+    }
+
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -210,10 +217,11 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
             return
         }
 
-        currentUserId = session.user.id.uuidString
+        currentUserId = session.user.id.uuidString.lowercased()
 
         if conversationId == nil, let otherUserId = otherUserId, let currentUserId = currentUserId {
-            await findOrCreateConversation(currentUserId: currentUserId, otherUserId: otherUserId)
+            // Normalize otherUserId to lowercase for consistent comparison
+            await findOrCreateConversation(currentUserId: currentUserId, otherUserId: otherUserId.lowercased())
         }
 
         if conversationId != nil {
@@ -226,19 +234,30 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
         let client = SupabaseClientManager.shared.client
 
         do {
-            // Try to find existing conversation
+            // Fetch all conversations where current user is involved
             let conversations: [Conversation] = try await client.database
                 .from("conversations")
                 .select("*")
-                .or("and(user1_id.eq.\(currentUserId),user2_id.eq.\(otherUserId)),and(user1_id.eq.\(otherUserId),user2_id.eq.\(currentUserId))")
+                .or("user1_id.ilike.\(currentUserId),user2_id.ilike.\(currentUserId)")
                 .execute()
                 .value
 
-            if let existing = conversations.first {
+            // Find existing conversation with the other user (case-insensitive)
+            let existing = conversations.first { conv in
+                let user1 = conv.user1_id.lowercased()
+                let user2 = conv.user2_id.lowercased()
+                let current = currentUserId.lowercased()
+                let other = otherUserId.lowercased()
+
+                return (user1 == current && user2 == other) || (user1 == other && user2 == current)
+            }
+
+            if let existing = existing {
                 conversationId = existing.id
+                print("Found existing conversation: \(existing.id)")
             } else {
-                // Create new conversation
-                let request = CreateConversationRequest(user1_id: currentUserId, user2_id: otherUserId)
+                // Create new conversation with lowercase IDs
+                let request = CreateConversationRequest(user1_id: currentUserId.lowercased(), user2_id: otherUserId.lowercased())
                 let newConversation: Conversation = try await client.database
                     .from("conversations")
                     .insert(request)
@@ -248,6 +267,7 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
                     .value
 
                 conversationId = newConversation.id
+                print("Created new conversation: \(newConversation.id)")
             }
         } catch {
             print("Error finding/creating conversation:", error.localizedDescription)
@@ -388,6 +408,11 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
                 .from("messages")
                 .insert(request)
                 .execute()
+
+            // Insert notification for the recipient
+            if let recipientId = otherUserId {
+                await insertNotificationForRecipient(recipientId: recipientId, messageContent: text)
+            }
         } catch {
             print("Error sending message:", error.localizedDescription)
 
@@ -406,6 +431,46 @@ class ConversationViewController: UIViewController, UITableViewDataSource, UITab
                 alert.addAction(UIAlertAction(title: "OK", style: .default))
                 self.present(alert, animated: true)
             }
+        }
+    }
+
+    private func insertNotificationForRecipient(recipientId: String, messageContent: String) async {
+        let client = SupabaseClientManager.shared.client
+
+        // Fetch current user's name for the notification
+        var senderName = "Someone"
+        if let currentUserId = currentUserId {
+            do {
+                struct UserName: Decodable {
+                    let name: String
+                }
+                let user: UserName = try await client.database
+                    .from("users")
+                    .select("name")
+                    .eq("id", value: currentUserId)
+                    .single()
+                    .execute()
+                    .value
+                senderName = user.name
+            } catch {
+                print("Error fetching sender name:", error.localizedDescription)
+            }
+        }
+
+        let notification = CreateNotificationRequest(
+            user_id: recipientId,
+            type: "system",
+            title: "New Message",
+            content: "You received a new message from \(senderName)"
+        )
+
+        do {
+            _ = try await client.database
+                .from("notifications")
+                .insert(notification)
+                .execute()
+        } catch {
+            print("Error inserting notification:", error.localizedDescription)
         }
     }
 

@@ -13,8 +13,8 @@ class AdminServiceDetailsViewController: UIViewController {
     private struct AdminServiceDetailsModel {
         let id: String
         let name: String
-        let description: String
-        let pricePerHour: Double
+        let description: String?
+        let pricePerHour: Double?
         let image: String?
         let userId: String?
         let providerName: String?
@@ -147,7 +147,7 @@ class AdminServiceDetailsViewController: UIViewController {
                 let mapped = AdminServiceDetailsModel(
                     id: response.id,
                     name: response.name,
-                    description: response.description,
+                    description: response.description ?? "No description",
                     pricePerHour: response.price_per_hour,
                     image: response.image,
                     userId: response.user_id,
@@ -210,7 +210,7 @@ class AdminServiceDetailsViewController: UIViewController {
 
         providerNameLabel?.text = service.providerName ?? "Unknown Provider"
         descriptionLabel?.text = service.description
-        priceLabel?.text = String(format: "%.0f BD/hr", service.pricePerHour)
+        priceLabel?.text = String(format: "%.0f BD/hr", service.pricePerHour ?? 0)
 
         if let imageUrl = service.image {
             loadImage(from: imageUrl, into: serviceImageView)
