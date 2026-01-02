@@ -26,6 +26,7 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
         let otherUserImage: String?
         let lastMessage: String
         let lastMessageTime: String
+        let lastMessageRawTime: String?  // For sorting
     }
 
     struct ConversationRow: Decodable {
@@ -158,14 +159,19 @@ class MessagesViewController: UIViewController, UITableViewDataSource, UITableVi
                     otherUserName: otherUser?.name ?? "Unknown",
                     otherUserImage: otherUser?.image,
                     lastMessage: lastMessage?.content ?? "No messages yet",
-                    lastMessageTime: formatTime(lastMessage?.created_at)
+                    lastMessageTime: formatTime(lastMessage?.created_at),
+                    lastMessageRawTime: lastMessage?.created_at
                 )
 
                 items.append(item)
             }
 
-            // Sort by most recent message
-            items.sort { $0.lastMessageTime > $1.lastMessageTime }
+            // Sort by most recent message (newest first)
+            items.sort { (a, b) in
+                guard let timeA = a.lastMessageRawTime else { return false }
+                guard let timeB = b.lastMessageRawTime else { return true }
+                return timeA > timeB
+            }
 
             await MainActor.run {
                 self.conversations = items
