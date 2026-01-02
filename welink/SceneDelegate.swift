@@ -39,16 +39,42 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let client = SupabaseClientManager.shared.client
         let session = try? await client.auth.session
 
-        if session != nil {
-            let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
-            let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
-            window?.rootViewController = vc
+        if let session = session {
+            // Fetch user role from database
+            let userId = session.user.id.uuidString
+            let userRole = await fetchUserRole(userId: userId)
+
+            if userRole == "admin" {
+                let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+                let vc = storyboard.instantiateViewController(withIdentifier: "AdminDashboard")
+                window?.rootViewController = vc
+            } else {
+                let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)
+                let vc = storyboard.instantiateViewController(withIdentifier: "SeekerTabController")
+                window?.rootViewController = vc
+            }
         } else {
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let vc = storyboard.instantiateViewController(withIdentifier: "ViewController") as! ViewController
             window?.rootViewController = vc
         }
-        
+
         window?.makeKeyAndVisible()
+    }
+
+    private func fetchUserRole(userId: String) async -> String {
+        do {
+            let response: [[String: String]] = try await SupabaseClientManager.shared.client.database
+                .from("users")
+                .select("role")
+                .eq("id", value: userId)
+                .execute()
+                .value
+
+            return response.first?["role"] ?? "seeker"
+        } catch {
+            print("Error fetching user role: \(error)")
+            return "seeker"
+        }
     }
 }
