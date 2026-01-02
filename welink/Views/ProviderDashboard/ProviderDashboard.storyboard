@@ -480,7 +480,7 @@
                                                     <color key="baseForegroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                                 </buttonConfiguration>
                                                 <connections>
-                                                    <segue destination="wc7-zV-j2u" kind="presentation" modalPresentationStyle="fullScreen" id="PAF-iY-Mt9"/>
+                                                    <segue destination="wc7-zV-j2u" kind="presentation" id="PAF-iY-Mt9"/>
                                                 </connections>
                                             </button>
                                         </barButtonItem>
