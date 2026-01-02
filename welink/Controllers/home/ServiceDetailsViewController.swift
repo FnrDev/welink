@@ -22,8 +22,9 @@ class ServiceDetailsViewController: UIViewController {
     @IBOutlet weak var reviewsTableView: UITableView!
     @IBOutlet weak var messageButton: UIButton!
     @IBOutlet weak var bookNowButton: UIButton!
-    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
+//    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
     @IBOutlet weak var seeAllButton: UIButton!
+    @IBOutlet weak var scrollView: UIScrollView!
     
     // MARK: - Properties
     var service: SeekerSearchResult? // Holds the service data passed from Search/Home/Category
@@ -36,8 +37,17 @@ class ServiceDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        serviceImageView.isUserInteractionEnabled = false
+
+        
+        scrollView.delaysContentTouches = false
+        scrollView.canCancelContentTouches = true
+        
         messageButton.applyAppStyle()
         bookNowButton.applyAppStyle()
+        
+        messageButton.isExclusiveTouch = true
+        bookNowButton.isExclusiveTouch = true
 
         setupDateTimeTapGestures()
         setupReviewsTableView()
@@ -256,6 +266,22 @@ class ServiceDetailsViewController: UIViewController {
         self.tabBarController?.tabBar.isHidden = true
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        print("🔍 ALL SUBVIEWS IN VIEW:")
+        printViewHierarchy(view: view, indent: 0)
+    }
+
+    func printViewHierarchy(view: UIView, indent: Int) {
+        let indentString = String(repeating: "  ", count: indent)
+        print("\(indentString)- \(type(of: view)): \(view.frame)")
+        
+        for subview in view.subviews {
+            printViewHierarchy(view: subview, indent: indent + 1)
+        }
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         self.tabBarController?.tabBar.isHidden = false
@@ -267,8 +293,12 @@ class ServiceDetailsViewController: UIViewController {
         reviewsTableView.dataSource = self
         reviewsTableView.rowHeight = UITableView.automaticDimension
         reviewsTableView.estimatedRowHeight = 100
-        reviewsTableView.isScrollEnabled = false  // Fixed height, no scroll
+
+        reviewsTableView.isScrollEnabled = false
+        reviewsTableView.delaysContentTouches = false
+        reviewsTableView.canCancelContentTouches = true
     }
+
     
     // MARK: - Database Functions
     func fetchServiceDetails(serviceId: String) {
@@ -327,15 +357,15 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-    func updateReviewsTableHeight() {
-        reviewsTableView.layoutIfNeeded()
-        
-        DispatchQueue.main.async {
-            self.reviewsTableViewHeight.constant =
-                self.reviewsTableView.contentSize.height
-            self.view.layoutIfNeeded()
-        }
-    }
+//    func updateReviewsTableHeight() {
+//        reviewsTableView.layoutIfNeeded()
+//        
+//        DispatchQueue.main.async {
+//            self.reviewsTableViewHeight.constant =
+//                self.reviewsTableView.contentSize.height
+//            self.view.layoutIfNeeded()
+//        }
+//    }
     
     func fetchRatings(serviceId: String) {
         Task {
@@ -516,7 +546,7 @@ class ServiceDetailsViewController: UIViewController {
 
             reviewsTableView.backgroundView = emptyLabel
             reviewsTableView.separatorStyle = .none
-            reviewsTableViewHeight.constant = 80
+//            reviewsTableViewHeight.constant = 80
             
             seeAllButton.isHidden = true
             
@@ -529,9 +559,9 @@ class ServiceDetailsViewController: UIViewController {
             
             reviewsTableView.reloadData()
             // Update table height based on content
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.updateReviewsTableHeight()
-            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+//                self.updateReviewsTableHeight()
+//            }
         }
     }
     
