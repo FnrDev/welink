@@ -139,7 +139,7 @@ class ServiceDetailsViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle("Delete Service", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .systemRed
+        button.backgroundColor = .accent
         button.layer.cornerRadius = 12
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -263,16 +263,16 @@ class ServiceDetailsViewController: UIViewController {
     }
 
     private func setupCloseButtonIfNeeded() {
-        // Add close button if presented modally
+        // Add back button if presented modally
         if presentingViewController != nil {
             navigationItem.leftBarButtonItem = UIBarButtonItem(
-                barButtonSystemItem: .close,
+                title: "Back",
+                style: .plain,
                 target: self,
                 action: #selector(closeTapped)
             )
         }
     }
-
     @objc private func closeTapped() {
         dismiss(animated: true)
     }
