@@ -4,10 +4,24 @@ final class AdminServiceCell: UITableViewCell {
 
     private let avatarSize: CGFloat = 56
 
+    private let cardCornerRadius: CGFloat = 16
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+
+        backgroundColor = .clear
+        contentView.backgroundColor = .clear
+        selectionStyle = .none
+
+        clipsToBounds = false
+        contentView.clipsToBounds = false
+        layer.masksToBounds = false
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
 
-        if let avatarImageView = viewWithTag(3) as? UIImageView {
+        if let avatarImageView = contentView.viewWithTag(3) as? UIImageView {
             ensureFixedSizeConstraints(on: avatarImageView, size: avatarSize)
             avatarImageView.contentMode = .scaleAspectFill
             avatarImageView.clipsToBounds = true
@@ -15,10 +29,23 @@ final class AdminServiceCell: UITableViewCell {
             avatarImageView.layer.masksToBounds = true
         }
 
-        if let cardView = viewWithTag(100) {
-            cardView.layer.cornerRadius = 14
-            cardView.layer.masksToBounds = true
+        guard let cardView = contentView.viewWithTag(100) else { return }
+
+        cardView.backgroundColor = UIColor.systemGray6
+        cardView.layer.cornerRadius = cardCornerRadius
+        if #available(iOS 13.0, *) {
+            cardView.layer.cornerCurve = .continuous
         }
+        cardView.layer.masksToBounds = true
+
+        if let chevron = contentView.viewWithTag(6) as? UIImageView {
+            chevron.isHidden = false
+            chevron.tintColor = UIColor.systemGray
+            if chevron.image == nil {
+                chevron.image = UIImage(systemName: "chevron.right")
+            }
+        }
+
     }
 
     private func ensureFixedSizeConstraints(on view: UIView, size: CGFloat) {
