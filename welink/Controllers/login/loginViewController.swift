@@ -23,7 +23,14 @@ class ViewController: UIViewController {
     }
     
     @IBAction func forgetBTN(_ sender: Any) {
-        showForgotPasswordAlert()
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let forgotPasswordVC = storyboard.instantiateViewController(withIdentifier: "ForgotPasswordController") as? ForgotPasswordController else {
+            return
+        }
+        
+        let navController = UINavigationController(rootViewController: forgotPasswordVC)
+        navController.modalPresentationStyle = .fullScreen
+        present(navController, animated: true)
     }
     
     // MARK: - Forgot Password Flow
