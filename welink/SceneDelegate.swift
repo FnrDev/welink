@@ -9,6 +9,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let testStoryboard = "AdminDashboard"  // Change this to your storyboard name
     let testViewControllerID = "AdminSeekersListVC"  // Change this to your VC identifier
     
+    // MARK: - Set this to true to clear session and go to login
+    let clearSession = true
     // admin dashboard
     // - ProviderDashboard,ProviderDashboardVC
 
@@ -23,6 +25,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Apply saved dark mode preference
         let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         window?.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+        
+        // If clear session is on, sign out and go to login
+        if clearSession {
+            Task {
+                try? await SupabaseClientManager.shared.client.auth.signOut()
+                await MainActor.run {
+                    let storyboard = UIStoryboard(name: "Main", bundle: nil)
+                    let vc = storyboard.instantiateViewController(withIdentifier: "ViewController")
+                    window?.rootViewController = vc
+                    window?.makeKeyAndVisible()
+                }
+            }
+            return
+        }
 
         // If test mode is on, load the test storyboard directly
         if testMode {
