@@ -477,7 +477,7 @@
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                 <state key="normal" title="Button"/>
                                                 <buttonConfiguration key="configuration" style="plain" image="bell" catalog="system">
-                                                    <color key="baseForegroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                                    <color key="baseForegroundColor" name="AccentColor"/>
                                                 </buttonConfiguration>
                                                 <connections>
                                                     <segue destination="wc7-zV-j2u" kind="presentation" id="PAF-iY-Mt9"/>
@@ -536,7 +536,7 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="ZAZ-Ip-Ryt"/>
+        <segue reference="srV-85-xhw"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="bell" catalog="system" width="125" height="128"/>
