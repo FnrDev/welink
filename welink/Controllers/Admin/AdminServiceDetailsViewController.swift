@@ -30,11 +30,8 @@ class AdminServiceDetailsViewController: UIViewController {
     @IBOutlet private weak var ratingLabel: UILabel?
     @IBOutlet private weak var descriptionLabel: UILabel?
     @IBOutlet private weak var priceLabel: UILabel?
-    @IBOutlet private weak var dateLabel: UILabel?
-    @IBOutlet private weak var timeLabel: UILabel?
     @IBOutlet private weak var reviewsTableView: UITableView?
     @IBOutlet private weak var reviewsTableViewHeight: AnyObject?
-    @IBOutlet private weak var seeAllButton: UIButton?
 
     var serviceId: String?
 
@@ -48,7 +45,6 @@ class AdminServiceDetailsViewController: UIViewController {
 
         bindFallbackViewsIfNeeded()
         setupReviewsTableView()
-        setupSeeAllButton()
 
         guard let serviceId else {
             showError(message: "No service data available")
@@ -96,14 +92,6 @@ class AdminServiceDetailsViewController: UIViewController {
             priceLabel = findLabel(containing: "BD")
         }
 
-        if dateLabel == nil {
-            dateLabel = findLabel(containing: "/")
-        }
-
-        if timeLabel == nil {
-            timeLabel = findLabel(containing: "AM") ?? findLabel(containing: "PM")
-        }
-
         if reviewsTableView == nil {
             reviewsTableView = findFirstView(ofType: UITableView.self)
         }
@@ -114,14 +102,6 @@ class AdminServiceDetailsViewController: UIViewController {
                 $0.firstAttribute == .height && $0.relation == .equal
             })
         }
-
-        if seeAllButton == nil {
-            seeAllButton = findButton(restorationIdentifier: "showAllReviews")
-        }
-    }
-
-    private func setupSeeAllButton() {
-        seeAllButton?.addTarget(self, action: #selector(seeAllReviewsTapped(_:)), for: .touchUpInside)
     }
 
     private func setupReviewsTableView() {
@@ -236,9 +216,6 @@ class AdminServiceDetailsViewController: UIViewController {
             profileImageView?.image = createInitialImage(text: initial, size: CGSize(width: 60, height: 60))
             profileImageView?.contentMode = .scaleAspectFit
         }
-
-        dateLabel?.text = "Available"
-        timeLabel?.text = "Select time"
     }
 
     private func updateRatingDisplay() {
@@ -347,30 +324,6 @@ class AdminServiceDetailsViewController: UIViewController {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-
-    @objc private func seeAllReviewsTapped(_ sender: UIButton) {
-        guard let service else {
-            print("❌ No service available")
-            return
-        }
-
-        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
-        let vc = storyboard.instantiateViewController(withIdentifier: "AdminAllReviewsVC")
-        guard let allReviewsVC = vc as? AllReviewsViewController else {
-            let alert = UIAlertController(
-                title: "Setup Error",
-                message: "To view all reviews from Admin, add a scene to AdminDashboard.storyboard with class AllReviewsViewController and Storyboard ID AdminAllReviewsVC.",
-                preferredStyle: .alert
-            )
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-
-        allReviewsVC.serviceId = service.id
-        allReviewsVC.serviceName = service.name
-        navigationController?.pushViewController(allReviewsVC, animated: true)
     }
 }
 

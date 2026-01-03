@@ -37,6 +37,7 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
 
     private var allItems: [SeekerItem] = []
     private var filteredItems: [SeekerItem] = []
+    private var moderationIndicatorById: [String: Bool] = [:]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,16 +119,53 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
                 )
             }
 
+            let ids = mapped.map { $0.id }
+            let indicators = await loadModerationIndicators(userIds: ids)
+
             await MainActor.run {
                 self.allItems = mapped
+                self.moderationIndicatorById = indicators
                 self.applyFilter(text: self.searchBar.text)
             }
         } catch {
             print("Error loading seekers:", error.localizedDescription)
             await MainActor.run {
                 self.allItems = []
+                self.moderationIndicatorById = [:]
                 self.applyFilter(text: self.searchBar.text)
             }
+        }
+    }
+
+    private func loadModerationIndicators(userIds: [String]) async -> [String: Bool] {
+        guard !userIds.isEmpty else { return [:] }
+
+        struct ModerationIndicatorRow: Decodable {
+            let target_id: String
+            let flag: String?
+            let note: String?
+        }
+
+        do {
+            let rows: [ModerationIndicatorRow] = try await SupabaseClientManager.shared.client.database
+                .from("moderation_notes")
+                .select("target_id, flag, note")
+                .in("target_id", value: userIds)
+                .execute()
+                .value
+
+            var map: [String: Bool] = [:]
+            map.reserveCapacity(rows.count)
+            for row in rows {
+                let hasNote = !(row.note?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+                let flag = (row.flag ?? "none").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                let hasFlag = !flag.isEmpty && flag != "none"
+                map[row.target_id] = (hasNote || hasFlag)
+            }
+            return map
+        } catch {
+            print("Error loading moderation indicators:", error.localizedDescription)
+            return [:]
         }
     }
 
@@ -205,6 +243,15 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
                     avatarImageView.accessibilityIdentifier = nil
                 }
             }
+        }
+
+        let shouldShowFlag = moderationIndicatorById[item.id] == true
+        if shouldShowFlag {
+            let imageView = UIImageView(image: UIImage(systemName: "flag.fill"))
+            imageView.tintColor = .systemOrange
+            cell.accessoryView = imageView
+        } else {
+            cell.accessoryView = nil
         }
 
         return cell
