@@ -70,11 +70,17 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         // Setup category button - explicitly disable menu
         categoryButton.menu = nil
         categoryButton.showsMenuAsPrimaryAction = false
         updateCategoryButtonTitle()
+
+        // Fix upload button background color to prevent it changing when action sheet is shown
+        var config = uploadButton.configuration ?? UIButton.Configuration.filled()
+        config.baseBackgroundColor = UIColor(named: "AccentColor")
+        config.baseForegroundColor = UIColor.white
+        uploadButton.configuration = config
         
         // style for service description
         descriptionTextView.layer.cornerRadius = 12

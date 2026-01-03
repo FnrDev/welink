@@ -29,6 +29,7 @@ class HistoryCell: UITableViewCell {
     private var providerName: String = ""
     private var currentUserId: String = ""
     private var serviceImageURL: String? = nil
+    private var servicePrice: Double = 0
     private var isFavourite: Bool = false
     private var favouriteId: Int64? = nil
     
@@ -45,6 +46,7 @@ class HistoryCell: UITableViewCell {
         serviceName = ""
         providerName = ""
         serviceImageURL = nil
+        servicePrice = 0
         isFavourite = false
         favouriteId = nil
         updateFavouriteButtonAppearance()
@@ -80,6 +82,7 @@ class HistoryCell: UITableViewCell {
         self.providerName = providerName
         self.currentUserId = userId
         self.serviceImageURL = booking.serviceImage
+        self.servicePrice = booking.price
         
         title.text = booking.serviceName
         date.text = "Order date: \(formatDate(booking.createdAt))"
@@ -157,7 +160,7 @@ class HistoryCell: UITableViewCell {
                 let request = CreateFavouriteRequest(
                     service_name: serviceName,
                     provider_name: providerName,
-                    rate: nil,
+                    rate: String(format: "%.0f", servicePrice),
                     user_id: currentUserId,
                     service_image: serviceImageURL
                 )
