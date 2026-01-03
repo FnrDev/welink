@@ -375,3 +375,9 @@ extension HistoryController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
     }
 }
+
+// MARK: - HistoryFeedBackDelegate Protocol
+
+protocol HistoryFeedBackDelegate: AnyObject {
+    func didSubmitFeedback(serviceId: String, stars: Int, review: String)
+}

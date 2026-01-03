@@ -160,6 +160,13 @@ class FeedbackViewController: UIViewController {
                     .execute()
                 
                 await MainActor.run {
+                    // Notify delegate about the new feedback
+                    self.delegate?.didSubmitFeedback(
+                        serviceId: self.serviceId ?? "",
+                        stars: stars,
+                        review: review
+                    )
+                    
                     // Show success
                     let alert = UIAlertController(
                         title: "Thank You!",
