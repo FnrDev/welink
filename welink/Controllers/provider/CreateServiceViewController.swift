@@ -54,7 +54,7 @@ class CreateServiceViewController: UIViewController, UITextViewDelegate, UIImage
     // const
     let placeholderText = "Describe your service in details"
     let placeholderColor = UIColor.lightGray
-    let textColor = UIColor.black
+    let textColor = UIColor.label
     
     // Store the uploaded image URL
     private var uploadedImageURL: String?
