@@ -20,6 +20,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
 
+        // Apply saved dark mode preference
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        window?.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+
         // If test mode is on, load the test storyboard directly
         if testMode {
             let storyboard = UIStoryboard(name: testStoryboard, bundle: nil)
