@@ -713,7 +713,7 @@
                                 </items>
                             </navigationBar>
                             <searchBar contentMode="redraw" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vbm-Ga-vVr">
-                                <rect key="frame" x="0.0" y="134" width="393" height="44"/>
+                                <rect key="frame" x="9" y="135" width="368" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>

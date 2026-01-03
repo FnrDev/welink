@@ -118,9 +118,13 @@ class HistoryController: UIViewController {
     }
     
     // MARK: - Setup Search Bar
-    
+
     private func setupSearchBar() {
         searchBar?.delegate = self
+        
+        searchBar?.searchBarStyle = .minimal  // Removes outer border
+        searchBar?.backgroundImage = UIImage()  // Removes background
+        searchBar?.backgroundColor = .clear
     }
     
     // MARK: - Fetch History
