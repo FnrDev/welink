@@ -21,14 +21,22 @@ class FeedbackViewController: UIViewController {
     @IBOutlet weak var reviewTextView: UITextView!
     @IBOutlet weak var submitButton: UIButton!
     
-
     var serviceId: String!
+    var serviceName: String!
+    var currentUserId: String!
+    weak var delegate: HistoryFeedBackDelegate?
     var selectedStars: Int = 0
     var starButtons: [UIButton] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Navigation bar
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        self.title = "Feedback"
+        navigationController?.navigationBar.prefersLargeTitles = false
+        navigationController?.navigationBar.tintColor = UIColor(hex: "2D493A")
+          
         createStarButtons()
         setupUI()
         setupTextView()
