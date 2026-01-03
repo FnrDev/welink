@@ -450,7 +450,6 @@ class ServiceTableViewCell: UITableViewCell {
     
     private let logoLabel: UILabel = {
         let label = UILabel()
-        label.text = "W."
         label.textColor = .white
         label.font = .boldSystemFont(ofSize: 20)
         label.textAlignment = .center
@@ -550,7 +549,11 @@ class ServiceTableViewCell: UITableViewCell {
         let price = service.price_per_hour ?? 0
         providerLabel.text = "\(name) - BD\(Int(price)) /hr"
         ratingLabel.text = String(format: "%.1f", rating ?? 0.0)
-        
+
+        // Set initial letter from service name
+        let initial = String(service.name.prefix(1)).uppercased()
+        logoLabel.text = initial
+
         if let imageURLString = service.image,
            !imageURLString.isEmpty,
            let url = URL(string: imageURLString) {
