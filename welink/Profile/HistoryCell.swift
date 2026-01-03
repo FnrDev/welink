@@ -52,6 +52,13 @@ class HistoryCell: UITableViewCell {
         updateFavouriteButtonAppearance()
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        // Make image circular
+        historyImage.layer.cornerRadius = historyImage.bounds.width / 2
+    }
+    
     // MARK: - Setup UI
     
     private func setupUI() {
@@ -85,8 +92,8 @@ class HistoryCell: UITableViewCell {
         self.servicePrice = booking.price
         
         title.text = booking.serviceName
-        date.text = "Order date: \(formatDate(booking.createdAt))"
-        price.text = "\(Int(booking.price)) BHD"
+        date.text = "booked at \(formatDate(booking.createdAt))"
+        price.text = "\(Int(booking.price)) BD"
         
         loadImage(from: booking.serviceImage)
         

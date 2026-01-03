@@ -125,11 +125,6 @@ class FeedbackViewController: UIViewController {
         let reviewText = reviewTextView.text == "Share your experience..." || reviewTextView.text.isEmpty ?
             "" : reviewTextView.text ?? ""
         
-        guard !reviewText.isEmpty else {
-            showAlert(title: "Missing Review", message: "Please write your review")
-            return
-        }
-        
         submitReview(stars: selectedStars, review: reviewText)
     }
     
@@ -160,6 +155,13 @@ class FeedbackViewController: UIViewController {
                     .execute()
                 
                 await MainActor.run {
+                    // Notify delegate about the new feedback
+                    self.delegate?.didSubmitFeedback(
+                        serviceId: self.serviceId ?? "",
+                        stars: stars,
+                        review: review
+                    )
+                    
                     // Show success
                     let alert = UIAlertController(
                         title: "Thank You!",
