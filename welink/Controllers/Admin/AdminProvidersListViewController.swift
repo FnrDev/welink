@@ -191,12 +191,18 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
             avatarImageView.image = nil
 
             if let urlString = item.imageURLString {
-                loadImage(urlString: urlString) { [weak tableView] image in
-                    guard let tableView else { return }
-                    if let currentCell = tableView.cellForRow(at: indexPath), currentCell === cell {
+                if let normalized = normalizedURL(from: urlString) {
+                    let expectedKey = String(describing: normalized.cacheKey)
+                    avatarImageView.accessibilityIdentifier = expectedKey
+
+                    loadImage(urlString: urlString) { [weak avatarImageView] image in
+                        guard let avatarImageView else { return }
+                        guard avatarImageView.accessibilityIdentifier == expectedKey else { return }
                         avatarImageView.image = image
                         avatarImageView.layer.cornerRadius = min(avatarImageView.bounds.width, avatarImageView.bounds.height) / 2
                     }
+                } else {
+                    avatarImageView.accessibilityIdentifier = nil
                 }
             }
         }
@@ -228,17 +234,58 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
         navigationController?.pushViewController(detailsVC, animated: true)
     }
 
+    private func normalizedURL(from raw: String) -> (url: URL, cacheKey: NSString)? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        var candidate = trimmed
+
+        // Supabase storage values may be saved as relative paths like:
+        // - profiles/<id>.jpg
+        // - applications/<id>.jpg
+        // - images/profiles/<id>.jpg
+        // Convert these to a full public URL.
+        if !candidate.lowercased().hasPrefix("http://") && !candidate.lowercased().hasPrefix("https://") {
+            let base = "https://mjzyqwziqqhcdrdadfpc.supabase.co/storage/v1/object/public/"
+            let cleaned = candidate.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            if cleaned.lowercased().hasPrefix("images/") {
+                candidate = base + cleaned
+            } else if cleaned.lowercased().hasPrefix("profiles/") || cleaned.lowercased().hasPrefix("applications/") {
+                candidate = base + "images/" + cleaned
+            }
+        }
+
+        if candidate.hasPrefix("//") {
+            candidate = "https:" + candidate
+        }
+        if !(candidate.lowercased().hasPrefix("http://") || candidate.lowercased().hasPrefix("https://")) {
+            candidate = "https://" + candidate
+        }
+
+        let encoded = candidate.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? candidate
+        guard let url = URL(string: encoded),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return nil
+        }
+
+        return (url, encoded as NSString)
+    }
+
     private func loadImage(urlString: String, completion: @escaping (UIImage?) -> Void) {
-        let key = urlString as NSString
+        guard let normalized = normalizedURL(from: urlString) else {
+            print("[Providers] Invalid image URL string:", urlString)
+            completion(nil)
+            return
+        }
+
+        let key = normalized.cacheKey
         if let cached = Self.imageCache.object(forKey: key) {
             completion(cached)
             return
         }
 
-        guard let url = URL(string: urlString) else {
-            completion(nil)
-            return
-        }
+        let url = normalized.url
 
         Task {
             do {
@@ -249,6 +296,7 @@ final class AdminProvidersListViewController: UIViewController, UITableViewDataS
                 }
                 await MainActor.run { completion(image) }
             } catch {
+                print("[Providers] Image load failed:", String(describing: key), url.absoluteString, error.localizedDescription)
                 await MainActor.run { completion(nil) }
             }
         }
