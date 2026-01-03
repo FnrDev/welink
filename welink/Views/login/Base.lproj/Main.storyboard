@@ -426,7 +426,7 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Go back home"/>
                                 <connections>
-                                    <segue destination="BYZ-38-t0r" kind="presentation" id="KCY-TT-r74"/>
+                                    <segue destination="Fjs-xI-0GN" kind="presentation" modalPresentationStyle="fullScreen" id="oem-SA-qEi"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -474,10 +474,17 @@
             </objects>
             <point key="canvasLocation" x="3901.5267175572517" y="-80.281690140845072"/>
         </scene>
+        <!--SeekerHome-->
+        <scene sceneID="Wq2-YM-nzT">
+            <objects>
+                <viewControllerPlaceholder storyboardName="SeekerHome" id="Fjs-xI-0GN" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="tpD-v5-eCf" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="6408" y="70"/>
+        </scene>
     </scenes>
     <inferredMetricsTieBreakers>
         <segue reference="P8r-Uh-2iX"/>
-        <segue reference="4v2-9W-QXz"/>
     </inferredMetricsTieBreakers>
     <resources>
         <image name="character" width="240" height="201"/>
@@ -492,10 +499,10 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray6Color">
-            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="tertiarySystemGroupedBackgroundColor">
-            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
