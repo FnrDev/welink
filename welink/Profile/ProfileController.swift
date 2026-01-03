@@ -162,6 +162,61 @@ class ProfileController: UIViewController {
         }
     }
     
+    // MARK: - Update Tab Bar Image
+    
+    private func updateTabBarImage(imagePath: String?) {
+        guard let imagePath = imagePath, !imagePath.isEmpty else {
+            // No image, keep default icon
+            return
+        }
+        
+        let imageURL: URL?
+        
+        if imagePath.starts(with: "http") {
+            imageURL = URL(string: imagePath)
+        } else {
+            imageURL = try? SupabaseClientManager.shared.client.storage
+                .from("images")
+                .getPublicURL(path: imagePath)
+        }
+        
+        guard let url = imageURL else { return }
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        // Resize and make circular
+                        let resizedImage = resizeAndCircleImage(image: image, size: CGSize(width: 25, height: 25))
+                        
+                        // Set as tab bar image
+                        self.tabBarItem.image = resizedImage.withRenderingMode(.alwaysOriginal)
+                        self.tabBarItem.selectedImage = resizedImage.withRenderingMode(.alwaysOriginal)
+                    }
+                }
+            } catch {
+                print("Error loading tab bar image: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Resize and Circle Image
+    
+    private func resizeAndCircleImage(image: UIImage, size: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: size)
+        
+        return renderer.image { context in
+            // Create circular path
+            let rect = CGRect(origin: .zero, size: size)
+            let path = UIBezierPath(ovalIn: rect)
+            path.addClip()
+            
+            // Draw image
+            image.draw(in: rect)
+        }
+    }
+    
     // MARK: - Setup UI Based on Role
 
     private func setupUIForRole(_ role: String) {
@@ -407,6 +462,9 @@ class ProfileController: UIViewController {
 
                         // Setup avatar (image or initials)
                         setupAvatar(imagePath: user.image, userName: user.name)
+                        
+                        // Update tab bar image with user's profile picture
+                        updateTabBarImage(imagePath: user.image)
                         
                         // Setup UI based on role
                         setupUIForRole(user.role)
