@@ -125,11 +125,6 @@ class FeedbackViewController: UIViewController {
         let reviewText = reviewTextView.text == "Share your experience..." || reviewTextView.text.isEmpty ?
             "" : reviewTextView.text ?? ""
         
-        guard !reviewText.isEmpty else {
-            showAlert(title: "Missing Review", message: "Please write your review")
-            return
-        }
-        
         submitReview(stars: selectedStars, review: reviewText)
     }
     
