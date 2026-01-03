@@ -40,4 +40,5 @@ WeLink uses Supabase for:
 - **Authentication:** Email/password login & signup
 - **Database:** Storing services, users, bookings, and categories
 - **Storage:** Provider profile photos and media files
-- **Real-time Events:** For user presence (🟢 Online, 🔴 Offline)
+- **Real-time Events:** For chat messages
+- **Edge Functions:** Getting user info for admin dashboard
