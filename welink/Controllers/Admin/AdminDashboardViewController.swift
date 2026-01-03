@@ -9,6 +9,8 @@ import UIKit
 
 class AdminDashboardViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
+    private static let applicationsDidChangeNotification = Notification.Name("applicationsDidChange")
+
     @IBOutlet weak var providerRequestsTableView: UITableView!
     @IBOutlet weak var totalUsersValueLabel: UILabel!
     @IBOutlet weak var totalCategoriesValueLabel: UILabel!
@@ -16,7 +18,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
     @IBOutlet weak var totalSeekersValueLabel: UILabel!
 
     private struct ProviderRequest {
-        let id: Int
+        let applicationId: Int
         let userId: String
         let name: String
         let requestedAtText: String
@@ -45,6 +47,39 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             await self?.loadPendingApplications()
             await self?.loadAnalytics()
         }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleApplicationsDidChange),
+            name: Self.applicationsDidChangeNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        Task { [weak self] in
+            await self?.loadPendingApplications()
+        }
+    }
+
+    @objc private func handleApplicationsDidChange() {
+        Task { [weak self] in
+            await self?.loadPendingApplications()
+        }
+    }
+
+    private func updateApplicationStatus(id: Int, status: String) async throws {
+        let client = SupabaseClientManager.shared.client
+        _ = try await client.database
+            .from("applications")
+            .update(["status": status])
+            .eq("id", value: id)
+            .execute()
     }
 
     @IBAction private func didTapNotifications(_ sender: UIButton) {
@@ -132,8 +167,9 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                         ratingText: ""
                     )
                 }
+
                 return ProviderRequest(
-                    id: row.id,
+                    applicationId: row.id,
                     userId: row.user_id,
                     name: row.full_name,
                     requestedAtText: "Requested at \(formatDate(row.created_at))",
@@ -157,12 +193,12 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         }
     }
 
-    private func updateApplicationStatus(id: Int, status: String) async throws {
+    private func updateProviderStatus(userId: String, status: String) async throws {
         let client = SupabaseClientManager.shared.client
         _ = try await client.database
-            .from("applications")
+            .from("users")
             .update(["status": status])
-            .eq("id", value: id)
+            .eq("id", value: userId)
             .execute()
     }
 
@@ -253,7 +289,7 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         }
 
         providerRequestVC.request = AdminProviderRequestViewController.ProviderRequestDetails(
-            id: item.id,
+            id: 0,
             name: item.name,
             requestedAtText: item.requestedAtText,
             phone: item.phone,
@@ -265,7 +301,9 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             guard let self else { return }
             Task {
                 do {
-                    try await self.updateApplicationStatus(id: item.id, status: "accepted")
+                    try await self.updateApplicationStatus(id: item.applicationId, status: "accepted")
+                    try await self.updateUserRole(userId: item.userId, role: "provider")
+                    try await self.updateProviderStatus(userId: item.userId, status: "active")
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(selectedIndex) else { return }
                         self.providerRequests.remove(at: selectedIndex)
@@ -280,8 +318,9 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             guard let self else { return }
             Task {
                 do {
-                    try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    try await self.updateApplicationStatus(id: item.applicationId, status: "rejected")
                     try await self.updateUserRole(userId: item.userId, role: "seeker")
+                    try await self.updateProviderStatus(userId: item.userId, status: "active")
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(selectedIndex) else { return }
                         self.providerRequests.remove(at: selectedIndex)
@@ -307,7 +346,9 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
         Task { [weak self] in
             guard let self else { return }
             do {
-                try await self.updateApplicationStatus(id: item.id, status: "accepted")
+                try await self.updateApplicationStatus(id: item.applicationId, status: "accepted")
+                try await self.updateUserRole(userId: item.userId, role: "provider")
+                try await self.updateProviderStatus(userId: item.userId, status: "active")
                 await MainActor.run {
                     self.providerRequests.remove(at: index)
                     self.providerRequestsTableView.reloadData()
@@ -336,8 +377,9 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
             guard let self else { return }
             Task {
                 do {
-                    try await self.updateApplicationStatus(id: item.id, status: "rejected")
+                    try await self.updateApplicationStatus(id: item.applicationId, status: "rejected")
                     try await self.updateUserRole(userId: item.userId, role: "seeker")
+                    try await self.updateProviderStatus(userId: item.userId, status: "active")
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(index) else { return }
                         self.providerRequests.remove(at: index)

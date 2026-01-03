@@ -381,69 +381,64 @@ private final class ServiceCardView: UIView {
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         backgroundColor = .systemGray6
-        layer.cornerRadius = 12
+        layer.cornerRadius = 16
+        if #available(iOS 13.0, *) {
+            layer.cornerCurve = .continuous
+        }
         clipsToBounds = true
 
-        let iconView = UIView()
-        iconView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.backgroundColor = UIColor(named: "AccentColor") ?? .systemGreen
-        iconView.layer.cornerRadius = 20
+        let avatarView = UIView()
+        avatarView.translatesAutoresizingMaskIntoConstraints = false
+        avatarView.backgroundColor = UIColor.systemGray5
+        avatarView.clipsToBounds = true
+        avatarView.layer.cornerRadius = 22
 
-        let iconLabel = UILabel()
-        iconLabel.translatesAutoresizingMaskIntoConstraints = false
-        iconLabel.text = "W"
-        iconLabel.textColor = .white
-        iconLabel.font = UIFont.systemFont(ofSize: 16, weight: .bold)
-        iconLabel.textAlignment = .center
-        iconView.addSubview(iconLabel)
+        let avatarLabel = UILabel()
+        avatarLabel.translatesAutoresizingMaskIntoConstraints = false
+        let firstChar = service.title.trimmingCharacters(in: .whitespacesAndNewlines).first
+        avatarLabel.text = firstChar.map { String($0).uppercased() } ?? "?"
+        avatarLabel.textColor = UIColor(named: "AccentColor") ?? .systemGreen
+        avatarLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        avatarLabel.textAlignment = .center
+        avatarView.addSubview(avatarLabel)
 
         NSLayoutConstraint.activate([
-            iconView.widthAnchor.constraint(equalToConstant: 40),
-            iconView.heightAnchor.constraint(equalToConstant: 40),
-            iconLabel.centerXAnchor.constraint(equalTo: iconView.centerXAnchor),
-            iconLabel.centerYAnchor.constraint(equalTo: iconView.centerYAnchor)
+            avatarView.widthAnchor.constraint(equalToConstant: 44),
+            avatarView.heightAnchor.constraint(equalToConstant: 44),
+            avatarLabel.centerXAnchor.constraint(equalTo: avatarView.centerXAnchor),
+            avatarLabel.centerYAnchor.constraint(equalTo: avatarView.centerYAnchor)
         ])
 
         let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = service.title
-        titleLabel.font = UIFont.systemFont(ofSize: 15, weight: .semibold)
-
-        let priceLabel = UILabel()
-        priceLabel.text = service.priceText
-        priceLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
-        priceLabel.textColor = .secondaryLabel
-        priceLabel.setContentHuggingPriority(.required, for: .horizontal)
+        titleLabel.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        titleLabel.textColor = .label
 
         let subtitleLabel = UILabel()
-        subtitleLabel.text = service.subtitle
-        subtitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        let preferredSubtitle = service.subtitle.isEmpty ? (service.priceText.isEmpty ? service.ratingText : service.priceText) : service.subtitle
+        subtitleLabel.text = preferredSubtitle
+        subtitleLabel.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         subtitleLabel.textColor = .secondaryLabel
-        subtitleLabel.numberOfLines = 2
+        subtitleLabel.numberOfLines = 1
+        subtitleLabel.lineBreakMode = .byTruncatingTail
 
-        let titleRow = UIStackView(arrangedSubviews: [titleLabel, priceLabel])
-        titleRow.axis = .horizontal
-        titleRow.spacing = 8
-        titleRow.alignment = .firstBaseline
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
+        textStack.translatesAutoresizingMaskIntoConstraints = false
+        textStack.axis = .vertical
+        textStack.spacing = 4
+        textStack.alignment = .leading
 
-        let leftStack = UIStackView(arrangedSubviews: [titleRow, subtitleLabel])
-        leftStack.axis = .vertical
-        leftStack.spacing = 6
-        leftStack.alignment = .leading
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
+        chevron.translatesAutoresizingMaskIntoConstraints = false
+        chevron.tintColor = UIColor.systemGray
+        NSLayoutConstraint.activate([
+            chevron.widthAnchor.constraint(equalToConstant: 12),
+            chevron.heightAnchor.constraint(equalToConstant: 18)
+        ])
 
-        let starImage = UIImageView(image: UIImage(systemName: "star.fill"))
-        starImage.tintColor = UIColor.darkGray
-
-        let ratingLabel = UILabel()
-        ratingLabel.text = service.ratingText
-        ratingLabel.font = UIFont.systemFont(ofSize: 12, weight: .regular)
-        ratingLabel.textColor = .secondaryLabel
-
-        let ratingStack = UIStackView(arrangedSubviews: [starImage, ratingLabel])
-        ratingStack.axis = .horizontal
-        ratingStack.spacing = 4
-        ratingStack.alignment = .center
-
-        let row = UIStackView(arrangedSubviews: [iconView, leftStack, UIView(), ratingStack])
+        let row = UIStackView(arrangedSubviews: [avatarView, textStack, UIView(), chevron])
         row.translatesAutoresizingMaskIntoConstraints = false
         row.axis = .horizontal
         row.spacing = 12
@@ -451,10 +446,10 @@ private final class ServiceCardView: UIView {
 
         addSubview(row)
         NSLayoutConstraint.activate([
-            row.topAnchor.constraint(equalTo: topAnchor, constant: 12),
-            row.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
-            row.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
-            row.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+            row.topAnchor.constraint(equalTo: topAnchor, constant: 14),
+            row.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            row.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            row.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -14)
         ])
     }
 

@@ -190,16 +190,6 @@ final class AdminCategoryServicesViewController: UIViewController, UITableViewDa
             }
         }
 
-        if let cardView = cell.viewWithTag(100) {
-            cardView.layer.cornerRadius = 14
-            cardView.layer.masksToBounds = true
-            cardView.backgroundColor = UIColor.secondarySystemGroupedBackground
-        } else {
-            cell.contentView.layer.cornerRadius = 14
-            cell.contentView.layer.masksToBounds = true
-            cell.contentView.backgroundColor = UIColor.secondarySystemGroupedBackground
-        }
-
         return cell
     }
 

@@ -14,6 +14,8 @@ final class AdminSettingsViewController: UIViewController {
     @IBOutlet private weak var adminLogButton: UIButton?
     @IBOutlet private weak var logoutButton: UIButton?
 
+    private let cardCornerRadius: CGFloat = 16
+
     private enum DefaultsKey {
         static let darkModeEnabled = "settings_dark_mode_enabled"
     }
@@ -27,13 +29,61 @@ final class AdminSettingsViewController: UIViewController {
         darkModeSwitch?.isOn = enabled
         applyAppTheme(enabled: enabled)
 
-        adminLogButton?.setTitleColor(.label, for: .normal)
+        updateAdminLogAppearance()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        let containers: [UIView] = [
+            darkModeSwitch?.superview,
+            adminLogButton?.superview,
+            logoutButton?.superview
+        ].compactMap { $0 }
+
+        for view in containers {
+            view.layer.cornerRadius = cardCornerRadius
+            if #available(iOS 13.0, *) {
+                view.layer.cornerCurve = .continuous
+            }
+            view.layer.masksToBounds = true
+        }
+
+        updateAdminLogAppearance()
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            updateAdminLogAppearance()
+        }
     }
 
     @IBAction private func darkModeChanged(_ sender: UISwitch) {
         let enabled = sender.isOn
         UserDefaults.standard.set(enabled, forKey: DefaultsKey.darkModeEnabled)
         applyAppTheme(enabled: enabled)
+
+        DispatchQueue.main.async { [weak self] in
+            self?.updateAdminLogAppearance()
+        }
+    }
+
+    private func updateAdminLogAppearance() {
+        guard let adminLogButton else { return }
+
+        let isDark = traitCollection.userInterfaceStyle == .dark
+        let color: UIColor = isDark ? .white : .label
+
+        if var configuration = adminLogButton.configuration {
+            configuration.baseForegroundColor = color
+            adminLogButton.configuration = configuration
+        } else {
+            adminLogButton.setTitleColor(color, for: .normal)
+        }
+
+        adminLogButton.tintColor = color
     }
 
     @IBAction private func adminLogTapped(_ sender: Any) {
