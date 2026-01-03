@@ -87,8 +87,34 @@ class HistoryController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Hide the programmatic navigation bar (keep Storyboard one)
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // Show navigation bar
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        
+        // Set title
+        self.title = "History"
+        
+        // Customize navigation bar
+        navigationController?.navigationBar.tintColor = UIColor(hex: "2D493A")
+        
+        // Add custom back button with chevron
+        var backButtonConfig = UIButton.Configuration.plain()
+        backButtonConfig.title = "Back"
+        backButtonConfig.image = UIImage(systemName: "chevron.left")
+        backButtonConfig.imagePlacement = .leading
+        backButtonConfig.imagePadding = 4
+        backButtonConfig.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: -8, bottom: 0, trailing: 0)  
+        backButtonConfig.baseForegroundColor = UIColor(hex: "2D493A")
+        backButtonConfig.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var outgoing = incoming
+            outgoing.font = UIFont.systemFont(ofSize: 17)
+            return outgoing
+        }
+
+        let backButton = UIButton(configuration: backButtonConfig, primaryAction: UIAction { [weak self] _ in
+            self?.dismiss(animated: true, completion: nil)
+        })
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
         
         setupUI()
         setupTableView()
@@ -278,11 +304,6 @@ class HistoryController: UIViewController {
         }
     }
     
-    // MARK: - Back Button Action (Connect in Storyboard)
-    
-    @IBAction func backButtonTapped(_ sender: Any) {
-        dismiss(animated: true)
-    }
 }
 
 // MARK: - UITableViewDelegate & UITableViewDataSource
