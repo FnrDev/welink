@@ -68,6 +68,12 @@ final class AdminSeekerDetailsViewController: UIViewController {
         super.viewDidLoad()
 
         navigationItem.title = "Seeker"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Moderation",
+            style: .plain,
+            target: self,
+            action: #selector(didTapModeration)
+        )
         configureUI()
 
         guard let seekerId else {
@@ -78,6 +84,23 @@ final class AdminSeekerDetailsViewController: UIViewController {
         Task { [weak self] in
             await self?.loadAll(seekerId: seekerId)
         }
+    }
+
+    @objc private func didTapModeration() {
+        guard let seekerId else {
+            showError(message: "No seeker selected")
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "AdminModerationVC") as? AdminModerationViewController else {
+            showError(message: "Moderation screen not found")
+            return
+        }
+
+        vc.targetId = seekerId
+        let nav = UINavigationController(rootViewController: vc)
+        present(nav, animated: true)
     }
 
     override func viewDidLayoutSubviews() {

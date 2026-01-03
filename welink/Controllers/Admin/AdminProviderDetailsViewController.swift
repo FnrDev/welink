@@ -89,6 +89,12 @@ final class AdminProviderDetailsViewController: UIViewController {
         super.viewDidLoad()
 
         navigationItem.title = "Provider"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Moderation",
+            style: .plain,
+            target: self,
+            action: #selector(didTapModeration)
+        )
 
         configureUI()
 
@@ -100,6 +106,23 @@ final class AdminProviderDetailsViewController: UIViewController {
         Task { [weak self] in
             await self?.loadAll(providerId: providerId)
         }
+    }
+
+    @objc private func didTapModeration() {
+        guard let providerId else {
+            showError(message: "No provider selected")
+            return
+        }
+
+        let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(withIdentifier: "AdminModerationVC") as? AdminModerationViewController else {
+            showError(message: "Moderation screen not found")
+            return
+        }
+
+        vc.targetId = providerId
+        let nav = UINavigationController(rootViewController: vc)
+        present(nav, animated: true)
     }
 
     override func viewDidLayoutSubviews() {
