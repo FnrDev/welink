@@ -15,6 +15,7 @@ struct HistoryBookingData: Decodable {
     let serviceImage: String?
     let price: Double
     let createdAt: String
+    let providerName: String?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -27,6 +28,11 @@ struct HistoryBookingData: Decodable {
         case name
         case image
         case price_per_hour
+        case users
+    }
+    
+    enum UserKeys: String, CodingKey {
+        case name
     }
     
     init(from decoder: Decoder) throws {
@@ -39,6 +45,13 @@ struct HistoryBookingData: Decodable {
         serviceName = try serviceContainer.decode(String.self, forKey: .name)
         serviceImage = try serviceContainer.decodeIfPresent(String.self, forKey: .image)
         price = try serviceContainer.decodeIfPresent(Double.self, forKey: .price_per_hour) ?? 0
+        
+        // Try to get provider name from nested users
+        if let usersContainer = try? serviceContainer.nestedContainer(keyedBy: UserKeys.self, forKey: .users) {
+            providerName = try usersContainer.decodeIfPresent(String.self, forKey: .name)
+        } else {
+            providerName = nil
+        }
     }
 }
 
@@ -118,10 +131,10 @@ class HistoryController: UIViewController {
                 let session = try await SupabaseClientManager.shared.client.auth.session
                 currentUserId = session.user.id.uuidString
                 
-                // Fetch bookings with service details
+                // Fetch bookings with service details (removed rating)
                 let bookings: [HistoryBookingData] = try await SupabaseClientManager.shared.client.database
                     .from("bookings")
-                    .select("id, service_id, created_at, service:services(name, image, price_per_hour)")
+                    .select("id, service_id, created_at, service:services(name, image, price_per_hour, users(name))")
                     .eq("user_id", value: currentUserId)
                     .order("created_at", ascending: false)
                     .execute()
@@ -221,6 +234,46 @@ class HistoryController: UIViewController {
         present(alert, animated: true)
     }
     
+    // MARK: - Show Toast
+    
+    func showToast(message: String) {
+        let toastLabel = UILabel()
+        toastLabel.backgroundColor = UIColor(red: 45/255, green: 73/255, blue: 58/255, alpha: 1.0)
+        toastLabel.textColor = .white
+        toastLabel.textAlignment = .center
+        toastLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        toastLabel.text = message
+        toastLabel.alpha = 0
+        toastLabel.layer.cornerRadius = 20
+        toastLabel.clipsToBounds = true
+        toastLabel.numberOfLines = 0
+        
+        let maxWidth = view.frame.width - 40
+        let textSize = toastLabel.intrinsicContentSize
+        let labelWidth = min(textSize.width + 40, maxWidth)
+        
+        toastLabel.frame = CGRect(
+            x: (view.frame.width - labelWidth) / 2,
+            y: view.safeAreaInsets.top + 60,
+            width: labelWidth,
+            height: 40
+        )
+        
+        view.addSubview(toastLabel)
+        
+        // Animate in
+        UIView.animate(withDuration: 0.3, animations: {
+            toastLabel.alpha = 1
+        }) { _ in
+            // Animate out after delay
+            UIView.animate(withDuration: 0.3, delay: 2.0, options: .curveEaseOut, animations: {
+                toastLabel.alpha = 0
+            }) { _ in
+                toastLabel.removeFromSuperview()
+            }
+        }
+    }
+    
     // MARK: - Back Button Action (Connect in Storyboard)
     
     @IBAction func backButtonTapped(_ sender: Any) {
@@ -258,7 +311,12 @@ extension HistoryController: UITableViewDelegate, UITableViewDataSource {
         let booking = isSearching ? filteredBookings[indexPath.section] : historyBookings[indexPath.section]
         let hasFeedback = userRatings[booking.serviceId] != nil
         
-        cell.configure(with: booking, hasFeedback: hasFeedback)
+        cell.configure(
+            with: booking,
+            hasFeedback: hasFeedback,
+            userId: currentUserId,
+            providerName: booking.providerName ?? ""
+        )
         cell.delegate = self
         
         return cell

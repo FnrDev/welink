@@ -27,7 +27,10 @@
                                 </constraints>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="K7z-GY-aqT">
-                                <rect key="frame" x="12" y="93" width="337" height="39"/>
+                                <rect key="frame" x="12" y="93" width="279" height="39"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="279" id="sns-qb-Mzt"/>
+                                </constraints>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Give Feedback" cornerStyle="large">
                                     <color key="baseBackgroundColor" name="AccentColor"/>
@@ -56,6 +59,18 @@
                                 <color key="textColor" systemColor="systemGrayColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6FD-Lj-aRc">
+                                <rect key="frame" x="299" y="93" width="50" height="39"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="tintColor" systemColor="systemGrayColor"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="tinted" image="heart.circle" catalog="system" cornerStyle="large">
+                                    <color key="baseBackgroundColor" systemColor="systemGrayColor"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="favouriteButtonTapped:" destination="Zh1-qU-KZD" eventType="touchUpInside" id="L4X-qO-wVa"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" systemColor="secondarySystemBackgroundColor"/>
                         <constraints>
@@ -63,7 +78,6 @@
                             <constraint firstItem="9ad-Le-RXv" firstAttribute="top" secondItem="99N-to-e5G" secondAttribute="top" constant="18" id="L3T-CO-hkd"/>
                             <constraint firstItem="cHJ-B1-8oE" firstAttribute="top" secondItem="99N-to-e5G" secondAttribute="top" constant="12" id="Qa4-b2-XLs"/>
                             <constraint firstItem="cHJ-B1-8oE" firstAttribute="leading" secondItem="99N-to-e5G" secondAttribute="leading" constant="12" id="Rbh-Fn-HZw"/>
-                            <constraint firstAttribute="trailing" secondItem="K7z-GY-aqT" secondAttribute="trailing" constant="12" id="WDe-JW-dUB"/>
                             <constraint firstAttribute="bottom" secondItem="K7z-GY-aqT" secondAttribute="bottom" constant="12" id="Z7v-gE-sNk"/>
                             <constraint firstItem="K7z-GY-aqT" firstAttribute="leading" secondItem="99N-to-e5G" secondAttribute="leading" constant="12" id="o2b-9e-8th"/>
                             <constraint firstAttribute="trailing" secondItem="9ad-Le-RXv" secondAttribute="trailing" constant="12" id="rhX-0x-Uso"/>
@@ -80,6 +94,7 @@
             <connections>
                 <outlet property="containerView" destination="99N-to-e5G" id="Jh6-iy-VZ4"/>
                 <outlet property="date" destination="r8R-BZ-7zv" id="BUY-pb-byW"/>
+                <outlet property="favouriteBTN" destination="6FD-Lj-aRc" id="OJ8-eK-1Ck"/>
                 <outlet property="feedbackbtn" destination="K7z-GY-aqT" id="Utp-uV-RcL"/>
                 <outlet property="historyImage" destination="cHJ-B1-8oE" id="DE0-7A-ZfR"/>
                 <outlet property="price" destination="9ad-Le-RXv" id="KRG-b5-rRx"/>
@@ -89,6 +104,7 @@
         </tableViewCell>
     </objects>
     <resources>
+        <image name="heart.circle" catalog="system" width="128" height="123"/>
         <namedColor name="AccentColor">
             <color red="0.17647058823529413" green="0.28627450980392155" blue="0.22745098039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
