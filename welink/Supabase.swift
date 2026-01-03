@@ -20,3 +20,34 @@ class SupabaseClientManager {
         )
     }
 }
+
+final class AdminLogService {
+    static let shared = AdminLogService()
+
+    private init() {}
+
+    private struct CreateAdminLogPayload: Encodable {
+        let action: String
+        let target_user_id: String?
+        let metadata: [String: String]?
+    }
+
+    private struct OkResponse: Decodable {
+        let ok: Bool
+    }
+
+    func log(action: String, targetUserId: String? = nil, metadata: [String: String]? = nil) async {
+        let trimmedAction = action.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedAction.isEmpty else { return }
+
+        do {
+            let _: OkResponse = try await SupabaseClientManager.shared.client.functions
+                .invoke(
+                    "admin-add-log",
+                    options: FunctionInvokeOptions(body: CreateAdminLogPayload(action: trimmedAction, target_user_id: targetUserId, metadata: metadata))
+                )
+        } catch {
+            print("❌ Failed to write admin log: \(error)")
+        }
+    }
+}

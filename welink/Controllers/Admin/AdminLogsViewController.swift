@@ -5,7 +5,7 @@ final class AdminLogsViewController: UIViewController {
 
     @IBOutlet private weak var tableView: UITableView?
 
-    private enum JSONValue: Decodable {
+    fileprivate enum JSONValue: Decodable {
         case string(String)
         case number(Double)
         case bool(Bool)
@@ -32,6 +32,36 @@ final class AdminLogsViewController: UIViewController {
                 self = .null
             }
         }
+    }
+
+    private static func shortId(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !s.isEmpty else { return nil }
+        if s.count <= 8 { return s }
+        return String(s.prefix(8))
+    }
+
+    private static func formattedTimestamp(from raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let date = Self.isoFormatter.date(from: trimmed) {
+            let df = DateFormatter()
+            df.locale = Locale(identifier: "en_US_POSIX")
+            df.dateStyle = .medium
+            df.timeStyle = .short
+            return df.string(from: date)
+        }
+        return trimmed
+    }
+
+    private static func metadataString(_ metadata: [String: JSONValue]?) -> String? {
+        guard let metadata, !metadata.isEmpty else { return nil }
+        let blockedKeys = Set(["status", "application_id"])
+        let parts = metadata
+            .filter { key, _ in !blockedKeys.contains(key.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) }
+            .map { key, value in "\(key): \(value.stringValue)" }
+            .sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending })
+        return parts.joined(separator: "  •  ")
     }
 
     private func updatePrompt() {
@@ -74,6 +104,7 @@ final class AdminLogsViewController: UIViewController {
     }
 
     private var logs: [AdminLogItem] = []
+    private var targetUserNamesById: [String: String] = [:]
     private let refreshControl = UIRefreshControl()
     private var isLoading = false
 
@@ -102,6 +133,11 @@ final class AdminLogsViewController: UIViewController {
         tableView?.dataSource = self
         tableView?.delegate = self
         tableView?.tableFooterView = UIView()
+        tableView?.rowHeight = UITableView.automaticDimension
+        tableView?.estimatedRowHeight = 84
+        tableView?.separatorStyle = .singleLine
+        tableView?.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView?.backgroundColor = UIColor.systemBackground
 
         refreshControl.addTarget(self, action: #selector(refreshPulled), for: .valueChanged)
         tableView?.refreshControl = refreshControl
@@ -180,8 +216,34 @@ final class AdminLogsViewController: UIViewController {
                     options: FunctionInvokeOptions(body: payload)
                 )
 
+            let ids = Array(Set(response.logs.compactMap { row in
+                let s = (row.target_user_id ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                return s.isEmpty ? nil : s
+            }))
+
+            var names: [String: String] = [:]
+            if !ids.isEmpty {
+                struct UserNameRow: Decodable {
+                    let id: String
+                    let name: String
+                }
+
+                do {
+                    let rows: [UserNameRow] = try await SupabaseClientManager.shared.client.database
+                        .from("users")
+                        .select("id, name")
+                        .in("id", value: ids)
+                        .execute()
+                        .value
+                    names = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, $0.name) })
+                } catch {
+                    names = [:]
+                }
+            }
+
             await MainActor.run {
                 self.logs = response.logs
+                self.targetUserNamesById = names
                 self.tableView?.reloadData()
             }
         } catch {
@@ -198,6 +260,28 @@ final class AdminLogsViewController: UIViewController {
     }
 }
 
+fileprivate extension AdminLogsViewController.JSONValue {
+    var stringValue: String {
+        switch self {
+        case .string(let s):
+            return s
+        case .number(let n):
+            if n.rounded() == n { return String(Int64(n)) }
+            return String(n)
+        case .bool(let b):
+            return b ? "true" : "false"
+        case .object(let o):
+            let inner = o.map { "\($0): \($1.stringValue)" }.sorted().joined(separator: ", ")
+            return "{\(inner)}"
+        case .array(let a):
+            let inner = a.map { $0.stringValue }.joined(separator: ", ")
+            return "[\(inner)]"
+        case .null:
+            return "null"
+        }
+    }
+}
+
 extension AdminLogsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -206,21 +290,51 @@ extension AdminLogsViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "AdminLogCell")
-            ?? UITableViewCell(style: .subtitle, reuseIdentifier: "AdminLogCell")
+            ?? UITableViewCell(style: .default, reuseIdentifier: "AdminLogCell")
 
         let item = logs[indexPath.row]
-        cell.textLabel?.numberOfLines = 2
-        cell.textLabel?.text = item.action
 
-        var detailParts: [String] = []
-        detailParts.append(item.created_at)
-        if let target = item.target_user_id, !target.isEmpty {
-            detailParts.append("target: \(target)")
+        var primary = item.action
+        primary = primary.trimmingCharacters(in: .whitespacesAndNewlines)
+        if primary.isEmpty { primary = "Action" }
+
+        let timeText = Self.formattedTimestamp(from: item.created_at)
+        let meta = Self.metadataString(item.metadata)
+
+        let targetId = (item.target_user_id ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let targetName = targetId.isEmpty ? nil : targetUserNamesById[targetId]
+
+        var secondaryParts: [String] = []
+        if let targetName, !targetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            secondaryParts.append(targetName)
         }
-        detailParts.append("admin: \(item.admin_user_id)")
+        secondaryParts.append(timeText)
+        if let meta {
+            secondaryParts.append(meta)
+        }
 
-        cell.detailTextLabel?.numberOfLines = 3
-        cell.detailTextLabel?.text = detailParts.joined(separator: " • ")
+        let subtitle = secondaryParts.joined(separator: "  •  ")
+
+        if let titleLabel = cell.contentView.viewWithTag(1) as? UILabel,
+           let subtitleLabel = cell.contentView.viewWithTag(2) as? UILabel {
+            titleLabel.text = primary
+            subtitleLabel.text = subtitle
+        } else {
+            var content = UIListContentConfiguration.subtitleCell()
+            content.text = primary
+            content.secondaryText = subtitle
+            content.textProperties.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+            content.secondaryTextProperties.font = UIFont.systemFont(ofSize: 13)
+            content.secondaryTextProperties.color = .secondaryLabel
+            content.textProperties.color = .label
+            content.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16)
+            cell.contentConfiguration = content
+        }
+
+        cell.backgroundColor = .systemBackground
+        cell.contentView.backgroundColor = .systemBackground
+        cell.layer.cornerRadius = 0
+        cell.layer.masksToBounds = false
 
         cell.selectionStyle = .none
         return cell

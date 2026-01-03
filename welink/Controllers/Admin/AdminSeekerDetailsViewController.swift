@@ -325,6 +325,14 @@ final class AdminSeekerDetailsViewController: UIViewController {
                     options: FunctionInvokeOptions(body: payload)
                 )
             print("✅ Password updated: \(response.ok)")
+
+            if response.ok {
+                await AdminLogService.shared.log(
+                    action: "Updated seeker password",
+                    targetUserId: userId,
+                    metadata: nil
+                )
+            }
         } catch {
             print("❌ Failed to update password via edge function: \(error)")
         }
@@ -338,6 +346,12 @@ final class AdminSeekerDetailsViewController: UIViewController {
                 .update(["status": newStatus])
                 .eq("id", value: seekerId)
                 .execute()
+
+            await AdminLogService.shared.log(
+                action: (newStatus.lowercased() == "suspended") ? "Suspended seeker" : "Unsuspended seeker",
+                targetUserId: seekerId,
+                metadata: ["status": newStatus]
+            )
 
             await loadSeeker(seekerId: seekerId)
             await MainActor.run {
