@@ -30,79 +30,28 @@ The app is built using **Swift**, **Storyboard**, and integrates **Supabase** as
 
 ## Main Features
 
-1. **User Authentication & Profile Setup**
-   - Secure signup and login for all user roles
-   - Profile creation and management  
-   - Developer: Ali  
-   - Tester: Zahra Almosawi  
-
-2. **Seeker Home & Service Discovery**
-   - Browse services by category and location
-   - Search and filter services  
-   - Developer: Zahra Almosawi  
-   - Tester: Rawan  
-
-3. **Provider Dashboard**
-   - Manage services, bookings, and availability
-   - View performance and service history  
-   - Developer: Ahmed Abdulla  
-   - Tester: Zahra M  
-
-4. **Communication System**
-   - Real-time chat between seekers and providers
-   - Booking-related messaging  
-   - Developer: Ahmed Abdulla  
-   - Tester: Zahra Almosawi  
-
-5. **Service History & Favorites**
-   - Track past bookings
-   - Save and manage favorite services  
-   - Developer: Zahra M  
-   - Tester: Ali  
-
-6. **Admin Dashboard**
-   - Manage users, services, and platform data
-   - View system activity and statistics  
-   - Developer: Rawan  
-   - Tester: Ahmed Abdulla  
-
-7. **Provider Profile**
-   - Public provider profiles with services and reviews
-   - Profile photo and details  
-   - Developer: Ali  
-   - Tester: Zahra M  
-
-8. **Notifications Page**
-   - Booking updates and system notifications  
-   - Developers: Ahmed, Rawan  
-   - Tester: Rawan  
-
-9. **Payment System**
-   - Secure service payments
-   - Booking payment tracking  
-   - Developer: Zahra Almosawi  
-   - Tester: Ali  
+| # | Feature | Description | Developer | Tester |
+|---|--------|-------------|-----------|--------|
+| 1 | User Authentication & Profile Setup | Signup, login, and profile management for all user roles | Ali | Zahra Almosawi |
+| 2 | Seeker Home & Service Discovery | Browse, search, and filter services by category and location | Zahra Almosawi | Rawan |
+| 3 | Provider Dashboard | Manage services, bookings, availability, and view history | Ahmed Abdulla | Zahra M |
+| 4 | Communication System | Real-time chat between seekers and providers | Ahmed Abdulla | Zahra Almosawi |
+| 5 | Service History & Favorites | View booking history and save favorite services | Zahra M | Ali |
+| 6 | Admin Dashboard | Manage users, services, and platform data | Rawan | Ahmed Abdulla |
+| 7 | Provider Profile | Public provider profile with services and reviews | Ali | Zahra M |
+| 8 | Notifications Page | Booking updates and system notifications | Ahmed, Rawan | Rawan |
+| 9 | Payment System | Secure payments and booking payment tracking | Zahra Almosawi | Ali |
 
 ---
 
 ## Additional Features
 
-1. **Smart Service Recommendations**
-   - Personalized service suggestions based on user behavior  
-   - Developer: Zahra Almosawi  
-
-2. **Review & Rating System**
-   - Rate and review providers after service completion  
-   - Developer: Zahra Almosawi  
-
-3. **Admin Activity Log**
-   - Track admin actions and system changes  
-   - Developer: Rawan Mahmood  
-
-4. **Admin Moderation Notes & Flags**
-   - Flag services or users
-   - Internal moderation notes for admins  
-   - Developer: Rawan Mahmood  
+| # | Feature | Description | Developer |
+|---|--------|-------------|-----------|
+| 1 | Smart Service Recommendations | Personalized service suggestions based on user behavior | Zahra Almosawi |
+| 2 | Review & Rating System | Rate and review providers after service completion | Zahra Almosawi |
+| 3 | Admin Activity Log | Track admin actions and system changes | Rawan Mahmood |
+| 4 | Admin Moderation Notes & Flags | Flag users/services and add internal moderation notes | Rawan Mahmood |
 
 ---
 
