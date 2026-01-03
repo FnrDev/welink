@@ -10,7 +10,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     let testViewControllerID = "AdminSeekersListVC"  // Change this to your VC identifier
     
     // MARK: - Set this to true to clear session and go to login
-    let clearSession = true
+    let clearSession = false
     // admin dashboard
     // - ProviderDashboard,ProviderDashboardVC
 

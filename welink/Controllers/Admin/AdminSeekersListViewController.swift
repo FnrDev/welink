@@ -32,6 +32,7 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
     }
 
     private static let imageCache = NSCache<NSString, UIImage>()
+    private static let initialsCache = NSCache<NSString, UIImage>()
 
     private let rowHeight: CGFloat = 112
 
@@ -185,25 +186,36 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
         if let avatarImageView = cell.contentView.viewWithTag(3) as? UIImageView {
             avatarImageView.contentMode = .scaleAspectFill
             avatarImageView.clipsToBounds = true
-            avatarImageView.backgroundColor = UIColor.systemGray5
+            avatarImageView.backgroundColor = UIColor.systemGray4
             avatarImageView.layer.cornerRadius = min(avatarImageView.bounds.width, avatarImageView.bounds.height) / 2
             avatarImageView.layer.masksToBounds = true
-            avatarImageView.image = nil
 
-            if let urlString = item.imageURLString {
+            let avatarSize = avatarImageView.bounds.size.width > 0
+                ? avatarImageView.bounds.size
+                : CGSize(width: 60, height: 60)
+            let placeholder = initialsImage(for: item.name, size: avatarSize)
+            avatarImageView.image = placeholder
+
+            if let urlString = item.imageURLString, !urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 if let normalized = normalizedURL(from: urlString) {
                     let expectedKey = String(describing: normalized.cacheKey)
                     avatarImageView.accessibilityIdentifier = expectedKey
 
-                    loadImage(urlString: urlString) { [weak avatarImageView] image in
+                    loadImage(urlString: urlString) { [weak avatarImageView, weak self] image in
                         guard let avatarImageView else { return }
                         guard avatarImageView.accessibilityIdentifier == expectedKey else { return }
-                        avatarImageView.image = image
+                        if let image {
+                            avatarImageView.image = image
+                        } else if let self {
+                            avatarImageView.image = self.initialsImage(for: item.name, size: avatarSize)
+                        }
                         avatarImageView.layer.cornerRadius = min(avatarImageView.bounds.width, avatarImageView.bounds.height) / 2
                     }
                 } else {
                     avatarImageView.accessibilityIdentifier = nil
                 }
+            } else {
+                avatarImageView.accessibilityIdentifier = nil
             }
         }
 
@@ -268,6 +280,52 @@ final class AdminSeekersListViewController: UIViewController, UITableViewDataSou
         }
 
         return (url, encoded as NSString)
+    }
+
+    private func initialsFrom(name: String) -> String {
+        let components = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: .whitespaces)
+            .filter { !$0.isEmpty }
+        if components.isEmpty {
+            return "?"
+        } else if components.count == 1 {
+            return String(components[0].prefix(1)).uppercased()
+        } else {
+            let first = String(components[0].prefix(1)).uppercased()
+            let last = String(components[components.count - 1].prefix(1)).uppercased()
+            return first + last
+        }
+    }
+
+    private func initialsImage(for name: String, size: CGSize) -> UIImage {
+        let initials = initialsFrom(name: name)
+        let cacheKey = "\(initials)_\(Int(size.width))x\(Int(size.height))" as NSString
+
+        if let cached = Self.initialsCache.object(forKey: cacheKey) {
+            return cached
+        }
+
+        let renderer = UIGraphicsImageRenderer(size: size)
+        let image = renderer.image { context in
+            UIColor.systemGray4.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: size.width * 0.4, weight: .medium),
+                .foregroundColor: UIColor.white
+            ]
+            let textSize = initials.size(withAttributes: attributes)
+            let textRect = CGRect(
+                x: (size.width - textSize.width) / 2,
+                y: (size.height - textSize.height) / 2,
+                width: textSize.width,
+                height: textSize.height
+            )
+            initials.draw(in: textRect, withAttributes: attributes)
+        }
+
+        Self.initialsCache.setObject(image, forKey: cacheKey)
+        return image
     }
 
     private func loadImage(urlString: String, completion: @escaping (UIImage?) -> Void) {
