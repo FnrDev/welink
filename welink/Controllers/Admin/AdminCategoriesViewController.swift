@@ -46,15 +46,19 @@ class AdminCategoriesViewController: UIViewController, UICollectionViewDataSourc
             UIColor.systemGreen.withAlphaComponent(0.20),
             UIColor.systemPink.withAlphaComponent(0.20)
         ]
-        cell.backgroundColor = colors[indexPath.item % colors.count]
+        let cardColor = colors[indexPath.item % colors.count]
+        cell.backgroundColor = cardColor
+        cell.contentView.backgroundColor = cardColor
 
         if let titleLabel = cell.viewWithTag(2) as? UILabel {
             titleLabel.text = title
+            titleLabel.textColor = .black
         }
 
         if let iconImageView = cell.viewWithTag(1) as? UIImageView {
             let assetName = title.lowercased()
             iconImageView.image = UIImage(named: assetName) ?? UIImage(systemName: "square.grid.2x2")
+            iconImageView.tintColor = .black
         }
 
         return cell
