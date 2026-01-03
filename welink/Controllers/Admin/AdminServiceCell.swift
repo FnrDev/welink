@@ -31,7 +31,7 @@ final class AdminServiceCell: UITableViewCell {
 
         guard let cardView = contentView.viewWithTag(100) else { return }
 
-        cardView.backgroundColor = UIColor.systemGray6
+        cardView.backgroundColor = UIColor.systemGray5
         cardView.layer.cornerRadius = cardCornerRadius
         if #available(iOS 13.0, *) {
             cardView.layer.cornerCurve = .continuous
