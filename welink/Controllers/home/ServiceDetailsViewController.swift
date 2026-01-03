@@ -22,7 +22,6 @@ class ServiceDetailsViewController: UIViewController {
     @IBOutlet weak var reviewsTableView: UITableView!
     @IBOutlet weak var messageButton: UIButton!
     @IBOutlet weak var bookNowButton: UIButton!
-//    @IBOutlet weak var reviewsTableViewHeight: NSLayoutConstraint!
     @IBOutlet weak var seeAllButton: UIButton!
     @IBOutlet weak var scrollView: UIScrollView!
     
@@ -373,15 +372,6 @@ class ServiceDetailsViewController: UIViewController {
         }
     }
     
-//    func updateReviewsTableHeight() {
-//        reviewsTableView.layoutIfNeeded()
-//        
-//        DispatchQueue.main.async {
-//            self.reviewsTableViewHeight.constant =
-//                self.reviewsTableView.contentSize.height
-//            self.view.layoutIfNeeded()
-//        }
-//    }
     
     func fetchRatings(serviceId: String) {
         Task {
@@ -574,10 +564,6 @@ class ServiceDetailsViewController: UIViewController {
             seeAllButton.isHidden = false
             
             reviewsTableView.reloadData()
-            // Update table height based on content
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-//                self.updateReviewsTableHeight()
-//            }
         }
     }
     
