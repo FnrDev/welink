@@ -20,6 +20,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
 
+        // Apply saved dark mode preference
+        let isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
+        window?.overrideUserInterfaceStyle = isDarkMode ? .dark : .light
+
         // If test mode is on, load the test storyboard directly
         if testMode {
             let storyboard = UIStoryboard(name: testStoryboard, bundle: nil)
@@ -53,8 +57,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let userRole = await fetchUserRole(userId: userId)
 
             if userRole == "admin" {
+                // Apply admin-specific dark mode setting
+                let isAdminDarkMode = UserDefaults.standard.bool(forKey: "settings_dark_mode_enabled")
+                window?.overrideUserInterfaceStyle = isAdminDarkMode ? .dark : .light
+
                 let storyboard = UIStoryboard(name: "AdminDashboard", bundle: nil)
-                let vc = storyboard.instantiateViewController(withIdentifier: "AdminDashboard")
+                let vc = storyboard.instantiateViewController(withIdentifier: "AdminTabBarController")
                 window?.rootViewController = vc
             } else {
                 let storyboard = UIStoryboard(name: "SeekerHome", bundle: nil)

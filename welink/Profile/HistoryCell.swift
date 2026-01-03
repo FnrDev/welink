@@ -9,6 +9,7 @@ import UIKit
 
 protocol HistoryCellDelegate: AnyObject {
     func didTapFeedbackButton(bookingId: String, serviceId: String, serviceName: String)
+    func showToast(message: String)
 }
 
 class HistoryCell: UITableViewCell {
@@ -17,6 +18,7 @@ class HistoryCell: UITableViewCell {
     @IBOutlet weak var title: UILabel!
     @IBOutlet weak var feedbackbtn: UIButton!
     @IBOutlet weak var price: UILabel!
+    @IBOutlet weak var favouriteBTN: UIButton!
     @IBOutlet weak var historyImage: UIImageView!
     @IBOutlet weak var containerView: UIView!
     
@@ -24,6 +26,12 @@ class HistoryCell: UITableViewCell {
     private var bookingId: String = ""
     private var serviceId: String = ""
     private var serviceName: String = ""
+    private var providerName: String = ""
+    private var currentUserId: String = ""
+    private var serviceImageURL: String? = nil
+    private var servicePrice: Double = 0
+    private var isFavourite: Bool = false
+    private var favouriteId: Int64? = nil
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -36,6 +44,12 @@ class HistoryCell: UITableViewCell {
         bookingId = ""
         serviceId = ""
         serviceName = ""
+        providerName = ""
+        serviceImageURL = nil
+        servicePrice = 0
+        isFavourite = false
+        favouriteId = nil
+        updateFavouriteButtonAppearance()
     }
     
     // MARK: - Setup UI
@@ -54,14 +68,21 @@ class HistoryCell: UITableViewCell {
         backgroundColor = .clear
         contentView.backgroundColor = .clear
         selectionStyle = .none
+        
+        // Favourite button styling
+        favouriteBTN.tintColor = .gray
     }
     
     // MARK: - Configure Cell
     
-    func configure(with booking: HistoryBookingData, hasFeedback: Bool) {
+    func configure(with booking: HistoryBookingData, hasFeedback: Bool, userId: String, providerName: String = "") {
         bookingId = booking.id
         serviceId = booking.serviceId
         serviceName = booking.serviceName
+        self.providerName = providerName
+        self.currentUserId = userId
+        self.serviceImageURL = booking.serviceImage
+        self.servicePrice = booking.price
         
         title.text = booking.serviceName
         date.text = "Order date: \(formatDate(booking.createdAt))"
@@ -74,6 +95,124 @@ class HistoryCell: UITableViewCell {
             feedbackbtn.setTitle("View Feedback", for: .normal)
         } else {
             feedbackbtn.setTitle("Give Feedback", for: .normal)
+        }
+        
+        // Check if this service is in favourites
+        checkIfFavourite()
+    }
+    
+    // MARK: - Check If Favourite
+    
+    private func checkIfFavourite() {
+        Task {
+            do {
+                let response: [FavouriteData] = try await SupabaseClientManager.shared.client.database
+                    .from("favourite")
+                    .select()
+                    .eq("user_id", value: currentUserId)
+                    .eq("service_name", value: serviceName)
+                    .execute()
+                    .value
+                
+                await MainActor.run {
+                    if let favourite = response.first {
+                        isFavourite = true
+                        favouriteId = favourite.id
+                    } else {
+                        isFavourite = false
+                        favouriteId = nil
+                    }
+                    updateFavouriteButtonAppearance()
+                }
+            } catch {
+                print("Error checking favourite: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Update Favourite Button Appearance
+    
+    private func updateFavouriteButtonAppearance() {
+        if isFavourite {
+            favouriteBTN.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+            favouriteBTN.tintColor = .systemRed
+        } else {
+            favouriteBTN.setImage(UIImage(systemName: "heart"), for: .normal)
+            favouriteBTN.tintColor = .gray
+        }
+    }
+    
+    // MARK: - Favourite Button Action
+    
+    @IBAction func favouriteButtonTapped(_ sender: UIButton) {
+        if isFavourite {
+            removeFromFavourites()
+        } else {
+            addToFavourites()
+        }
+    }
+    
+    // MARK: - Add to Favourites
+    
+    private func addToFavourites() {
+        Task {
+            do {
+                let request = CreateFavouriteRequest(
+                    service_name: serviceName,
+                    provider_name: providerName,
+                    rate: String(format: "%.0f", servicePrice),
+                    user_id: currentUserId,
+                    service_image: serviceImageURL
+                )
+                
+                let response: FavouriteData = try await SupabaseClientManager.shared.client.database
+                    .from("favourite")
+                    .insert(request)
+                    .select()
+                    .single()
+                    .execute()
+                    .value
+                
+                await MainActor.run {
+                    isFavourite = true
+                    favouriteId = response.id
+                    updateFavouriteButtonAppearance()
+                    delegate?.showToast(message: "Added to favourites ❤️")
+                }
+            } catch {
+                print("Error adding to favourites: \(error)")
+                await MainActor.run {
+                    delegate?.showToast(message: "Failed to add to favourites")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Remove from Favourites
+    
+    private func removeFromFavourites() {
+        guard let favouriteId = favouriteId else { return }
+        
+        Task {
+            do {
+                try await SupabaseClientManager.shared.client.database
+                    .from("favourite")
+                    .delete()
+                    .eq("id", value: String(favouriteId))
+                    .execute()
+                
+                await MainActor.run {
+                    self.isFavourite = false
+                    self.favouriteId = nil
+                    updateFavouriteButtonAppearance()
+                    delegate?.showToast(message: "Removed from favourites")
+                }
+            } catch {
+                print("Error removing from favourites: \(error)")
+                await MainActor.run {
+                    delegate?.showToast(message: "Failed to remove from favourites")
+                }
+            }
         }
     }
     
@@ -148,4 +287,24 @@ class HistoryCell: UITableViewCell {
     @IBAction func feedbackButtonTapped(_ sender: UIButton) {
         delegate?.didTapFeedbackButton(bookingId: bookingId, serviceId: serviceId, serviceName: serviceName)
     }
+}
+
+// MARK: - Favourite Data Structs
+
+struct FavouriteData: Decodable {
+    let id: Int64
+    let created_at: String?
+    let service_name: String?
+    let provider_name: String?
+    let rate: String?
+    let user_id: String?
+    let service_image: String?
+}
+
+struct CreateFavouriteRequest: Encodable {
+    let service_name: String
+    let provider_name: String
+    let rate: String?
+    let user_id: String
+    let service_image: String?
 }
