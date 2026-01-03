@@ -305,6 +305,12 @@ final class AdminProviderDetailsViewController: UIViewController {
                 .eq("id", value: serviceId)
                 .execute()
 
+            await AdminLogService.shared.log(
+                action: "Assigned service to provider",
+                targetUserId: providerId,
+                metadata: ["service_id": serviceId]
+            )
+
             await loadServices(providerId: providerId)
             await syncUserServicesColumn(providerId: providerId)
         } catch {
@@ -320,6 +326,12 @@ final class AdminProviderDetailsViewController: UIViewController {
                 .update(UpdateServiceUserRequest(user_id: nil))
                 .eq("id", value: serviceId)
                 .execute()
+
+            await AdminLogService.shared.log(
+                action: "Unassigned service from provider",
+                targetUserId: providerId,
+                metadata: ["service_id": serviceId]
+            )
 
             await loadServices(providerId: providerId)
             await syncUserServicesColumn(providerId: providerId)
@@ -341,6 +353,12 @@ final class AdminProviderDetailsViewController: UIViewController {
                 .from("services")
                 .insert(payload)
                 .execute()
+
+            await AdminLogService.shared.log(
+                action: "Created service for provider",
+                targetUserId: providerId,
+                metadata: ["service_name": name]
+            )
 
             await loadServices(providerId: providerId)
             await syncUserServicesColumn(providerId: providerId)
@@ -644,6 +662,14 @@ final class AdminProviderDetailsViewController: UIViewController {
                     options: FunctionInvokeOptions(body: payload)
                 )
             print("✅ Password updated: \(response.ok)")
+
+            if response.ok {
+                await AdminLogService.shared.log(
+                    action: "Updated provider password",
+                    targetUserId: providerId,
+                    metadata: nil
+                )
+            }
         } catch {
             print("❌ Failed to update password via edge function: \(error)")
         }
@@ -657,6 +683,12 @@ final class AdminProviderDetailsViewController: UIViewController {
                 .update(["status": newStatus])
                 .eq("id", value: providerId)
                 .execute()
+
+            await AdminLogService.shared.log(
+                action: (newStatus.lowercased() == "suspended") ? "Suspended provider" : "Unsuspended provider",
+                targetUserId: providerId,
+                metadata: ["status": newStatus]
+            )
 
             await loadProvider(providerId: providerId)
             await MainActor.run {

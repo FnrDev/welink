@@ -304,6 +304,11 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                     try await self.updateApplicationStatus(id: item.applicationId, status: "accepted")
                     try await self.updateUserRole(userId: item.userId, role: "provider")
                     try await self.updateProviderStatus(userId: item.userId, status: "active")
+                    await AdminLogService.shared.log(
+                        action: "Approved provider application",
+                        targetUserId: item.userId,
+                        metadata: ["application_id": String(item.applicationId)]
+                    )
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(selectedIndex) else { return }
                         self.providerRequests.remove(at: selectedIndex)
@@ -321,6 +326,11 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                     try await self.updateApplicationStatus(id: item.applicationId, status: "rejected")
                     try await self.updateUserRole(userId: item.userId, role: "seeker")
                     try await self.updateProviderStatus(userId: item.userId, status: "active")
+                    await AdminLogService.shared.log(
+                        action: "Rejected provider application",
+                        targetUserId: item.userId,
+                        metadata: ["application_id": String(item.applicationId)]
+                    )
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(selectedIndex) else { return }
                         self.providerRequests.remove(at: selectedIndex)
@@ -349,6 +359,11 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                 try await self.updateApplicationStatus(id: item.applicationId, status: "accepted")
                 try await self.updateUserRole(userId: item.userId, role: "provider")
                 try await self.updateProviderStatus(userId: item.userId, status: "active")
+                await AdminLogService.shared.log(
+                    action: "Approved provider application",
+                    targetUserId: item.userId,
+                    metadata: ["application_id": String(item.applicationId)]
+                )
                 await MainActor.run {
                     self.providerRequests.remove(at: index)
                     self.providerRequestsTableView.reloadData()
@@ -380,6 +395,11 @@ class AdminDashboardViewController: UIViewController, UITableViewDataSource, UIT
                     try await self.updateApplicationStatus(id: item.applicationId, status: "rejected")
                     try await self.updateUserRole(userId: item.userId, role: "seeker")
                     try await self.updateProviderStatus(userId: item.userId, status: "active")
+                    await AdminLogService.shared.log(
+                        action: "Rejected provider application",
+                        targetUserId: item.userId,
+                        metadata: ["application_id": String(item.applicationId)]
+                    )
                     await MainActor.run {
                         guard self.providerRequests.indices.contains(index) else { return }
                         self.providerRequests.remove(at: index)
