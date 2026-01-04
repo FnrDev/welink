@@ -430,15 +430,7 @@ private final class ServiceCardView: UIView {
         textStack.spacing = 4
         textStack.alignment = .leading
 
-        let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
-        chevron.translatesAutoresizingMaskIntoConstraints = false
-        chevron.tintColor = UIColor.systemGray
-        NSLayoutConstraint.activate([
-            chevron.widthAnchor.constraint(equalToConstant: 12),
-            chevron.heightAnchor.constraint(equalToConstant: 18)
-        ])
-
-        let row = UIStackView(arrangedSubviews: [avatarView, textStack, UIView(), chevron])
+        let row = UIStackView(arrangedSubviews: [avatarView, textStack, UIView()])
         row.translatesAutoresizingMaskIntoConstraints = false
         row.axis = .horizontal
         row.spacing = 12
